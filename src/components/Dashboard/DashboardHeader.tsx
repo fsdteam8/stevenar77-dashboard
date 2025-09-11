@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -8,7 +8,7 @@ export default function DashboardHeader() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="w-full bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
+    <header className="w-full h-[100px] bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
       {/* Left: Logo + Sidebar Toggle */}
       <div className="flex items-center gap-3">
         {/* Mobile menu button */}
@@ -21,21 +21,19 @@ export default function DashboardHeader() {
 
         {/* Logo / Title */}
         <div className="flex flex-col ">
-
-        <h1 className="text-xl text-primary font-bold  ">My Dashboard</h1>
-        <p className="text-sm text-gray-400">Welcome back! Here&apos;s what&apos;s happening with your app today.</p>
+          <h1 className="text-xl text-primary font-bold  ">My Dashboard</h1>
+          <p className="!text-sm text-gray-400">
+            Welcome back! Here&apos;s what&apos;s happening with your app today.
+          </p>
         </div>
       </div>
 
-      
-
       {/* Right: Icons + User */}
       <div className="flex items-center gap-4">
-        
         {/* User avatar */}
         <div className="flex items-center  gap-2 cursor-pointer">
           <Image
-            src="/images/logo.png"
+            src="/images/profile-mini.jpg"
             alt="User"
             height={40}
             width={40}
