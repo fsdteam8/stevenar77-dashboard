@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Clock, MapPin, Users, Star } from "lucide-react";
+import { Clock, MapPin,  Star } from "lucide-react";
 import Image from "next/image";
 
 type CourseCardProps = {
@@ -36,8 +36,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   ],
   price = "450",
   ageRestriction = "Age 12+",
-  onSeeMore,
-  onBookNow,
+ 
 }) => {
   return (
     <section className="max-w-md mx-auto">

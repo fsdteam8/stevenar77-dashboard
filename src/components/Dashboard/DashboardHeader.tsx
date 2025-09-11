@@ -1,12 +1,48 @@
 "use client";
 
-import { Menu } from "lucide-react";
-import Image from "next/image";
+import { KeyIcon, LogOut, Menu, User2Icon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { Button } from "../ui/button";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
+import { signOut } from "next-auth/react";
 
 export default function DashboardHeader() {
-  const [open, setOpen] = useState(false);
+  // Sidebar open state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Logout dialog open state
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+
+  // Dummy user data for demonstration — replace with your actual user fetching logic
+  const user = {
+    firstName: "Olivia",
+    lastName: "Rhye",
+    email: "olivia@example.com",
+    avatar: {
+      url: "/images/profile-mini.jpg",
+    },
+  };
+
+  // Logout handler
+  const handleLogout = () => {
+    signOut();
+    setLogoutDialogOpen(false);
+  };
 
   return (
     <header className="w-full h-[100px] bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
@@ -14,8 +50,9 @@ export default function DashboardHeader() {
       <div className="flex items-center gap-3">
         {/* Mobile menu button */}
         <button
-          onClick={() => setOpen(!open)}
+          onClick={() => setSidebarOpen(!sidebarOpen)}
           className="lg:hidden p-2 rounded-md border hover:bg-gray-100"
+          aria-label="Toggle sidebar"
         >
           <Menu size={22} />
         </button>
@@ -29,23 +66,87 @@ export default function DashboardHeader() {
         </div>
       </div>
 
-      {/* Right: Icons + User */}
+      {/* Right: User Profile Dropdown */}
       <div className="flex items-center gap-4">
-        {/* User avatar */}
-        <div className="flex items-center  gap-2 cursor-pointer">
-          <Link href={"/"}></Link>
-          <Image
-            src="/images/profile-mini.jpg"
-            alt="User"
-            height={40}
-            width={40}
-            className=" rounded-full border"
-          />
-          {/* <span className="hidden md:block font-medium text-gray-700">
-            John Doe
-          </span> */}
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="flex items-center gap-3 px-3 cursor-pointer"
+            >
+              <Avatar className="h-8 w-8 cursor-pointer">
+                <AvatarImage
+                  src={user?.avatar?.url || "/images/profile-mini.jpg"}
+                  alt={`${user?.firstName} ${user?.lastName}`}
+                />
+                <AvatarFallback className="cursor-pointer">
+                  {user?.firstName?.charAt(0)}
+                  {user?.lastName?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="text-left cursor-pointer">
+                <p className="text-sm font-medium">
+                  {user?.firstName} {user?.lastName}
+                </p>
+                <p className="text-xs text-gray-600">{user?.email}</p>
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end" className="cursor-pointer">
+            <Link href="/profile" passHref legacyBehavior>
+              <DropdownMenuItem className="cursor-pointer">
+                <User2Icon /> Profile
+              </DropdownMenuItem>
+            </Link>
+            <Link href="/profile/changePassword" passHref legacyBehavior>
+              <DropdownMenuItem className="cursor-pointer">
+                <KeyIcon /> Change Password
+              </DropdownMenuItem>
+            </Link>
+
+            {/* Logout triggers dialog open */}
+            <DropdownMenuItem
+              className="cursor-pointer text-[#e5102e] hover:bg-[#feecee] hover:text-[#e5102e]"
+              onClick={() => setLogoutDialogOpen(true)}
+            >
+              <LogOut /> Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+        <DialogTrigger asChild>
+          {/* Hidden button, dialog is opened from dropdown above */}
+          <button style={{ display: "none" }} aria-hidden="true"></button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Logout</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to log out?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-2">
+            <Button
+              className="cursor-pointer"
+              variant="outline"
+              onClick={() => setLogoutDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="cursor-pointer"
+              variant="destructive"
+              onClick={handleLogout}
+            >
+              Log Out
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }

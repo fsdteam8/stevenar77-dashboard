@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { CalendarFilters } from "./calendar-filters"
 import { CalendarHeader } from "./calendar-header"
 import { CalendarGrid } from "./calendar-grid"
 import { Button } from "@/components/ui/button"

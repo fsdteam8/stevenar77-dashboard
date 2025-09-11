@@ -216,7 +216,7 @@ const CourseManageTable = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
-            {paginatedData.map((course, index) => (
+            {paginatedData.map((course) => (
               <tr
                 key={course.id}
                 className="hover:bg-gray-50 transition-colors"

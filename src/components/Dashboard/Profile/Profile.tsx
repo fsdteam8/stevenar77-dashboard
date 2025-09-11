@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
-import {
-  ChevronLeftIcon,
-  PencilLine,
-} from "lucide-react";
+import { ChevronLeftIcon, PencilLine } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 
 const Profile = () => {
@@ -44,12 +42,16 @@ const Profile = () => {
             </div>
           </div>
           <div className="flex gap-3">
-            <Button className="bg-transparent border text-primary hover:text-white border-primary ">
-              Change Password
-            </Button>
-            <Button className="bg-primary hover:bg-teal-700 border-teal-600 hover:border-teal-700 flex items-center gap-2">
-              <PencilLine /> Update Profile
-            </Button>
+            <Link href={"/profile/changePassword"}>
+              <Button className="bg-transparent border text-primary hover:text-white border-primary ">
+                Change Password
+              </Button>
+            </Link>
+            <Link href={"/profile/updateProfile"}>
+              <Button className="bg-primary hover:bg-teal-700 border-teal-600 hover:border-teal-700 flex items-center gap-2">
+                <PencilLine /> Update Profile
+              </Button>
+            </Link>
           </div>
         </div>
         <div>
@@ -73,7 +75,9 @@ const Profile = () => {
                   <p className="text-gray-900">{user.userName}</p>
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-1">Email</h4>
+                  <h4 className="text-sm font-medium text-gray-700 mb-1">
+                    Email
+                  </h4>
                   <p className="text-gray-900">{user.email}</p>
                 </div>
                 <div>
@@ -83,7 +87,9 @@ const Profile = () => {
                   <p className="text-gray-900">{user.phone}</p>
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-1">Gender</h4>
+                  <h4 className="text-sm font-medium text-gray-700 mb-1">
+                    Gender
+                  </h4>
                   <p className="text-gray-900">{user.gender}</p>
                 </div>
                 <div>
@@ -93,7 +99,9 @@ const Profile = () => {
                   <p className="text-gray-900">{formattedDob}</p>
                 </div>
                 <div className="md:col-span-2">
-                  <h4 className="text-sm font-medium text-gray-700 mb-1">Address</h4>
+                  <h4 className="text-sm font-medium text-gray-700 mb-1">
+                    Address
+                  </h4>
                   <p className="text-gray-900">{user.address}</p>
                 </div>
               </div>

@@ -47,7 +47,7 @@ export default function DashboardSidebar() {
           
           <Image
             src="/images/logo.png"
-            alt="This is Alhub Logo"
+            alt="This is Stevenarr Logo"
             width={64}
             height={64}
           />
