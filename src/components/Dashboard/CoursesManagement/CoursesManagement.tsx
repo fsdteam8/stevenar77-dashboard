@@ -4,6 +4,7 @@ import CourseManageTable from "../Table/CourseManageTable";
 import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function CoursesManagement() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,18 +24,18 @@ export default function CoursesManagement() {
             />
           </div>
           <div className=" max-w-65">
-            <Button>
-              <Plus /> Add Course
-            </Button>
+            <Link href="/courses-management/add/">
+              <Button className="cursor-pointer">
+                <Plus /> Add Course
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
       <div className="">
         <CourseManageTable />
       </div>
-      <div className="">
-        
-      </div>
+      <div className=""></div>
     </div>
   );
 }

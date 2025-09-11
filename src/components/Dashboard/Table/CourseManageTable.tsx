@@ -2,6 +2,14 @@
 import React, { useState } from "react";
 import { Eye, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import CourseCard from "../Card/CourseCard"; // Adjust path as needed
+import DeleteAlertDialog from "../Card/DeleteCard";
 
 export type Course = {
   id: string;
@@ -117,14 +125,51 @@ const data: Course[] = [
 
 const CourseManageTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const itemsPerPage = 10;
 
   const handleView = (course: Course) => {
-    console.log("View course:", course.id);
+    setSelectedCourse(course);
+    setIsModalOpen(true);
   };
 
   const handleDelete = (course: Course) => {
     console.log("Delete course:", course.id);
+  };
+
+  const handleSeeMore = () => {
+    console.log('See more clicked for course:', selectedCourse?.id);
+    // Add your logic here
+  };
+
+  const handleBookNow = () => {
+    console.log('Book now clicked for course:', selectedCourse?.id);
+    // Add your booking logic here
+    // Optionally close modal after booking
+    // setIsModalOpen(false);
+  };
+
+  // Convert Course data to CourseCard format
+  const getCourseCardData = (course: Course) => {
+    return {
+      image: "/api/placeholder/400/240", // Default image or map based on course name
+      title: course.name,
+      description: `${course.duration} course taught by ${course.instructor}. Perfect for ${course.level.toLowerCase()} level divers.`,
+      rating: 4.8,
+      reviews: 32,
+      duration: course.duration,
+      maxDepth: course.level === "Advanced" ? "Max 100 feet" : course.level === "Intermediate" ? "Max 60 feet" : "Max 40 feet",
+      ageRestriction: course.level === "Advanced" ? "Age 18+" : course.level === "Intermediate" ? "Age 16+" : "Age 12+",
+      features: [
+        "Professional instruction",
+        "Equipment included",
+        "Certification upon completion",
+        "Small group sessions"
+      ],
+      price: course.price.toString(),
+      location: "Dive Center"
+    };
   };
 
   const getLevelBadgeStyle = (level: Course["level"]) => {
@@ -213,18 +258,26 @@ const CourseManageTable = () => {
                   <div className="flex items-center gap-2">
                     <Button
                       onClick={() => handleView(course)}
-                      className="p-1 text-primary bg-transparent  rounded hover:bg-gray-200 cursor-pointer"
+                      className="p-1 text-primary bg-transparent rounded hover:bg-gray-200 cursor-pointer"
                       title="View course"
                     >
                       <Eye className="w-4 h-4" />
                     </Button>
-                    <Button
-                      onClick={() => handleDelete(course)}
-                      className="p-1 text-red-600 bg-transparent  rounded  hover:bg-gray-200 cursor-pointer"
-                      title="Delete course"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    
+                    <DeleteAlertDialog
+                      trigger={
+                        <Button
+                          className="p-1 text-red-600 bg-transparent rounded hover:bg-gray-200 cursor-pointer"
+                          title="Delete course"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      }
+                      title="Delete Course"
+                      itemName={course.name}
+                      onConfirm={() => handleDelete(course)}
+                      actionText="Delete Course"
+                    />
                   </div>
                 </td>
               </tr>
@@ -266,6 +319,27 @@ const CourseManageTable = () => {
           </Button>
         </div>
       )}
+
+      {/* Course Detail Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-lg mx-auto max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-gray-900">
+              Course Details
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedCourse && (
+            <div className="mt-4">
+              <CourseCard
+                {...getCourseCardData(selectedCourse)}
+                onSeeMore={handleSeeMore}
+                onBookNow={handleBookNow}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
