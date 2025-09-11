@@ -1,6 +1,7 @@
 "use client"
 import React, { useState } from "react"
 import { ArrowUpDown, Eye } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export type Payment = {
   id: string
@@ -250,13 +251,13 @@ const PaymentTable = () => {
                   {payment.date}
                 </td>
                 <td className="px-6 py-4">
-                  <button
+                  <Button
                     onClick={() => handleViewDetails(payment)}
-                    className="p-1 text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded transition-colors"
+                    className="p-1 text-teal-600 hover:text-teal-700 hover:bg-gray-200 rounded bg-transparent"
                     title="View payment details"
                   >
                     <Eye className="w-4 h-4" />
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}

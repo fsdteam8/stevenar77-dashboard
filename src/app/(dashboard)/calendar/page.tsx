@@ -1,10 +1,11 @@
-import Calendar from '@/components/Dashboard/Calendar/Calendar'
+
+import AvailableSessionsPage from '@/components/Dashboard/Calendar/ScheduleCalender'
 import React from 'react'
 
 export default function page() {
   return (
     <div>
-        <Calendar />
+        <AvailableSessionsPage />
     </div>
   )
 }
