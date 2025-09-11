@@ -1,63 +1,124 @@
 "use client";
-
-import { useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
-  Users,
-  Settings,
+  Calendar,
+  NotebookText,
+  CircleDollarSign,
+  Ship,
+  ShoppingCart,
   LogOut,
-  Menu,
-  X,
-} from "lucide-react";
+  HardDrive,
+} from "lucide-react"; 
+import { useState } from "react";
+ 
+import { signOut } from "next-auth/react";
+import Image from "next/image";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import { Button } from "../ui/button";
+
+const navigation = [
+  { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "Courses Management", href: "/courses-management", icon: HardDrive },
+  { name: "Bookings", href: "/bookings", icon: NotebookText },
+  { name: "Calendar", href: "/calendar", icon: Calendar },
+  { name: "Payments", href: "/payments", icon: CircleDollarSign },
+  { name: "Trips", href: "/trips", icon: Ship },
+  { name: "Shop", href: "/shop", icon: ShoppingCart },
+];
 
 export default function DashboardSidebar() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const pathname = usePathname(); // 👉 বর্তমান path ধরার জন্য
 
-  const menuItems = [
-    { name: "Dashboard", icon: <LayoutDashboard size={20} />, href: "/dashboard" },
-    { name: "Users", icon: <Users size={20} />, href: "/users" },
-    { name: "Settings", icon: <Settings size={20} />, href: "/settings" },
-    { name: "Logout", icon: <LogOut size={20} />, href: "/logout" },
-  ];
+  const handleLogout = () => {
+    // NextAuth signOut with redirect to login page
+    signOut({ callbackUrl: "/login" });
+    setOpen(false);
+  };
 
   return (
-    <div className="flex">
-      {/* Mobile toggle button */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="lg:hidden p-2 m-2 rounded-md border"
-      >
-        {open ? <X size={24} /> : <Menu size={24} />}
-      </button>
+    <div className="flex h-min-screen w-64 flex-col   bg-white border-r border-gray-200">
+      {/* Logo */}
+      <div className="flex  items-center py-5 justify-center px-6">
+        <Link href="/" className="flex items-center ">
+          
+          <Image
+            src="/images/logo.png"
+            alt="This is Stevenarr Logo"
+            width={64}
+            height={64}
+          />
+        </Link>
+      </div>
 
-      {/* Sidebar */}
-      <aside
-        className={`fixed lg:static top-0 left-0 h-full bg-gray-900 text-white w-64 p-4 transition-transform duration-300 z-50
-          ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-        `}
-      >
-        <h2 className="text-xl font-bold mb-6">My Dashboard</h2>
-        <nav className="space-y-2">
-          {menuItems.map((item, i) => {
-            const isActive = pathname === item.href; // 👉 active check
+      {/* Navigation */}
+      <nav className="flex-1 space-y-6 px-3 py-4">
+        {navigation.map((item) => {
+          // Active logic
+          const isActive =
+            item.href === "/"
+              ? pathname === "/"
+              : pathname?.startsWith(item.href);
 
-            return (
-              <a
-                key={i}
-                href={item.href}
-                className={`flex items-center gap-3 p-2 rounded-md transition 
-                  ${isActive ? "bg-indigo-600 text-white" : "hover:bg-gray-700"}
-                `}
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 rounded-lg p-3 text-base leading-[150%] tracking-[0%] font-semibold transition-colors",
+                isActive
+                  ? "bg-primary text-white"
+                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              )}
+            >
+              <item.icon className="h-5 w-5" />
+              {item.name}
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Logout */}
+      <div className="border-t border-gray-200 p-3">
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button 
+              variant="ghost"
+              className="w-full justify-start gap-3 h-12 px-4 cursor-pointer rounded-lg font-medium text-[#e5102e] hover:bg-[#feecee] hover:text-[#e5102e] transition-all duration-200"
+            >
+              <LogOut className="h-5 w-5" />
+              Log Out
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Confirm Logout</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to log out?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="flex justify-end gap-2">
+              <Button
+                className="cursor-pointer"
+                variant="outline"
+                onClick={() => setOpen(false)}
               >
-                {item.icon}
-                <span>{item.name}</span>
-              </a>
-            );
-          })}
-        </nav>
-      </aside>
+                Cancel
+              </Button>
+              <Button
+                className="cursor-pointer"
+                variant="destructive"
+                onClick={handleLogout}
+              >
+                Log Out
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

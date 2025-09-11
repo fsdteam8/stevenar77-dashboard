@@ -1,57 +1,152 @@
 "use client";
 
-import { Bell, Menu } from "lucide-react";
-import Image from "next/image";
+import { KeyIcon, LogOut, Menu, User2Icon } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { Button } from "../ui/button";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
+import { signOut } from "next-auth/react";
 
 export default function DashboardHeader() {
-  const [open, setOpen] = useState(false);
+  // Sidebar open state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Logout dialog open state
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+
+  // Dummy user data for demonstration — replace with your actual user fetching logic
+  const user = {
+    firstName: "Olivia",
+    lastName: "Rhye",
+    email: "olivia@example.com",
+    avatar: {
+      url: "/images/profile-mini.jpg",
+    },
+  };
+
+  // Logout handler
+  const handleLogout = () => {
+    signOut();
+    setLogoutDialogOpen(false);
+  };
 
   return (
-    <header className="w-full bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
+    <header className="w-full h-[100px] bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
       {/* Left: Logo + Sidebar Toggle */}
       <div className="flex items-center gap-3">
         {/* Mobile menu button */}
         <button
-          onClick={() => setOpen(!open)}
+          onClick={() => setSidebarOpen(!sidebarOpen)}
           className="lg:hidden p-2 rounded-md border hover:bg-gray-100"
+          aria-label="Toggle sidebar"
         >
           <Menu size={22} />
         </button>
 
         {/* Logo / Title */}
-        <h1 className="text-xl font-bold text-gray-800">My Dashboard</h1>
-      </div>
-
-      {/* Center: Search bar (hidden on mobile) */}
-      <div className="hidden md:flex flex-1 max-w-md mx-6">
-        <input
-          type="text"
-          placeholder="Search..."
-          className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-      </div>
-
-      {/* Right: Icons + User */}
-      <div className="flex items-center gap-4">
-        {/* Notification */}
-        <button className="relative p-2 hover:bg-gray-100 rounded-full">
-          <Bell size={22} />
-          <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-        </button>
-
-        {/* User avatar */}
-        <div className="flex items-center gap-2 cursor-pointer">
-          <Image
-            src=""
-            alt="User"
-            className="h-9 w-9 rounded-full border"
-          />
-          <span className="hidden md:block font-medium text-gray-700">
-            John Doe
-          </span>
+        <div className="flex flex-col ">
+          <h1 className="text-xl text-primary font-bold  ">My Dashboard</h1>
+          <p className="!text-sm text-gray-400">
+            Welcome back! Here&apos;s what&apos;s happening with your app today.
+          </p>
         </div>
       </div>
+
+      {/* Right: User Profile Dropdown */}
+      <div className="flex items-center gap-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="flex items-center gap-3 px-3 cursor-pointer"
+            >
+              <Avatar className="h-8 w-8 cursor-pointer">
+                <AvatarImage
+                  src={user?.avatar?.url || "/images/profile-mini.jpg"}
+                  alt={`${user?.firstName} ${user?.lastName}`}
+                />
+                <AvatarFallback className="cursor-pointer">
+                  {user?.firstName?.charAt(0)}
+                  {user?.lastName?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="text-left cursor-pointer">
+                <p className="text-sm font-medium">
+                  {user?.firstName} {user?.lastName}
+                </p>
+                <p className="text-xs text-gray-600">{user?.email}</p>
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent align="end" className="cursor-pointer">
+            <Link href="/profile" passHref legacyBehavior>
+              <DropdownMenuItem className="cursor-pointer">
+                <User2Icon /> Profile
+              </DropdownMenuItem>
+            </Link>
+            <Link href="/profile/changePassword" passHref legacyBehavior>
+              <DropdownMenuItem className="cursor-pointer">
+                <KeyIcon /> Change Password
+              </DropdownMenuItem>
+            </Link>
+
+            {/* Logout triggers dialog open */}
+            <DropdownMenuItem
+              className="cursor-pointer text-[#e5102e] hover:bg-[#feecee] hover:text-[#e5102e]"
+              onClick={() => setLogoutDialogOpen(true)}
+            >
+              <LogOut /> Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+        <DialogTrigger asChild>
+          {/* Hidden button, dialog is opened from dropdown above */}
+          <button style={{ display: "none" }} aria-hidden="true"></button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Logout</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to log out?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-2">
+            <Button
+              className="cursor-pointer"
+              variant="outline"
+              onClick={() => setLogoutDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="cursor-pointer"
+              variant="destructive"
+              onClick={handleLogout}
+            >
+              Log Out
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }
