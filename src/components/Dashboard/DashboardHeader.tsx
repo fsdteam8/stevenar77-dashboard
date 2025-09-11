@@ -2,6 +2,7 @@
 
 import { Menu } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function DashboardHeader() {
@@ -32,6 +33,7 @@ export default function DashboardHeader() {
       <div className="flex items-center gap-4">
         {/* User avatar */}
         <div className="flex items-center  gap-2 cursor-pointer">
+          <Link href={"/"}></Link>
           <Image
             src="/images/profile-mini.jpg"
             alt="User"

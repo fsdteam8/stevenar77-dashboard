@@ -1,17 +1,17 @@
-"use client"
-import React, { useState } from 'react'
-import TripTable from '../Table/TripTable'
-import { Plus, Search } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button';
+"use client";
+import React, { useState } from "react";
+import TripTable from "../Table/TripTable";
+import { Plus, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function Trips() {
-
   const [searchTerm, setSearchTerm] = useState("");
 
   return (
     <div>
-        <div className="">
+      <div className="">
         {/* Search and Sort */}
         <div className="flex flex-col justify-between w-full sm:flex-row gap-4 mb-6">
           <div className="relative flex-1 max-w-65">
@@ -24,15 +24,17 @@ export default function Trips() {
             />
           </div>
           <div className=" max-w-65">
-            <Button>
-              <Plus /> Add Trip 
-            </Button>
+            <Link href="/trips/add">
+              <Button>
+                <Plus /> Add Trip
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
-        <div className="">
-          <TripTable />
-        </div>
+      <div className="">
+        <TripTable />
+      </div>
     </div>
-  )
+  );
 }
