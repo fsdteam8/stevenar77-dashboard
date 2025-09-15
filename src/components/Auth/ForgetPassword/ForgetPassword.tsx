@@ -8,7 +8,7 @@ import {
   Form,
   FormControl,
   FormField,
-  FormItem,
+  FormItem, 
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
@@ -26,7 +26,7 @@ export default function ForgetPassword() {
   const form = useForm<ForgotFormValues>({
     resolver: zodResolver(forgotSchema),
     defaultValues: {
-      email: "",
+      email: "", 
     },
   });
 

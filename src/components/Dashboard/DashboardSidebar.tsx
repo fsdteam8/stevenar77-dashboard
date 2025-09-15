@@ -21,7 +21,7 @@ import { Button } from "../ui/button";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Courses Management", href: "/courses-management", icon: HardDrive },
+  { name: "Courses", href: "/courses-management", icon: HardDrive },
   { name: "Bookings", href: "/bookings", icon: NotebookText },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Payments", href: "/payments", icon: CircleDollarSign },

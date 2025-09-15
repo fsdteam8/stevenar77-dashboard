@@ -8,186 +8,85 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import CourseCard from "../Card/CourseCard"; // Adjust path as needed
+import CourseCard from "../Card/CourseCard";
 import DeleteAlertDialog from "../Card/DeleteCard";
+import { useCourses } from "@/hooks/useCourses";
 
-export type Course = {
-  id: string;
-  name: string;
-  duration: string;
-  level: "Beginner" | "Intermediate" | "Advanced";
+type ApiCourse = {
+  _id: string;
+  title: string;
+  images?: { url: string }[];
+  shortDescription: string;
+  courseLevel: "beginner" | "intermediate" | "advanced";
+  features: string[];
   price: number;
-  instructor: string;
-  date: string;
+  longDescription: string;
+  courseDate: string;
+  location: string;
+  requiredAge: number;
+  maxDepth: number;
+  courseDuration: string;
+  avgRating?: number;
+  totalReviews?: number;
 };
-
-const data: Course[] = [
-  {
-    id: "1",
-    name: "Open Water Dive",
-    duration: "4 days",
-    level: "Intermediate",
-    price: 250,
-    instructor: "Cristofer Curtis",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "2",
-    name: "Open Water Dive",
-    duration: "4 days",
-    level: "Beginner",
-    price: 250,
-    instructor: "Sarah Jonson's",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "3",
-    name: "Open Water Dive",
-    duration: "4 days",
-    level: "Intermediate",
-    price: 250,
-    instructor: "Brandon Dorwart",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "4",
-    name: "Open Water Dive",
-    duration: "4 days",
-    level: "Advanced",
-    price: 250,
-    instructor: "Sarah Jonson's",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "5",
-    name: "Open Water Dive",
-    duration: "4 days",
-    level: "Beginner",
-    price: 250,
-    instructor: "Sarah Jonson's",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "6",
-    name: "Open Water Dive",
-    duration: "4 days",
-    level: "Intermediate",
-    price: 250,
-    instructor: "Alfonso Calzoni",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "7",
-    name: "Open Water Dive",
-    duration: "4 days",
-    level: "Advanced",
-    price: 250,
-    instructor: "Sarah Jonson's",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "8",
-    name: "Open Water Dive",
-    duration: "4 days",
-    level: "Beginner",
-    price: 250,
-    instructor: "Sarah Jonson's",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "9",
-    name: "Open Water Dive",
-    duration: "4 days",
-    level: "Advanced",
-    price: 250,
-    instructor: "Jaxson Rosser",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "10",
-    name: "Open Water Dive",
-    duration: "4 days",
-    level: "Beginner",
-    price: 250,
-    instructor: "Sarah Jonson's",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "11",
-    name: "Rescue Diver",
-    duration: "5 days",
-    level: "Advanced",
-    price: 300,
-    instructor: "Michael Scott",
-    date: "Feb 10, 2025",
-  },
-];
 
 const CourseManageTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const itemsPerPage = 10;
+  const [selectedCourse, setSelectedCourse] = useState<ApiCourse | null>(null);
 
-  const handleView = (course: Course) => {
+  const { data, isLoading, isError } = useCourses(currentPage, 10);
+
+  const courses: ApiCourse[] = data?.data || [];
+  const meta = data?.meta;
+
+  const handleView = (course: ApiCourse) => {
     setSelectedCourse(course);
     setIsModalOpen(true);
   };
 
-  const handleDelete = (course: Course) => {
-    console.log("Delete course:", course.id);
+  const handleDelete = (course: ApiCourse) => {
+    console.log("Delete course:", course._id);
   };
 
   const handleSeeMore = () => {
-    console.log('See more clicked for course:', selectedCourse?.id);
-    // Add your logic here
+    console.log("See more clicked for:", selectedCourse?._id);
   };
 
   const handleBookNow = () => {
-    console.log('Book now clicked for course:', selectedCourse?.id);
-    // Add your booking logic here
-    // Optionally close modal after booking
-    // setIsModalOpen(false);
+    console.log("Book now clicked for:", selectedCourse?._id);
   };
 
-  // Convert Course data to CourseCard format
-  const getCourseCardData = (course: Course) => {
-    return {
-      image: "/api/placeholder/400/240", // Default image or map based on course name
-      title: course.name,
-      description: `${course.duration} course taught by ${course.instructor}. Perfect for ${course.level.toLowerCase()} level divers.`,
-      rating: 4.8,
-      reviews: 32,
-      duration: course.duration,
-      maxDepth: course.level === "Advanced" ? "Max 100 feet" : course.level === "Intermediate" ? "Max 60 feet" : "Max 40 feet",
-      ageRestriction: course.level === "Advanced" ? "Age 18+" : course.level === "Intermediate" ? "Age 16+" : "Age 12+",
-      features: [
-        "Professional instruction",
-        "Equipment included",
-        "Certification upon completion",
-        "Small group sessions"
-      ],
-      price: course.price.toString(),
-      location: "Dive Center"
-    };
-  };
+  // Convert API course → CourseCard format
+  const getCourseCardData = (course: ApiCourse) => ({
+    image:
+      course.images && course.images.length > 0
+        ? course.images[0].url
+        : "/api/placeholder/400/240",
+    title: course.title,
+    description: course.shortDescription,
+    rating: course.avgRating || 4.5,
+    reviews: course.totalReviews || 10,
+    duration: course.courseDuration,
+    maxDepth: `${course.maxDepth}m`,
+    ageRestriction: `Age ${course.requiredAge}+`,
+    features: course.features,
+    price: course.price.toString(),
+    location: course.location,
+  });
 
-  const getLevelBadgeStyle = (level: Course["level"]) => {
-    switch (level) {
-      case "Beginner":
+  const getLevelBadgeStyle = (level: ApiCourse["courseLevel"]) => {
+    switch (level.toLowerCase()) {
+      case "beginner":
         return "bg-blue-100 text-blue-800 border border-blue-200";
-      case "Intermediate":
+      case "intermediate":
         return "bg-teal-100 text-teal-800 border border-teal-200";
-      case "Advanced":
+      case "advanced":
         return "bg-purple-100 text-purple-800 border border-purple-200";
       default:
         return "bg-gray-100 text-gray-800 border border-gray-200";
     }
   };
-
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = data.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="w-full bg-white">
@@ -205,7 +104,7 @@ const CourseManageTable = () => {
                 Price
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Instructor
+                Location
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Date
@@ -216,73 +115,95 @@ const CourseManageTable = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
-            {paginatedData.map((course) => (
-              <tr
-                key={course.id}
-                className="hover:bg-gray-50 transition-colors"
-              >
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded flex items-center justify-center flex-shrink-0">
-                      <div className="w-4 h-4 bg-green-600 rounded-sm"></div>
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {course.name}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {course.duration}
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getLevelBadgeStyle(
-                      course.level
-                    )}`}
-                  >
-                    {course.level}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-900">
-                  ${course.price}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  {course.instructor}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  {course.date}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => handleView(course)}
-                      className="p-1 text-primary bg-transparent rounded hover:bg-gray-200 cursor-pointer"
-                      title="View course"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    
-                    <DeleteAlertDialog
-                      trigger={
-                        <Button
-                          className="p-1 text-red-600 bg-transparent rounded hover:bg-gray-200 cursor-pointer"
-                          title="Delete course"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      }
-                      title="Delete Course"
-                      itemName={course.name}
-                      onConfirm={() => handleDelete(course)}
-                      actionText="Delete Course"
-                    />
-                  </div>
+            {isLoading && (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-6 py-12 text-center text-gray-500"
+                >
+                  Loading courses...
                 </td>
               </tr>
-            ))}
-            {paginatedData.length === 0 && (
+            )}
+
+            {isError && (
+              <tr>
+                <td colSpan={6} className="px-6 py-12 text-center text-red-500">
+                  Failed to load courses.
+                </td>
+              </tr>
+            )}
+
+            {!isLoading &&
+              !isError &&
+              courses.map((course) => (
+                <tr
+                  key={course._id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-100 rounded flex items-center justify-center flex-shrink-0">
+                        <div className="w-4 h-4 bg-green-600 rounded-sm"></div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {course.title}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {course.courseDuration}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getLevelBadgeStyle(
+                        course.courseLevel
+                      )}`}
+                    >
+                      {course.courseLevel}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    ${course.price}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {course.location}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {new Date(course.courseDate).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={() => handleView(course)}
+                        className="p-1 text-primary bg-transparent rounded hover:bg-gray-200 cursor-pointer"
+                        title="View course"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+
+                      <DeleteAlertDialog
+                        trigger={
+                          <Button
+                            className="p-1 text-red-600 bg-transparent rounded hover:bg-gray-200 cursor-pointer"
+                            title="Delete course"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        }
+                        title="Delete Course"
+                        itemName={course.title}
+                        onConfirm={() => handleDelete(course)}
+                        actionText="Delete Course"
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+
+            {!isLoading && !isError && courses.length === 0 && (
               <tr>
                 <td
                   colSpan={6}
@@ -296,7 +217,8 @@ const CourseManageTable = () => {
         </table>
       </div>
 
-      {totalPages > 1 && (
+      {/* Pagination */}
+      {meta?.totalPage > 1 && (
         <div className="flex items-center justify-end gap-2 py-4">
           <Button
             onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
@@ -306,13 +228,13 @@ const CourseManageTable = () => {
             Previous
           </Button>
           <span className="text-sm text-gray-600">
-            Page {currentPage} of {totalPages}
+            Page {currentPage} of {meta.totalPage}
           </span>
           <Button
             onClick={() =>
-              setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+              setCurrentPage((prev) => Math.min(meta.totalPage, prev + 1))
             }
-            disabled={currentPage === totalPages}
+            disabled={currentPage === meta.totalPage}
             className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next
@@ -328,7 +250,7 @@ const CourseManageTable = () => {
               Course Details
             </DialogTitle>
           </DialogHeader>
-          
+
           {selectedCourse && (
             <div className="mt-4">
               <CourseCard
