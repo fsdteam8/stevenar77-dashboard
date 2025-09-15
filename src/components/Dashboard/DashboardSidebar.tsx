@@ -8,9 +8,10 @@ import {
   NotebookText,
   CircleDollarSign,
   Ship,
-  ShoppingCart,
+  // ShoppingCart,
   LogOut,
   HardDrive,
+  MessageCircleMore,
 } from "lucide-react"; 
 import { useState } from "react";
  
@@ -26,7 +27,8 @@ const navigation = [
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Payments", href: "/payments", icon: CircleDollarSign },
   { name: "Trips", href: "/trips", icon: Ship },
-  { name: "Shop", href: "/shop", icon: ShoppingCart },
+  { name: "Messaging", href: "/messaging", icon: MessageCircleMore },
+  // { name: "Shop", href: "/shop", icon: ShoppingCart },
 ];
 
 export default function DashboardSidebar() {

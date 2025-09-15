@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Eye, SquarePen, Trash2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DeleteAlertDialog from "../Card/DeleteCard";
@@ -8,6 +8,7 @@ import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { deleteTrip } from "@/lib/api";
 import { toast } from "sonner";
+import TripsSkeleton from "../Trips/TripsSkeleton";
 
 export type Trip = {
   _id: string;
@@ -22,20 +23,15 @@ export type Trip = {
 };
 
 const TripTable = () => {
-  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 2;
+  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const itemsPerPage = 4;
 
   const { data: tripsResponse, isLoading, isError, refetch } = useTrips(currentPage, itemsPerPage);
 
   const trips: Trip[] = tripsResponse?.data || [];
-  const totalItems: number = tripsResponse?.total || 0; // total trips from backend
+  const totalItems = tripsResponse?.total || 0;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-
-  // Refetch whenever currentPage changes
-  useEffect(() => {
-    refetch?.();
-  }, [currentPage, refetch]);
 
   const handleView = (trip: Trip) => setSelectedTrip(trip);
 
@@ -50,12 +46,12 @@ const TripTable = () => {
     }
   };
 
-  if (isLoading) return <p className="text-center py-6">Loading trips...</p>;
+  if (isLoading) return <p className="text-center py-6"><TripsSkeleton /></p>;
   if (isError) return <p className="text-center py-6 text-red-500">Failed to load trips.</p>;
 
   return (
-    <div className="w-full bg-white">
-      <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+    <div className="w-full bg-white ">
+      <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm ">
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
@@ -129,34 +125,28 @@ const TripTable = () => {
         </table>
       </div>
 
-      {/* Pagination */}
-      <div className="flex justify-center items-center gap-2 mt-4">
-        <Button
-          disabled={currentPage === 1}
-          onClick={() => setCurrentPage((prev) => prev - 1)}
-          className={currentPage === 1 ? "cursor-not-allowed opacity-50" : ""}
-        >
-          Previous
-        </Button>
-
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+      {/* Pagination UI */}
+ 
+        <div className="flex items-center justify-between px-6 py-4">
           <Button
-            key={page}
-            variant={page === currentPage ? "default" : "outline"}
-            onClick={() => setCurrentPage(page)}
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            className="bg-gray-100 text-gray-700 hover:bg-gray-200"
           >
-            {page}
+            Previous
           </Button>
-        ))}
-
-        <Button
-          disabled={currentPage === totalPages || totalPages === 0}
-          onClick={() => setCurrentPage((prev) => prev + 1)}
-          className={currentPage === totalPages || totalPages === 0 ? "cursor-not-allowed opacity-50" : ""}
-        >
-          Next
-        </Button>
-      </div>
+          <span className="text-sm text-gray-600">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+          >
+            Next
+          </Button>
+        </div>
+ 
 
       {/* Modal */}
       <Dialog open={!!selectedTrip} onOpenChange={() => setSelectedTrip(null)}>

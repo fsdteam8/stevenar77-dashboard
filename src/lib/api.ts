@@ -55,9 +55,22 @@ export async function getTrips({
 export const deleteTrip = async (id: string | number) => {
   try {
     const res = await api.delete(`/trip/${id}`);
-    return res.data;  
+    return res.data;
   } catch (error) {
     console.error("Failed to delete trip:", error);
-    throw error; 
+    throw error;
+  }
+};
+
+// Single create Trip
+export const createTrip = async (tripData: FormData) => {
+  try {
+    const res = await api.post("/trip/create", tripData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Failed to create trip:", error);
+    throw error;
   }
 };
