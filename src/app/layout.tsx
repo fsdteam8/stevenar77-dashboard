@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Montserrat, Poppins } from "next/font/google";
 import "./globals.css";
+import MainProviders from "@/components/Providers/MainProviders";
+import Provider from "@/components/Providers/Provider";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,10 +21,9 @@ const montserrat = Montserrat({
 
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"], 
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-poppins",
 });
-
 
 export const metadata: Metadata = {
   title: "Dive Into Adventure",
@@ -38,7 +40,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${montserrat.variable} ${geistMono.variable} ${poppins.variable} font-poppins antialiased`}
       >
-        {children}
+        <MainProviders>
+          <Provider> {children} </Provider>
+        </MainProviders>
+        <Toaster position="top-center" richColors closeButton />
       </body>
     </html>
   );
