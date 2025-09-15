@@ -74,3 +74,29 @@ export const createTrip = async (tripData: FormData) => {
     throw error;
   }
 };
+
+// single Trip Get
+export const getSingleTrip = async (id: string) => {
+  try {
+    const res = await api.get(`/trip/${id}`);
+    return res.data;
+  } catch (error) {
+    console.error("Failed to Single trip:", error);
+    throw error;
+  }
+};
+
+// single Trip Update
+export const updateSingleTrip = async (id: string, updatedData: FormData) => {
+  try {
+    const res = await api.put(`/trip/${id}`, updatedData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Failed to update trip:", error);
+    throw error;
+  }
+};
