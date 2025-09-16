@@ -64,29 +64,7 @@ const ChangePassword: React.FC = () => {
     try {
       // Simulate API call - replace this with your actual API call later
       await new Promise<void>(resolve => setTimeout(resolve, 1500))
-      
-      // API call would go here:
-      /*
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/change-password`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          oldPassword: formData.currentPassword.trim(),
-          newPassword: formData.newPassword.trim(),
-        }),
-      })
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || "Failed to change password")
-      }
-
-      const result = await response.json()
-      */
-      
       console.log('Password change data:', {
         oldPassword: formData.currentPassword,
         newPassword: formData.newPassword
@@ -109,13 +87,6 @@ const ChangePassword: React.FC = () => {
     }
   }
 
-  // const handleDiscard = (): void => {
-  //   setFormData({
-  //     currentPassword: "",
-  //     newPassword: "",
-  //     confirmPassword: "",
-  //   })
-  // }
 
   return (
     <div className="w-full   mx-auto p-6">
