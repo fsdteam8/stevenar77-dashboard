@@ -14,15 +14,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen relative bg-gray-50">
       {/* Sidebar */}
       <DashboardSidebar />
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col ml-64">
         {/* Header */}
-        <div className="sticky top-0 z-10">
-          <DashboardHeader />
+        <div className="sticky top-0 z-10 ">
+          <DashboardHeader  />
         </div>
 
         {/* Page Content */}
