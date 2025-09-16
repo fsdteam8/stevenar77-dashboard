@@ -24,6 +24,7 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Courses", href: "/courses-management", icon: HardDrive },
   { name: "Bookings", href: "/bookings", icon: NotebookText },
+  { name: "Products", href: "/products", icon: NotebookText },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Payments", href: "/payments", icon: CircleDollarSign },
   { name: "Trips", href: "/trips", icon: Ship },

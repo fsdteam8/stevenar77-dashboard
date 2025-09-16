@@ -95,6 +95,7 @@ const TripCreateForm = () => {
     }
   };
 
+ 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto container">

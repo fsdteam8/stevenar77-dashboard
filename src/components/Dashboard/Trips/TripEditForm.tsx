@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useSingleTrip } from "@/hooks/useTrips";
 import { useParams, useRouter } from "next/navigation";
 import { updateSingleTrip } from "@/lib/api";
+import TripCreateFormSkeleton from "./TripCreateFormSkeleton";
 
 const TripEditForm = () => {
   const { id } = useParams();
@@ -125,7 +126,7 @@ const TripEditForm = () => {
     }
   };
 
-  if (isLoading) return <p className="p-6">Loading trip...</p>;
+  if (isLoading) return <p className="p-6"><TripCreateFormSkeleton /></p>;
   if (isError) return <p className="p-6 text-red-500">Failed to load trip</p>;
 
   return (
