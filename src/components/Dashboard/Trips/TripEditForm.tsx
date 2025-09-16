@@ -1,13 +1,21 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Upload, Plus, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { createTrip } from "@/lib/api";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useSingleTrip } from "@/hooks/useTrips";
+import { useParams, useRouter } from "next/navigation";
+import { updateSingleTrip } from "@/lib/api";
+import TripCreateFormSkeleton from "./TripCreateFormSkeleton";
 
-const TripCreateForm = () => {
+const TripEditForm = () => {
+  const { id } = useParams();
+
+  const { data, isLoading, isError } = useSingleTrip(id as string);
+
+  const trip = data?.data;
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -23,6 +31,26 @@ const TripCreateForm = () => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
    const router = useRouter();
+
+  // API থেকে ডাটা আসলে formData তে বসানো
+  useEffect(() => {
+    if (trip) {
+      setFormData({
+        title: trip.title || "",
+        description: trip.description || "",
+        price: trip.price?.toString() || "",
+        location: trip.location || "",
+        maximumCapacity: trip.maximumCapacity?.toString() || "",
+        startDate: trip.startDate?.split("T")[0] || "",
+        endDate: trip.endDate?.split("T")[0] || "",
+      });
+
+      //  যদি images array থাকে, প্রথমটার URL set করা
+      if (trip.images && trip.images.length > 0) {
+        setImagePreview(trip.images[0].url);
+      }
+    }
+  }, [trip]);
 
   // Input Change
   const handleInputChange = (
@@ -51,51 +79,56 @@ const TripCreateForm = () => {
     Object.entries(formData).forEach(([key, value]) => {
       if (!value) newErrors[key] = "This field is required";
     });
-    if (!imageFile) newErrors.image = "Image is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   // Reset
   const resetForm = () => {
-    setFormData({
-      title: "",
-      description: "",
-      price: "",
-      location: "",
-      maximumCapacity: "",
-      startDate: "",
-      endDate: "",
-    });
-    setImageFile(null);
-    setImagePreview(null);
-    setErrors({});
+    if (trip) {
+      setFormData({
+        title: trip.title || "",
+        description: trip.description || "",
+        price: trip.price?.toString() || "",
+        location: trip.location || "",
+        maximumCapacity: trip.maximumCapacity?.toString() || "",
+        startDate: trip.startDate?.split("T")[0] || "",
+        endDate: trip.endDate?.split("T")[0] || "",
+      });
+      setImagePreview(trip.images?.[0]?.url || null);
+      setImageFile(null);
+      setErrors({});
+    }
   };
 
-  // Save
+  // Save (update API call)
   const handleSave = async () => {
     if (!validate()) return;
 
     setLoading(true);
     try {
-      const data = new FormData();
+      const form = new FormData();
       Object.entries(formData).forEach(([key, value]) =>
-        data.append(key, value)
+        form.append(key, value)
       );
-      if (imageFile) data.append("images", imageFile);
+      if (imageFile) {
+        form.append("images", imageFile);
+      }
 
-      await createTrip(data);
-      toast.success("Trip created successfully!");
+      await updateSingleTrip(id as string, form);
 
-      resetForm();
-    } catch {
-      toast.warning("Failed to create trip. File too large.");
+      toast.success("Trip updated successfully!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update trip");
     } finally {
       setLoading(false);
     }
   };
 
- 
+  if (isLoading) return <p className="p-6"><TripCreateFormSkeleton /></p>;
+  if (isError) return <p className="p-6 text-red-500">Failed to load trip</p>;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto container">
@@ -109,9 +142,7 @@ const TripCreateForm = () => {
               Back
             </button>
           </div>
-          <h2 className="text-2xl text-teal-600 font-bold mb-8">
-            Create New Trips
-          </h2>
+          <h2 className="text-2xl text-teal-600 font-bold mb-8">Edit Trip</h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column */}
@@ -334,4 +365,4 @@ const TripCreateForm = () => {
   );
 };
 
-export default TripCreateForm;
+export default TripEditForm;

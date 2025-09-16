@@ -24,6 +24,7 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Courses", href: "/courses-management", icon: HardDrive },
   { name: "Bookings", href: "/bookings", icon: NotebookText },
+  { name: "Products", href: "/products", icon: NotebookText },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Payments", href: "/payments", icon: CircleDollarSign },
   { name: "Trips", href: "/trips", icon: Ship },
@@ -42,7 +43,7 @@ export default function DashboardSidebar() {
   };
 
   return (
-    <div className="flex h-min-screen w-64 flex-col   bg-white border-r border-gray-200">
+    <div className="flex min-h-screen w-64 flex-col   bg-white border-r border-gray-200 fixed">
       {/* Logo */}
       <div className="flex  items-center py-5 justify-center px-6">
         <Link href="/" className="flex items-center ">

@@ -5,15 +5,24 @@ import { useForm } from "react-hook-form";
 import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-// import { Loader2 } from "lucide-react";
-// import { useAuth } from "../hooks/useAuth";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function VerifyOTP() {
-  // ✅ Get email from localStorage
   const [email, setEmail] = useState<string | null>(null);
-  //   const { onVerifyOtp, loading } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const [otpValue, setOtpValue] = useState<string[]>(Array(6).fill(""));
+  const [timeLeft, setTimeLeft] = useState(60);
 
+  const searchParams = useSearchParams();
+  const token = encodeURIComponent(searchParams.get("token") || "");
+  const mode =
+    (searchParams.get("mode") as "register" | "forgot") || "register";
+
+  // Load email from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedEmail = localStorage.getItem("userEmail");
@@ -21,33 +30,20 @@ export default function VerifyOTP() {
     }
   }, []);
 
-  const form = useForm({
-    defaultValues: { otp: "" },
-  });
-
-  const [otpValue, setOtpValue] = useState<string[]>(Array(6).fill(""));
-  const [timeLeft, setTimeLeft] = useState(60);
-  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
-
   // Countdown timer
   useEffect(() => {
     if (timeLeft <= 0) return;
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
-    }, 1000);
+    const timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  const handleResend = () => {
-    if (timeLeft > 0) return;
-    console.log("Resend OTP to:", email);
-    setOtpValue(Array(6).fill(""));
-    setTimeLeft(60);
-  };
+  // React Hook Form
+  const form = useForm({ defaultValues: { otp: "" } });
 
+  // Handle OTP input change
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) => {
     const val = e.target.value.replace(/\D/, "");
     if (!val) return;
@@ -57,9 +53,10 @@ export default function VerifyOTP() {
     if (index < 5) inputRefs.current[index + 1]?.focus();
   };
 
+  // Handle backspace
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
+    index: number,
   ) => {
     if (e.key === "Backspace") {
       e.preventDefault();
@@ -69,38 +66,48 @@ export default function VerifyOTP() {
       if (index > 0) inputRefs.current[index - 1]?.focus();
     }
   };
+ 
 
   // Submit OTP
   const onSubmit = async () => {
     const otp = otpValue.join("");
     if (!otp) return toast.warning("Please enter the OTP");
+    if (!token) return toast.error("Token not found. Please try again.");
 
+    setLoading(true);
     try {
-      // ⬇️ localStorage থেকে token নেওয়া
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        toast.error("Token not found. Please register again.");
-        return;
-      }
+      const url =
+        mode === "register"
+          ? `${process.env.NEXT_PUBLIC_API_URL}/user/verify-email`
+          : `${process.env.NEXT_PUBLIC_API_URL}/auth/verify-otp`;
 
-      console.log(`Submitting OTP: ${otp} with Token: ${token}`);
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ otp }),
+      });
 
-      // OTP + Token
-      //   await onVerifyOtp({ otp }, token);
+      const result = await response.json();
+      if (!response.ok)
+        throw new Error(result.message || "Verification failed");
 
-      toast.success("OTP verified successfully!");
-
-      // সব localStorage clear
-      if (typeof window !== "undefined") {
-        localStorage.clear();
-      }
-
-      // Reset inputs
       setOtpValue(Array(6).fill(""));
       form.reset();
-    } catch (error) {
-      console.error("OTP verification failed:", error);
-      toast.error("OTP verification failed");
+      toast.success(result.message || "OTP verified successfully");
+
+      // Redirect after success
+      if (mode === "register") {
+        router.push("/login");
+      } else {
+        router.push(`/reset-password?token=${token}`);
+      }
+    } catch   {
+      toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -155,7 +162,6 @@ export default function VerifyOTP() {
             <div>
               Didn’t get a code?{" "}
               <button
-                onClick={handleResend}
                 disabled={timeLeft > 0}
                 className={`${
                   timeLeft > 0
@@ -170,17 +176,17 @@ export default function VerifyOTP() {
 
           <Button
             type="submit"
-            // disabled={loading}
+            disabled={loading}
             className="bg-[#0694A2] hover:bg-[#0c7b99] text-white h-12 w-full rounded-md text-base font-semibold shadow-md flex items-center justify-center cursor-pointer"
           >
-            {/* {loading ? (
+            {loading ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 Verifying...
               </>
             ) : (
               "Verify"
-            )} */}
+            )}
           </Button>
         </form>
       </Form>

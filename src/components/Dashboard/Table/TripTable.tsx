@@ -5,10 +5,16 @@ import { Button } from "@/components/ui/button";
 import DeleteAlertDialog from "../Card/DeleteCard";
 import { useTrips } from "@/hooks/useTrips";
 import Image from "next/image";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { deleteTrip } from "@/lib/api";
 import { toast } from "sonner";
 import TripsSkeleton from "../Trips/TripsSkeleton";
+import Link from "next/link";
 
 export type Trip = {
   _id: string;
@@ -27,7 +33,12 @@ const TripTable = () => {
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const itemsPerPage = 4;
 
-  const { data: tripsResponse, isLoading, isError, refetch } = useTrips(currentPage, itemsPerPage);
+  const {
+    data: tripsResponse,
+    isLoading,
+    isError,
+    refetch,
+  } = useTrips(currentPage, itemsPerPage);
 
   const trips: Trip[] = tripsResponse?.data || [];
   const totalItems = tripsResponse?.total || 0;
@@ -46,8 +57,16 @@ const TripTable = () => {
     }
   };
 
-  if (isLoading) return <p className="text-center py-6"><TripsSkeleton /></p>;
-  if (isError) return <p className="text-center py-6 text-red-500">Failed to load trips.</p>;
+  if (isLoading)
+    return (
+      <p className="text-center py-6">
+        <TripsSkeleton />
+      </p>
+    );
+  if (isError)
+    return (
+      <p className="text-center py-6 text-red-500">Failed to load trips.</p>
+    );
 
   return (
     <div className="w-full bg-white ">
@@ -55,16 +74,27 @@ const TripTable = () => {
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Trips</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Price</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Location</th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Action</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Trips
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Price
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Location
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
             {trips.length > 0 ? (
               trips.map((trip) => (
-                <tr key={trip._id} className="hover:bg-gray-50 transition-colors">
+                <tr
+                  key={trip._id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded overflow-hidden bg-gray-100 flex-shrink-0">
@@ -82,11 +112,17 @@ const TripTable = () => {
                           </div>
                         )}
                       </div>
-                      <span className="text-sm font-medium text-gray-900">{trip.title}</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {trip.title}
+                      </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">${trip.price}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">{trip.location}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    ${trip.price}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                    {trip.location}
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <Button
@@ -96,12 +132,20 @@ const TripTable = () => {
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button className="p-1 text-[#68706A] hover:bg-gray-200 bg-transparent rounded" title="Edit trip">
-                        <SquarePen className="w-4 h-4" />
-                      </Button>
+                      <Link href={`/trips/edit/${String(trip._id)}`}>
+                        <Button
+                          className="p-1 text-[#68706A] hover:bg-gray-200 bg-transparent rounded"
+                          title="Edit trip"
+                        >
+                          <SquarePen className="w-4 h-4" />
+                        </Button>
+                      </Link>
                       <DeleteAlertDialog
                         trigger={
-                          <Button className="p-1 text-red-600 bg-transparent rounded hover:bg-gray-200 cursor-pointer" title="Delete trip">
+                          <Button
+                            className="p-1 text-red-600 bg-transparent rounded hover:bg-gray-200 cursor-pointer"
+                            title="Delete trip"
+                          >
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         }
@@ -116,7 +160,10 @@ const TripTable = () => {
               ))
             ) : (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                <td
+                  colSpan={7}
+                  className="px-6 py-12 text-center text-gray-500"
+                >
                   No trips found.
                 </td>
               </tr>
@@ -126,27 +173,28 @@ const TripTable = () => {
       </div>
 
       {/* Pagination UI */}
- 
-        <div className="flex items-center justify-between px-6 py-4">
-          <Button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            className="bg-gray-100 text-gray-700 hover:bg-gray-200"
-          >
-            Previous
-          </Button>
-          <span className="text-sm text-gray-600">
-            Page {currentPage} of {totalPages}
-          </span>
-          <Button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            className="bg-gray-100 text-gray-700 hover:bg-gray-200"
-          >
-            Next
-          </Button>
-        </div>
- 
+
+      <div className="flex items-center justify-between px-6 py-4">
+        <Button
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+        >
+          Previous
+        </Button>
+        <span className="text-sm text-gray-600">
+          Page {currentPage} of {totalPages}
+        </span>
+        <Button
+          disabled={currentPage === totalPages}
+          onClick={() =>
+            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+          }
+          className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+        >
+          Next
+        </Button>
+      </div>
 
       {/* Modal */}
       <Dialog open={!!selectedTrip} onOpenChange={() => setSelectedTrip(null)}>
@@ -155,14 +203,23 @@ const TripTable = () => {
             <div className="flex flex-col">
               <div className="w-full h-64 relative">
                 {selectedTrip.images?.length ? (
-                  <Image src={selectedTrip.images[0].url} alt={selectedTrip.title} fill className="object-cover" />
+                  <Image
+                    src={selectedTrip.images[0].url}
+                    alt={selectedTrip.title}
+                    fill
+                    className="object-cover"
+                  />
                 ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">No Image</div>
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    No Image
+                  </div>
                 )}
               </div>
               <div className="p-6">
                 <DialogHeader>
-                  <DialogTitle className="text-xl font-semibold">{selectedTrip.title}</DialogTitle>
+                  <DialogTitle className="text-xl font-semibold">
+                    {selectedTrip.title}
+                  </DialogTitle>
                 </DialogHeader>
                 <div className="flex items-center text-sm text-gray-600 mt-4">
                   <MapPin className="w-4 h-4 mr-1" />

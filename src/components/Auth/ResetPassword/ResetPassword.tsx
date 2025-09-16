@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-// import { postResetPassword } from "@/lib/api";
+import { postResetPassword } from "@/lib/api";
 
 // ✅ Validation schema
 const resetPasswordSchema = z
@@ -58,18 +58,18 @@ export default function ResetPassword() {
 
     setLoading(true);
 
-    // try {
-    //   const res = await postResetPassword(
-    //     { newPassword: values.password },
-    //     token,
-    //   );
-    //   toast.success(res.message || "Password changed successfully!");
-    //   router.push("/login");
-    // } catch {
-    //   toast.error("Failed to reset password");
-    // } finally {
-    //   setLoading(false);
-    // }
+    try {
+      const res = await postResetPassword(
+        { newPassword: values.password },
+        token,
+      );
+      toast.success(res.message || "Password changed successfully!");
+      router.push("/login");  
+    } catch {
+      toast.error("Failed to reset password");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -80,7 +80,7 @@ export default function ResetPassword() {
           Change Password
         </h2>
         <p className="text-sm md:text-[16px] text-gray-500 mb-6">
-          Enter your email to recover your password
+          Connect families with trusted care. Join ALH Hub today.
         </p>
 
         {/* Form */}

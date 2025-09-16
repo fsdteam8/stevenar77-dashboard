@@ -8,12 +8,15 @@ import {
   Form,
   FormControl,
   FormField,
-  FormItem, 
+  FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { postForgotPassword } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 // ✅ Validation schema
 const forgotSchema = z.object({
@@ -26,13 +29,32 @@ export default function ForgetPassword() {
   const form = useForm<ForgotFormValues>({
     resolver: zodResolver(forgotSchema),
     defaultValues: {
-      email: "", 
+      email: "",
     },
   });
 
-  const onSubmit = (values: ForgotFormValues) => {
-    console.log("OTP sent to email:", values.email);
-    // এখানে API call করতে পারো
+  const router = useRouter();
+
+  const onSubmit = async (values: ForgotFormValues) => {
+    try {
+      const res = await postForgotPassword({ email: values.email });
+
+      if (res?.data?.success === false) {
+        toast.error(res?.data?.message || "Something went wrong");
+        return;
+      }
+
+      const token = res?.data?.accessToken;
+      console.log(token);
+      if (token) {
+        // redirect(`/verify-otp?token=${token}`);
+        router.push(`/verify-otp?token=${token}&mode=forgot`);
+      } else {
+        toast.error("Token not received, please try again");
+      }
+    } catch {
+      toast.error("Failed to send OTP. Try again");
+    }
   };
 
   return (
