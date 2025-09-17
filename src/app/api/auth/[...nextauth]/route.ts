@@ -67,7 +67,7 @@ const handler = NextAuth({
           // console.log("API Login Response:", );
 
           return {
-            id: user?._id || "unknown",
+            id: user?.id || user?._id || "unknown",
             email: user?.email || credentials.email,
             role: user?.role || "",
             token, // accessToken from backend

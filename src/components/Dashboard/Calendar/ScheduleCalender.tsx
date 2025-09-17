@@ -30,8 +30,8 @@ const months = [
 
 export default function AvailableSessionsPage() {
   const [currentMonthIndex, setCurrentMonthIndex] = useState(0)
-  const [courseType, setCourseType] = useState("all")
-  const [instructor, setInstructor] = useState("all")
+  const [courseType, ] = useState("all")
+  // const [instructor, setInstructor] = useState("all")
 
   const currentMonth = months[currentMonthIndex]
 

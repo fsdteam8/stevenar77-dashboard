@@ -153,7 +153,6 @@ export const createProduct = async (productData: FormData) => {
   }
 };
 
-
 // single product Get
 export const getSingleProduct = async (id: string) => {
   try {
@@ -164,7 +163,6 @@ export const getSingleProduct = async (id: string) => {
     throw error;
   }
 };
-
 
 // single Product Update
 export const updateSingleProduct = async (
@@ -184,8 +182,6 @@ export const updateSingleProduct = async (
   }
 };
 
-
-
 // forgot password with email
 export const postForgotPassword = async (email: { email: string }) => {
   const res = await api.post(`/auth/forgot-password`, email);
@@ -195,7 +191,7 @@ export const postForgotPassword = async (email: { email: string }) => {
 // reset password in forgatepassword
 export const postResetPassword = async (
   newPassword: { newPassword: string },
-  token: string,
+  token: string
 ) => {
   try {
     const res = await api.post("/auth/reset-password", newPassword, {
@@ -207,5 +203,38 @@ export const postResetPassword = async (
     return res.data;
   } catch {
     throw new Error("Failed to reset password");
+  }
+};
+
+// Get All User
+export const getAllUser = async () => {
+  try {
+    const res = await api.get(`/user/all-users`);
+    return res.data;
+  } catch (error) {
+    console.error("Failed to fetch all users:", error);
+    throw error;
+  }
+};
+
+// Get All User Conversation 
+export const getUserConversation = async () => {
+  try {
+    const res = await api.get(`/conversation`);
+    // backend returns { success, data }
+    return res.data.data; 
+  } catch (error) {
+    console.error("Error fetching conversations", error);
+    return [];
+  }
+};
+
+// Get all admin id
+export const getAdminId = async () => {
+  try {
+    const res = await api.get(`/user/admin_id`);
+    return res.data;
+  } catch {
+    console.log("Error fetching admin id");
   }
 };
