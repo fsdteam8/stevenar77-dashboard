@@ -1,8 +1,9 @@
 "use client";
 
-import { getAllUser,  getUserConversation,  postForgotPassword } from "@/lib/api";
+import { getAllUser, getUserConversation, postForgotPassword } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { signOut, useSession } from "next-auth/react";
+import { useCallback, useState } from "react";
 
 // --------------------
 // Types
@@ -28,9 +29,18 @@ interface ApiResponse<T> {
 // useAuth Hook
 // --------------------
 export const useAuth = () => {
+  const { data: session, status } = useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const handleSignOut = useCallback(async () => {
+    try {
+      await signOut({ callbackUrl: '/auth/signin' });
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  }, []);
 
   const forgotPassword = async (data: ForgotPasswordData) => {
     setLoading(true);
@@ -49,7 +59,15 @@ export const useAuth = () => {
     }
   };
 
-  return { forgotPassword, loading, error, success };
+  return { 
+    forgotPassword,
+    loading,
+    error,
+    success,
+    signOut: handleSignOut,
+    session,
+    status,
+  };
 };
 
 // --------------------

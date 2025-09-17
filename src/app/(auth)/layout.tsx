@@ -3,7 +3,7 @@ import "../globals.css";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "Dive Into Adventure",
+  title: "Scuba Stevener | Dive Into Adventure",
   description: "From beginner to pro, we guide your underwater adventure.",
 };
 
