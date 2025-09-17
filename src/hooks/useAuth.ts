@@ -2,16 +2,26 @@
 "use client";
 
 import { postForgotPassword } from "@/lib/api";
-import { useState } from "react";
+import { signOut, useSession } from "next-auth/react";
+import { useState, useCallback } from "react";
 
 interface ForgotPasswordData {
   email: string;
 }
 
 export const useAuth = () => {
+  const { data: session, status } = useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const handleSignOut = useCallback(async () => {
+    try {
+      await signOut({ callbackUrl: '/auth/signin' });
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  }, []);
 
   // Forgot password
   const forgotPassword = async (data: ForgotPasswordData) => {
@@ -30,5 +40,13 @@ export const useAuth = () => {
     }
   };
 
-  return { forgotPassword, loading, error, success };
+  return { 
+    forgotPassword,
+    loading,
+    error,
+    success,
+    signOut: handleSignOut,
+    session,
+    status,
+  };
 };
