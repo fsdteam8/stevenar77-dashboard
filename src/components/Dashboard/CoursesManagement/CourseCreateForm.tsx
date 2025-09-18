@@ -20,25 +20,25 @@ interface CourseFormData {
   courseIncludes: string;
 }
 
-interface Course {
-  id?: string;
-  title: string;
-  courseLevel: string;
-  description: string;
-  price: string[];
-  duration: string;
-  locations: string;
-  timeSlots: string;
-  startDate: string;
-  endDate: string;
-  instructorAssignment: string;
-  courseIncludes: string[];
-  image?: string; // URL for existing image
-}
+// interface Course {
+//   id?: string;
+//   title?: string;
+//   courseLevel?: string;
+//   description?: string;
+//   price?: string[];
+//   duration?: string;
+//   locations?: string;
+//   timeSlots?: string;
+//   startDate?: string;
+//   endDate?: string;
+//   instructorAssignment?: string;
+//   courseIncludes?: string[];
+//   image?: string; 
+// }
 
 interface CourseFormProps {
   mode?: "create" | "edit";
-  courseData?: Course;
+  courseData?: any;
   onSubmit?: (
     data: FormData
   ) => Promise<{ success: boolean; message?: string }>;

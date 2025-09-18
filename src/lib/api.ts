@@ -323,7 +323,7 @@ export const courseApi = {
 
   createCourse: async (
     formData: FormData
-  ): Promise<{ success: boolean; message: string; data?: any }> => {
+  ): Promise<{ success: boolean; message: string; data?: ApiCourse }> => {
     try {
       const res = await api.post("/class", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -337,7 +337,7 @@ export const courseApi = {
 
   updateCourse: async (
     id: string,
-    courseData: Partial<ApiCourse>
+    courseData: Partial<FormData>
   ): Promise<CourseApiResponse<ApiCourse>> => {
     try {
       const res = await api.put(`/class/update/${id}`, courseData, {

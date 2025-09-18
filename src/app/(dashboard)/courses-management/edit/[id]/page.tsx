@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import CourseCreateForm from "@/components/Dashboard/CoursesManagement/CourseCreateForm";
@@ -18,9 +19,15 @@ export default function Page({ params }: PageProps) {
 
   const handleUpdateCourse = async (formData: FormData) => {
     try {
+      // Convert FormData to plain object matching ApiCourse type
+      const courseObj: any = {};
+      formData.forEach((value, key) => {
+        courseObj[key] = value;
+      });
+
       await updateCourse({
         id: params.id,
-        data: formData,
+        data: courseObj,
       });
       router.push("/courses-management");
       return { success: true, message: "Course updated successfully" };
@@ -45,7 +52,7 @@ export default function Page({ params }: PageProps) {
   return (
     <CourseCreateForm
       mode="edit"
-      courseId={params.id}
+      //   courseId={params.id}
       courseData={courseData.data}
       onSubmit={handleUpdateCourse}
       onCancel={handleCancel}

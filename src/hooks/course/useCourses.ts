@@ -1,10 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { courseApi } from "@/lib/api";
-import type { CourseFilters } from "@/types/course";
 
 export const COURSES_QUERY_KEY = "courses";
 
-export function useCourses(page = 1, limit = 10, filters: CourseFilters = {}) {
+export function useCourses(page = 1, limit = 10) {
   return useQuery({
     queryKey: [COURSES_QUERY_KEY, { page, limit }],
     queryFn: () => courseApi.getCourses(page, limit),
@@ -40,7 +39,7 @@ export function useUpdateCourse() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: FormData }) =>
       courseApi.updateCourse(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: [COURSES_QUERY_KEY] });
