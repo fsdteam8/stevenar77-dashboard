@@ -370,7 +370,7 @@ export const getNotifications = async (token: string) => {
 export const getAllTripPayments = async () => {
   try {
     const res = await api.get(`/class/bookings/payment/history`);
-    return res.data.data.tripPayments;  
+    return res.data.data.tripPayments;
   } catch (error) {
     console.error("Error fetching trip payments:", error);
     return [];
@@ -381,9 +381,36 @@ export const getAllTripPayments = async () => {
 export const getAllClassPayments = async () => {
   try {
     const res = await api.get(`/class/bookings/payment/history`);
-    return res.data.data.classPayments;  
+    return res.data.data.classPayments;
   } catch (error) {
     console.error("Error fetching trip payments:", error);
     return [];
+  }
+};
+
+// change password
+export const postChangePassword = async (
+  currentPassword: string,
+  newPassword: string,
+  token: string
+) => {
+  try {
+    const res = await api.post(
+      "/auth/change-password",
+      {
+        currentPassword,
+        newPassword,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return res.data;
+  } catch {
+    throw new Error("Failed to Change Password");
   }
 };
