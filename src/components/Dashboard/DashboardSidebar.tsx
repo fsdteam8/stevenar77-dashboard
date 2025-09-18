@@ -8,9 +8,10 @@ import {
   NotebookText,
   CircleDollarSign,
   Ship,
-  ShoppingCart,
+  // ShoppingCart,
   LogOut,
   HardDrive,
+  MessageCircleMore,
 } from "lucide-react"; 
 import { useState } from "react";
  
@@ -21,12 +22,14 @@ import { Button } from "../ui/button";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Courses Management", href: "/courses-management", icon: HardDrive },
+  { name: "Courses", href: "/courses-management", icon: HardDrive },
   { name: "Bookings", href: "/bookings", icon: NotebookText },
+  { name: "Products", href: "/products", icon: NotebookText },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Payments", href: "/payments", icon: CircleDollarSign },
   { name: "Trips", href: "/trips", icon: Ship },
-  { name: "Shop", href: "/shop", icon: ShoppingCart },
+  { name: "Messaging", href: "/messaging", icon: MessageCircleMore },
+  // { name: "Shop", href: "/shop", icon: ShoppingCart },
 ];
 
 export default function DashboardSidebar() {
@@ -40,7 +43,7 @@ export default function DashboardSidebar() {
   };
 
   return (
-    <div className="flex h-min-screen w-64 flex-col   bg-white border-r border-gray-200">
+    <div className="flex min-h-screen w-64 flex-col   bg-white border-r border-gray-200 fixed">
       {/* Logo */}
       <div className="flex  items-center py-5 justify-center px-6">
         <Link href="/" className="flex items-center ">

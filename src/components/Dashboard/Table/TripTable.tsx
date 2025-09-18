@@ -1,187 +1,79 @@
 "use client";
 import React, { useState } from "react";
-import { ArrowUpDown, Eye, Trash2 } from "lucide-react";
+import { Eye, SquarePen, Trash2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import DeleteAlertDialog from "../Card/DeleteCard"; // Make sure this path is correct
+import DeleteAlertDialog from "../Card/DeleteCard";
+import { useTrips } from "@/hooks/useTrips";
+import Image from "next/image";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { deleteTrip } from "@/lib/api";
+import { toast } from "sonner";
+import TripsSkeleton from "../Trips/TripsSkeleton";
+import Link from "next/link";
 
 export type Trip = {
-  id: string;
-  invoice: string;
-  destination: string;
+  _id: string;
+  title: string;
+  description: string;
   price: number;
   location: string;
-  instructor: string;
-  date: string;
+  maximumCapacity: number;
+  startDate: string;
+  endDate: string;
+  images?: { url: string }[];
 };
 
-const data: Trip[] = [
-  {
-    id: "1",
-    invoice: "#3066",
-    destination: "St Croix, Virgin Island",
-    price: 250,
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    instructor: "Cristofer Curtis",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "2",
-    invoice: "#3066",
-    destination: "St Croix, Virgin Island",
-    price: 250,
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    instructor: "Sarah Jonson's",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "3",
-    invoice: "#3066",
-    destination: "St Croix, Virgin Island",
-    price: 250,
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    instructor: "Brandon Dorwart",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "4",
-    invoice: "#3066",
-    destination: "St Croix, Virgin Island",
-    price: 250,
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    instructor: "Sarah Jonson's",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "5",
-    invoice: "#3066",
-    destination: "St Croix, Virgin Island",
-    price: 250,
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    instructor: "Sarah Jonson's",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "6",
-    invoice: "#3066",
-    destination: "St Croix, Virgin Island",
-    price: 250,
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    instructor: "Alfonso Calzoni",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "7",
-    invoice: "#3066",
-    destination: "St Croix, Virgin Island",
-    price: 250,
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    instructor: "Sarah Jonson's",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "8",
-    invoice: "#3066",
-    destination: "St Croix, Virgin Island",
-    price: 250,
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    instructor: "Sarah Jonson's",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "9",
-    invoice: "#3066",
-    destination: "St Croix, Virgin Island",
-    price: 250,
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    instructor: "Sarah Jonson's",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "10",
-    invoice: "#3066",
-    destination: "St Croix, Virgin Island",
-    price: 250,
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    instructor: "Sarah Jonson's",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "11",
-    invoice: "#3066",
-    destination: "St Croix, Virgin Island",
-    price: 250,
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    instructor: "Sarah Jonson's",
-    date: "Jan 06, 2025",
-  },
-  {
-    id: "12",
-    invoice: "#3066",
-    destination: "St Croix, Virgin Island",
-    price: 250,
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    instructor: "Sarah Jonson's",
-    date: "Jan 06, 2025",
-  },
-];
-
 const TripTable = () => {
-  const [sortField, setSortField] = useState<keyof Trip | null>(null);
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const itemsPerPage = 4;
 
-  const handleSort = (field: keyof Trip) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
+  const {
+    data: tripsResponse,
+    isLoading,
+    isError,
+    refetch,
+  } = useTrips(currentPage, itemsPerPage);
+
+  const trips: Trip[] = tripsResponse?.data || [];
+  const totalItems = tripsResponse?.total || 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  const handleView = (trip: Trip) => setSelectedTrip(trip);
+
+  const handleDelete = async (trip: Trip) => {
+    try {
+      await deleteTrip(trip._id);
+      toast.success("Trip deleted successfully!");
+      refetch?.();
+    } catch (error) {
+      console.error("Delete failed:", error);
+      toast.error("Failed to delete trip. Please try again.");
     }
   };
 
-  const handleView = (trip: Trip) => {
-    console.log("View trip:", trip.id);
-  };
-
-  const handleDelete = (trip: Trip) => {
-    console.log("Delete trip:", trip.id);
-    // Add your actual delete logic here
-    // Example: await deleteTrip(trip.id);
-  };
-
-  const sortedData = React.useMemo(() => {
-    if (!sortField) return data;
-
-    return [...data].sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-
-      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
-      return 0;
-    });
-  }, [sortField, sortDirection]);
-
-  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage);
+  if (isLoading)
+    return (
+      <p className="text-center py-6">
+        <TripsSkeleton />
+      </p>
+    );
+  if (isError)
+    return (
+      <p className="text-center py-6 text-red-500">Failed to load trips.</p>
+    );
 
   return (
-    <div className="w-full bg-white">
-      <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+    <div className="w-full bg-white ">
+      <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm ">
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-6 py-3 text-left">
-                <button
-                  onClick={() => handleSort("invoice")}
-                  className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-                >
-                  Invoice
-                  <ArrowUpDown className="w-4 h-4" />
-                </button>
-              </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Trips
               </th>
@@ -192,70 +84,81 @@ const TripTable = () => {
                 Location
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Instructor
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Date
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Action
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
-            {paginatedData.map((trip) => (
-              <tr key={trip.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  {trip.invoice}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded flex items-center justify-center flex-shrink-0">
-                      <div className="w-4 h-4 bg-green-600 rounded-sm"></div>
+            {trips.length > 0 ? (
+              trips.map((trip) => (
+                <tr
+                  key={trip._id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                        {trip.images?.length ? (
+                          <Image
+                            src={trip.images[0].url}
+                            alt={trip.title}
+                            width={40}
+                            height={40}
+                            className="object-cover w-full h-full"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-green-200 flex items-center justify-center text-xs text-gray-600">
+                            No Img
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-sm font-medium text-gray-900">
+                        {trip.title}
+                      </span>
                     </div>
-                    <span className="text-sm font-medium text-gray-900">
-                      {trip.destination}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                  ${trip.price}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
-                  {trip.location}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  {trip.instructor}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">{trip.date}</td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => handleView(trip)}
-                      className="p-1 text-teal-600 hover:text-teal-700 hover:bg-gray-200 bg-transparent rounded"
-                      title="View trip"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <DeleteAlertDialog
-                      trigger={
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    ${trip.price}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                    {trip.location}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={() => handleView(trip)}
+                        className="p-1 text-teal-600 hover:text-teal-700 hover:bg-gray-200 bg-transparent rounded"
+                        title="View trip"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Link href={`/trips/edit/${String(trip._id)}`}>
                         <Button
-                          className="p-1 text-red-600 bg-transparent rounded hover:bg-gray-200 cursor-pointer"
-                          title="Delete trip"
+                          className="p-1 text-[#68706A] hover:bg-gray-200 bg-transparent rounded"
+                          title="Edit trip"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <SquarePen className="w-4 h-4" />
                         </Button>
-                      }
-                      title="Delete Trip"
-                      itemName={trip.destination}
-                      onConfirm={() => handleDelete(trip)}
-                      actionText="Delete Trip"
-                    />
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {paginatedData.length === 0 && (
+                      </Link>
+                      <DeleteAlertDialog
+                        trigger={
+                          <Button
+                            className="p-1 text-red-600 bg-transparent rounded hover:bg-gray-200 cursor-pointer"
+                            title="Delete trip"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        }
+                        title="Delete Trip"
+                        itemName={trip.title}
+                        onConfirm={() => handleDelete(trip)}
+                        actionText="Delete Trip"
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
               <tr>
                 <td
                   colSpan={7}
@@ -269,29 +172,67 @@ const TripTable = () => {
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-end gap-2 py-4">
-          <Button
-            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </Button>
-          <span className="text-sm text-gray-600">
-            Page {currentPage} of {totalPages}
-          </span>
-          <Button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-            }
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </Button>
-        </div>
-      )}
+      {/* Pagination UI */}
+
+      <div className="flex items-center justify-between px-6 py-4">
+        <Button
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+        >
+          Previous
+        </Button>
+        <span className="text-sm text-gray-600">
+          Page {currentPage} of {totalPages}
+        </span>
+        <Button
+          disabled={currentPage === totalPages}
+          onClick={() =>
+            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+          }
+          className="bg-gray-100 text-gray-700 hover:bg-gray-200"
+        >
+          Next
+        </Button>
+      </div>
+
+      {/* Modal */}
+      <Dialog open={!!selectedTrip} onOpenChange={() => setSelectedTrip(null)}>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl">
+          {selectedTrip && (
+            <div className="flex flex-col">
+              <div className="w-full h-64 relative">
+                {selectedTrip.images?.length ? (
+                  <Image
+                    src={selectedTrip.images[0].url}
+                    alt={selectedTrip.title}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    No Image
+                  </div>
+                )}
+              </div>
+              <div className="p-6">
+                <DialogHeader>
+                  <DialogTitle className="text-xl font-semibold">
+                    {selectedTrip.title}
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="flex items-center text-sm text-gray-600 mt-4">
+                  <MapPin className="w-4 h-4 mr-1" />
+                  {selectedTrip.location}
+                </div>
+                <p className="mt-4 text-gray-700 leading-relaxed whitespace-pre-line italic">
+                  {selectedTrip.description}
+                </p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

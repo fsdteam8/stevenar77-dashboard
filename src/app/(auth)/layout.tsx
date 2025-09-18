@@ -3,7 +3,7 @@ import "../globals.css";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "Dive Into Adventure",
+  title: "Scuba Stevener | Dive Into Adventure",
   description: "From beginner to pro, we guide your underwater adventure.",
 };
 
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="h-screen flex flex-col-reverse md:flex-row items-center justify-center gap-6 p-4 md:p-0 my-20 md:my-0">
+    <div className="h-screen flex flex-col-reverse md:flex-row items-center justify-center  p-4 md:p-0 my-20 md:my-0">
       {/* Image */}
       <div className="w-full md:w-1/2 flex justify-center">
         <Image
@@ -21,7 +21,7 @@ export default function RootLayout({
           width={1024}
           height={1024}
           alt="Man Diving"
-          className="w-full h-auto max-h-[300px] md:max-h-full object-cover rounded-lg"
+          className="w-full h-auto max-h-[300px] md:max-h-full object-cover "
           priority
         />
       </div>

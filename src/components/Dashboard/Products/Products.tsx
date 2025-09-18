@@ -1,14 +1,14 @@
 "use client";
 import React, { useState } from "react";
-import CourseManageTable from "../Table/CourseManageTable";
 import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
- 
-export default function CoursesManagement() {
-  const [searchTerm, setSearchTerm] = useState("");
+import ProductsTable from "./ProductsTable";
 
+
+export default function Products() {
+  const [searchTerm, setSearchTerm] = useState("");
   return (
     <div>
       <div className="">
@@ -24,18 +24,17 @@ export default function CoursesManagement() {
             />
           </div>
           <div className=" max-w-65">
-            <Link href="/courses-management/add/">
-              <Button className="cursor-pointer">
-                <Plus /> Add Course
+            <Link href="/product/add">
+              <Button>
+                <Plus /> Add Product
               </Button>
             </Link>
           </div>
         </div>
       </div>
       <div className="">
-        <CourseManageTable />
+        <ProductsTable />
       </div>
-      <div className=""></div>
     </div>
   );
 }

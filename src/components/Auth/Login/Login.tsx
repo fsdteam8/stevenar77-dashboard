@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { signIn } from "next-auth/react";
-import { redirect } from "next/navigation";
+import { toast } from "sonner";
 
 // ✅ Zod validation schema
 const loginSchema = z.object({
@@ -44,14 +44,27 @@ export default function Login() {
 
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
- 
-     await signIn("credentials", {
-      email: values.email,
-      password: values.password,
-      redirect: false,
-    });
-    redirect("/dashboard");
- 
+
+    try {
+      const result = await signIn("credentials", {
+        email: values.email,
+        password: values.password,
+        redirect: false,
+      });
+
+      if (result?.ok) {
+        // Login successful → redirect to home
+        window.location.href = "/";
+      } else {
+        // Login failed → show error
+        toast.error(result?.error || "Login failed. Please try again.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

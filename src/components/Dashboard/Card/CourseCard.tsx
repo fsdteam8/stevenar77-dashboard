@@ -48,7 +48,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
             alt={title}
             height={150}
             width={150}
-            className=" object-cover"
+            className="w-fit h-full object-cover"
           />
         </div>
 
