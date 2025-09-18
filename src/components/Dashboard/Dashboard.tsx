@@ -10,29 +10,31 @@ import {
 import DashChart from "@/components/Dashboard/Chart/DashChart";
 import PiCard from "@/components/Dashboard/StatCard/PiCard";
 import RecentTripTable from "@/components/Dashboard/Table/RecentTripTable";
-// import { useDashboard } from "@/hooks/useDashboard";
- 
+import { useDashboard } from "@/hooks/useDashboard";
+
 export default function Dashboard() {
-  // const { data, error, isLoading } = useDashboard();
+  const { data, error, isLoading } = useDashboard();
 
-  // console.log(data)
-  // if (isLoading) return <p>Loading...</p>;
-  // if (error) return <p>Error: {(error as Error).message}</p>;
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error: {(error as Error).message}</p>;
 
-  // console.log("Dashboard Data:", data);
   return (
     <div className="p-5">
       <div className="space-y-8">
         <div className="stat-cards flex gap-4">
-          <StatCard title="Bookings" numberInfo={12} icon={<WavesLadder />} />
+          <StatCard
+            title="Bookings"
+            numberInfo={data.data.totalBookings}
+            icon={<WavesLadder />}
+          />
           <StatCard
             title="Popular Course"
-            numberInfo={123}
+            numberInfo={data.data.popularCoursesCount}
             icon={<ChartLine />}
           />
           <StatCard
             title="Revenue"
-            numberInfo={200}
+            numberInfo={data.data.totalRevenue}
             icon={<CircleDollarSign />}
           />
           <StatCard
