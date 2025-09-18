@@ -1,3 +1,10 @@
+import type {
+  ApiResponse as CourseApiResponse,
+  ApiCourse,
+  // PaginationParams,
+  // CourseFilters,
+} from "@/types/course";
+
 import axios from "axios";
 import { getSession, signOut } from "next-auth/react";
 
@@ -42,7 +49,7 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       // If refresh is already in progress, queue this request
       if (isRefreshing) {
@@ -59,41 +66,45 @@ api.interceptors.response.use(
 
       originalRequest._retry = true;
       isRefreshing = true;
-      
+
       try {
         // Try to refresh the token
-        const response = await axios.post(`${API_URL}/auth/refresh-token`, {}, {
-          withCredentials: true
-        });
-        
+        const response = await axios.post(
+          `${API_URL}/auth/refresh-token`,
+          {},
+          {
+            withCredentials: true,
+          }
+        );
+
         const newAccessToken = response.data.data.accessToken;
-        
+
         if (newAccessToken) {
           // Update session token - this updates the session in memory
           const session = await getSession();
           if (session) {
             session.accessToken = newAccessToken;
           }
-          
+
           // Process other requests waiting for the token
           processQueue(null, newAccessToken);
-          
+
           // Update the current request's authorization header
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          
+
           isRefreshing = false;
           return api(originalRequest);
         }
       } catch (refreshError) {
         processQueue(refreshError as Error);
         isRefreshing = false;
-        
+
         // Sign out user and redirect to login
-        await signOut({ callbackUrl: '/auth/signin' });
+        await signOut({ callbackUrl: "/auth/signin" });
         return Promise.reject(refreshError);
       }
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -286,35 +297,68 @@ export const postResetPassword = async (
   }
 };
 
-// Get All User
-export const getAllUser = async () => {
-  try {
-    const res = await api.get(`/user/all-users`);
-    return res.data;
-  } catch (error) {
-    console.error("Failed to fetch all users:", error);
-    throw error;
-  }
-};
+export const courseApi = {
+  getCourses: async (
+    page: number,
+    limit: number
+  ): Promise<CourseApiResponse<ApiCourse[]>> => {
+    try {
+      const res = await api.get(`/class?page=${page}&limit=${limit}`);
+      return res.data;
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      throw error;
+    }
+  },
 
-// Get All User Conversation 
-export const getUserConversation = async () => {
-  try {
-    const res = await api.get(`/conversation`);
-    // backend returns { success, data }
-    return res.data.data; 
-  } catch (error) {
-    console.error("Error fetching conversations", error);
-    return [];
-  }
-};
+  getCourse: async (id: string): Promise<CourseApiResponse<ApiCourse>> => {
+    try {
+      const res = await api.get(`/class/${id}`);
+      return res.data;
+    } catch (error) {
+      console.error("Failed to delete product:", error);
+      throw error;
+    }
+  },
 
-// Get all admin id
-export const getAdminId = async () => {
-  try {
-    const res = await api.get(`/user/admin_id`);
-    return res.data;
-  } catch {
-    console.log("Error fetching admin id");
-  }
+  createCourse: async (
+    formData: FormData
+  ): Promise<{ success: boolean; message: string; data?: any }> => {
+    try {
+      const res = await api.post("/class", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return res.data;
+    } catch (error) {
+      console.error("Failed to create trip:", error);
+      throw error;
+    }
+  },
+
+  updateCourse: async (
+    id: string,
+    courseData: Partial<ApiCourse>
+  ): Promise<CourseApiResponse<ApiCourse>> => {
+    try {
+      const res = await api.put(`/class/update/${id}`, courseData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return res.data;
+    } catch (error) {
+      console.error("Failed to update Product:", error);
+      throw error;
+    }
+  },
+
+  deleteCourse: async (id: string): Promise<CourseApiResponse<null>> => {
+    try {
+      const res = await api.delete(`/class/delete/${id}`);
+      return res.data;
+    } catch (error) {
+      console.error("Failed to delete product:", error);
+      throw error;
+    }
+  },
 };
