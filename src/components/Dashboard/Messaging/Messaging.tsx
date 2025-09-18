@@ -2,7 +2,7 @@
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import io, { Socket } from "socket.io-client";
-import { Lock, Send } from "lucide-react";
+import { Lock, MessageCircle, Send } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -219,28 +219,32 @@ export default function AdminMessaging() {
               <div
                 key={conv._id}
                 onClick={() => openConversation(conv)}
-                className={`flex items-center gap-3 p-3 cursor-pointer ${
+                className={`grid grid-cols-7 items-center gap-3 p-3 cursor-pointer ${
                   active ? "bg-cyan-100" : "hover:bg-gray-100"
                 }`}
               >
-                <div className="w-10 h-10 rounded-full overflow-hidden">
+                <div className="col-span-1 overflow-hidden">
                   <Image
                     src={"/images/profile-mini.jpg"}
                     alt="User Avatar"
                     width={40}
                     height={40}
-                    className="object-cover w-10 h-10 rounded-full"
+                    className="object-cover w-full aspect-square rounded-full"
                   />
                 </div>
-                <div className="flex-1">
-                  <p className={`font-medium ${active ? "text-cyan-700" : ""}`}>
+                <div className="col-span-5 flex-1">
+                  <p
+                    className={`font-medium truncate ${
+                      active ? "text-cyan-700" : ""
+                    }`}
+                  >
                     {user?.name || user?.email || "Unknown"}
                   </p>
                   <p className="text-xs text-gray-500 truncate">
                     {conv.lastMessage || "No messages"}
                   </p>
                 </div>
-                <span className="text-xs text-gray-400">
+                <span className="col-span-1 text-xs text-gray-400">
                   {formatTime(conv.updatedAt)}
                 </span>
               </div>
@@ -272,59 +276,81 @@ export default function AdminMessaging() {
               </p>
             </>
           ) : (
-            <p className="text-gray-500">Select a conversation</p>
+            <p className="text-gray-500">Choose a chat to view messages</p>
           )}
         </div>
 
         {/* Messages */}
         <div className="flex-1 p-4 overflow-y-auto bg-white">
-          {messages.map((m, i) => {
-            const senderId =
-              typeof m.sender === "object" ? m.sender._id : m.sender;
-            const isAdmin = senderId === ADMIN_ID;
-
-            return (
-              <div
-                key={m._id || i}
-                className={`mb-4 flex ${
-                  isAdmin ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`max-w-xl px-3 py-2 rounded-2xl relative break-words whitespace-pre-wrap ${
-                    isAdmin
-                      ? "bg-cyan-600 text-white rounded-br-none"
-                      : "bg-gray-100 text-gray-800 rounded-bl-none"
-                  }`}
-                >
-                  <p>{m.text}</p>
-                  <span className="absolute -bottom-4 right-2 text-xs text-gray-400">
-                    {formatTime(m.createdAt)}
-                  </span>
+          {messages.length === 0 ? (
+            <div className="h-full flex items-center justify-center">
+              <div className="h-full flex items-center justify-center  ">
+                <div className="bg-white shadow-lg rounded-2xl p-10 flex flex-col items-center justify-center space-y-4 max-w-sm text-center">
+                  <div className="w-16 h-16 flex items-center justify-center rounded-full bg-cyan-100 animate-pulse">
+                    <MessageCircle className="w-8 h-8 text-cyan-600" />
+                  </div>
+                  <p className="text-xl font-semibold text-gray-700">
+                    No Conversation Selected
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Choose a conversation from the left or start a new chat to
+                    see messages here.
+                  </p>
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ) : (
+            messages.map((m, i) => {
+              const senderId =
+                typeof m.sender === "object" ? m.sender._id : m.sender;
+              const isAdmin = senderId === ADMIN_ID;
+
+              return (
+                <div
+                  key={m._id || i}
+                  className={`mb-4 flex ${
+                    isAdmin ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <div
+                    className={`max-w-xl px-3 py-2 rounded-2xl relative break-words whitespace-pre-wrap ${
+                      isAdmin
+                        ? "bg-cyan-600 text-white rounded-br-none"
+                        : "bg-gray-100 text-gray-800 rounded-bl-none"
+                    }`}
+                  >
+                    <p>{m.text}</p>
+                    <span className="absolute -bottom-4 right-2 text-xs text-gray-400">
+                      {formatTime(m.createdAt)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
           <div ref={messagesEndRef} />
         </div>
 
         {/* Input */}
-        <div className="flex items-center gap-2 p-3 border-t bg-white">
-          <input
-            type="text"
-            className="flex-1 border rounded-full px-4 py-2 focus:outline-none"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Type your message"
-          />
-          <button
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-cyan-600 text-white hover:bg-cyan-700 cursor-pointer"
-            onClick={sendMessage}
-          >
-            <Send size={18} />
-          </button>
-        </div>
+        {/* Input */}
+        {currentConversation && messages.length > 0 && (
+          <div className="flex items-center gap-2 p-3 border-t bg-white">
+            <input
+              type="text"
+              className="flex-1 border rounded-full px-4 py-2 focus:outline-none"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              placeholder="Type your message"
+            />
+            <button
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-cyan-600 text-white hover:bg-cyan-700 cursor-pointer"
+              onClick={sendMessage}
+            >
+              <Send size={18} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

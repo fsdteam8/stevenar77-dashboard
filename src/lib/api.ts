@@ -327,11 +327,11 @@ export const getAdminId = async () => {
 export const getAdminDashboard = async () => {
   try {
     const res = await api.get(`/dashboard/admin-dashboard`);
-    console.log(res.data)
+    console.log(res.data);
     return res.data;
   } catch (error) {
     console.error("Error fetching admin dashboard:", error);
-    throw error;  
+    throw error;
   }
 };
 
@@ -342,5 +342,48 @@ export const getDashboardChartData = async (year: number) => {
     return res.data;
   } catch (error) {
     console.log("Error fetching dashboard chart data:", error);
+  }
+};
+
+// get all notifications
+export const getNotifications = async (token: string) => {
+  try {
+    if (!token) {
+      console.log("No access token available");
+      return [];
+    }
+
+    const res = await api.get("/notifications", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return res.data;
+  } catch (error) {
+    console.log("Error fetching notifications:", error);
+    return [];
+  }
+};
+
+// Get All getAllTripPayments
+export const getAllTripPayments = async () => {
+  try {
+    const res = await api.get(`/class/bookings/payment/history`);
+    return res.data.data.tripPayments;  
+  } catch (error) {
+    console.error("Error fetching trip payments:", error);
+    return [];
+  }
+};
+
+// Get All classPayments
+export const getAllClassPayments = async () => {
+  try {
+    const res = await api.get(`/class/bookings/payment/history`);
+    return res.data.data.classPayments;  
+  } catch (error) {
+    console.error("Error fetching trip payments:", error);
+    return [];
   }
 };
