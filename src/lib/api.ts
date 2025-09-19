@@ -440,3 +440,15 @@ export const getMyProfileData = async () => {
     return [];
   }
 };
+
+
+// Get All Booking
+export const getAllBookings = async () => {
+  try {
+    const res = await api.get(`/class/bookings/all-bookings`);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching All Bookings:", error);
+    return [];
+  }
+};
