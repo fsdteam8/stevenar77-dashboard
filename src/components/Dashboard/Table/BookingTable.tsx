@@ -191,7 +191,7 @@ const BookingTable = () => {
       if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
       return 0
     })
-  }, [data, sortField, sortDirection])
+  }, [sortField, sortDirection])
 
   const totalPages = Math.ceil(sortedData.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage

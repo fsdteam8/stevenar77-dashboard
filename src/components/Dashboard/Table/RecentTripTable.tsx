@@ -65,7 +65,7 @@ const RecentTripTable = () => {
       if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
       return 0
     })
-  }, [data, sortField, sortDirection])
+  }, [sortField, sortDirection])
 
   const totalPages = Math.ceil(sortedData.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
@@ -112,7 +112,7 @@ const RecentTripTable = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
-            {paginatedData.map((trip, index) => (
+            {paginatedData.map((trip) => (
               <tr key={trip.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 text-sm text-gray-600">
                   {trip.invoice}

@@ -21,18 +21,14 @@ interface CourseManageTableProps {
   searchTerm?: string;
 }
 
-const CourseManageTable: React.FC<CourseManageTableProps> = ({
-  searchTerm = "",
-}) => {
+const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<ApiCourse | null>(null);
 
   const router = useRouter();
 
-  const { data, isLoading, isError, error } = useCourses(currentPage, 10, {
-    search: searchTerm,
-  });
+  const { data, isLoading, isError, error } = useCourses(currentPage, 10);
   const deleteMutation = useDeleteCourse();
 
   const courses: ApiCourse[] = data?.data || [];
