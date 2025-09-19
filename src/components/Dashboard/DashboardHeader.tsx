@@ -21,7 +21,7 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { signOut, useSession } from "next-auth/react";
-import { getNotifications } from "@/lib/api";
+import { getMyProfileData, getNotifications } from "@/lib/api";
 
 interface Notification {
   _id: string;
@@ -33,6 +33,21 @@ interface Notification {
   };
   // Add other fields from your API if needed
 }
+interface UserProfile {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  role?: string;
+  isVerified?: boolean;
+  street?: string;
+  location?: string;
+  image?: {
+    url?: string;
+  };
+}
 
 export default function DashboardHeader() {
   // Sidebar open state
@@ -41,13 +56,15 @@ export default function DashboardHeader() {
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const { data: session } = useSession();
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchNotifications = async () => {
       if (!session?.accessToken) return;
 
       const data = await getNotifications(session.accessToken);
-      setNotifications(data.data); // use data.data because your API returns {success, message, data}
+      setNotifications(data.data);
     };
 
     fetchNotifications();
@@ -56,23 +73,32 @@ export default function DashboardHeader() {
   // Count of unseen notifications
   const unseenCount = notifications.filter((n) => n.isViewed === false).length;
 
-  // const hasNotifications = true;
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await getMyProfileData();
+        setUser(res.data);
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   // Dummy user data for demonstration — replace with your actual user fetching logic
-  const user = {
-    firstName: "Olivia",
-    lastName: "Rhye",
-    email: "olivia@example.com",
-    avatar: {
-      url: "/images/profile-mini.jpg",
-    },
-  };
-
+ console.log(user)
   // Logout handler
   const handleLogout = () => {
     signOut();
     setLogoutDialogOpen(false);
   };
+
+  if (loading) {
+    return <p className="p-5">Loading profile...</p>;
+  }
 
   return (
     <header className="w-full h-[100px] bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
@@ -122,7 +148,7 @@ export default function DashboardHeader() {
             >
               <Avatar className="h-8 w-8 cursor-pointer">
                 <AvatarImage
-                  src={user?.avatar?.url || "/images/profile-mini.jpg"}
+                  src={user?.image?.url || "/images/profile-mini.jpg"}
                   alt={`${user?.firstName} ${user?.lastName}`}
                 />
                 <AvatarFallback className="cursor-pointer">

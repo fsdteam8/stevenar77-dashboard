@@ -453,7 +453,6 @@ export function transformBookingsToSessions(
 export const getAdminDashboard = async () => {
   try {
     const res = await api.get(`/dashboard/admin-dashboard`);
-    console.log(res.data);
     return res.data;
   } catch (error) {
     console.error("Error fetching admin dashboard:", error);
@@ -563,6 +562,18 @@ export const getMyProfileData = async () => {
     return res.data;
   } catch (error) {
     console.error("Error fetching My Profile Data:", error);
+    return [];
+  }
+};
+
+
+// Get All Booking
+export const getAllBookings = async () => {
+  try {
+    const res = await api.get(`/class/bookings/all-bookings`);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching All Bookings:", error);
     return [];
   }
 };

@@ -24,7 +24,8 @@ interface Message {
 
 interface Participant {
   _id: string;
-  name?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
 }
 
@@ -238,7 +239,14 @@ export default function AdminMessaging() {
                       active ? "text-cyan-700" : ""
                     }`}
                   >
-                    {user?.name || user?.email || "Unknown"}
+                    {user?.firstName}
+                  </p>
+                  <p
+                    className={`font-medium text-xs truncate ${
+                      active ? "text-cyan-700" : ""
+                    }`}
+                  >
+                    {user?.email}
                   </p>
                   <p className="text-xs text-gray-500 truncate">
                     {conv.lastMessage || "No messages"}
@@ -268,12 +276,21 @@ export default function AdminMessaging() {
                   className="object-cover w-10 h-10 rounded-full"
                 />
               </div>
-              <p className="font-semibold truncate max-w-[calc(100%-3rem)]">
-                {currentConversation.participants
-                  .filter((p) => p._id !== ADMIN_ID)
-                  .map((p) => p.name || p.email || p._id)
-                  .join(", ")}
-              </p>
+              <div>
+                <p className="font-semibold truncate max-w-[calc(100%-3rem)] gap-2">
+                  {currentConversation.participants
+                    .filter((p) => p._id !== ADMIN_ID)
+                    .map((p) => `${p.firstName} ${p.lastName}`)
+                    .join(", ")}
+                </p>
+
+                <p className="font-semibold text-sm  max-w-[calc(100%-3rem)]">
+                  {currentConversation.participants
+                    .filter((p) => p._id !== ADMIN_ID)
+                    .map((p) => p.email)
+                    .join(", ")}
+                </p>
+              </div>
             </>
           ) : (
             <p className="text-gray-500">Choose a chat to view messages</p>
@@ -331,7 +348,6 @@ export default function AdminMessaging() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
         {/* Input */}
         {currentConversation && messages.length > 0 && (
           <div className="flex items-center gap-2 p-3 border-t bg-white">
