@@ -210,6 +210,7 @@ export async function getProducts({
     return res.data;
   } catch (error) {
     console.error("Error fetching products:", error);
+    console.error("Error fetching products:", error);
     throw error;
   }
 }
@@ -297,6 +298,40 @@ export const postResetPassword = async (
   }
 };
 
+// Get All User
+export const getAllUser = async () => {
+  try {
+    const res = await api.get(`/user/all-users`);
+    return res.data;
+  } catch (error) {
+    console.error("Failed to fetch all users:", error);
+    throw error;
+  }
+};
+
+// Get All User Conversation
+export const getUserConversation = async () => {
+  try {
+    const res = await api.get(`/conversation`);
+    // backend returns { success, data }
+    return res.data.data;
+  } catch (error) {
+    console.error("Error fetching conversations", error);
+    return [];
+  }
+};
+
+// Get all admin id
+export const getAdminId = async () => {
+  try {
+    const res = await api.get(`/user/admin_id`);
+    return res.data;
+  } catch {
+    console.log("Error fetching admin id");
+  }
+};
+
+// Course API
 export const courseApi = {
   getCourses: async (
     page: number,
