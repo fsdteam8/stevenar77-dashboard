@@ -327,7 +327,6 @@ export const getAdminId = async () => {
 export const getAdminDashboard = async () => {
   try {
     const res = await api.get(`/dashboard/admin-dashboard`);
-    console.log(res.data);
     return res.data;
   } catch (error) {
     console.error("Error fetching admin dashboard:", error);
