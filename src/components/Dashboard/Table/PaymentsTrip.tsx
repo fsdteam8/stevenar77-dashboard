@@ -1,135 +1,247 @@
 "use client";
+
 import { getAllTripPayments } from "@/lib/api";
 import React, { useState, useEffect } from "react";
-export type TripPayment = {
-  id: string;
-  tripTitle: string;
-  userEmail: string;
-  participantsCount: number;
-  totalPrice: number;
-  status: "paid" | "pending";
-  date: string;
-};
-type Participant = {
+import { Eye } from "lucide-react";
+import Image from "next/image";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog"; // shadcn/ui dialog
+
+// Types
+export type Participant = {
   _id: string;
   firstName: string;
   lastName: string;
   email: string;
-  mobile?: number;
 };
 
-type TripPaymentAPI = {
+export type User = {
+  firstName: string;
+  lastName: string;
+  email: string;
+};
+
+export type TripDetails = {
   _id: string;
-  trip: {
-    _id: string;
-    title: string;
-    price: number;
-  };
-  user: {
-    _id: string;
-    email: string;
-  };
-  participants?: Participant[];
-  totalParticipants?: number;
+  title: string;
+  location: string;
+  images: { url: string }[];
+};
+
+export type TripPaymentDetails = {
+  _id: string;
+  trip: TripDetails;
+  user: User;
   totalPrice: number;
   status: "paid" | "pending";
-  createdAt: string;
+  participants: Participant[];
 };
 
-const PaymentsTrip = () => {
+export type TripPayment = {
+  id: string;
+  tripTitle: string;
+  totalPrice: number;
+  status: "paid" | "pending";
+  images: string;
+  location: string;
+  user: User;
+  participants: Participant[];
+  details: TripPaymentDetails;
+};
+
+const PaymentsTrip: React.FC = () => {
   const [payments, setPayments] = useState<TripPayment[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchPayments = async () => {
-      const data: TripPaymentAPI[] = await getAllTripPayments();
+      const data: TripPaymentDetails[] = await getAllTripPayments();
       const formattedData: TripPayment[] = data.map((p) => ({
         id: p._id,
         tripTitle: p.trip.title,
-        userEmail: p.user.email,
-        participantsCount: p.participants?.length || p.totalParticipants || 0,
         totalPrice: p.totalPrice,
         status: p.status,
-        date: new Date(p.createdAt).toLocaleDateString("en-US", {
-          month: "short",
-          day: "2-digit",
-          year: "numeric",
-        }),
+        images: p.trip.images?.[0]?.url || "/placeholder.png",
+        location: p.trip.location || "N/A",
+        user: p.user,
+        participants: p.participants || [],
+        details: p,
       }));
       setPayments(formattedData);
     };
     fetchPayments();
   }, []);
 
-  const totalPages = Math.ceil(payments.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = payments.slice(startIndex, startIndex + itemsPerPage);
-
   const getPaymentStatusBadgeStyle = (status: TripPayment["status"]) =>
     status === "paid"
-      ? "bg-teal-100 text-teal-800 border border-teal-200"
-      : "bg-purple-100 text-purple-800 border border-purple-200";
+      ? "bg-green-100 text-green-700 border border-green-200"
+      : "bg-yellow-100 text-yellow-700 border border-yellow-200";
 
   return (
-    <div className="w-full bg-white">
+    <div className="w-full bg-white p-4">
       <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Invoice
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Trip
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                User Email
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Participants
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Total Price
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Status
+                Location
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Date
+                Status
+              </th>
+              <th className="px-6 py-3 text-center text-sm font-medium text-gray-700">
+                Action
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
-            {paginatedData.map((payment) => (
-              <tr
-                key={payment.id}
-                className="hover:bg-gray-50 transition-colors"
-              >
-                <td className="px-6 py-4 text-sm text-gray-900">
-                  {payment.tripTitle}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  {payment.userEmail}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  {payment.participantsCount}
-                </td>
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                  ${payment.totalPrice}
-                </td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentStatusBadgeStyle(
-                      payment.status
-                    )}`}
-                  >
-                    {payment.status.toUpperCase()}
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  {payment.date}
-                </td>
-              </tr>
-            ))}
-            {paginatedData.length === 0 && (
+            {payments.length > 0 ? (
+              payments.map((payment) => (
+                <tr
+                  key={payment.id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    #{payment.id.slice(-4)}
+                  </td>
+                  <td className="flex gap-2 items-center px-6 py-4 text-md text-gray-900">
+                    <Image
+                      src={payment.images}
+                      alt={payment.tripTitle}
+                      width={70}
+                      height={50}
+                      className="rounded object-cover"
+                    />
+                    {payment.tripTitle}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    ${payment.totalPrice}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    {payment.location}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentStatusBadgeStyle(
+                        payment.status
+                      )}`}
+                    >
+                      {payment.status.toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <button className="text-blue-600 hover:text-blue-800 transition-colors duration-200 cursor-pointer">
+                          <Eye className="w-5 h-5 inline-block" />
+                        </button>
+                      </DialogTrigger>
+
+                      <DialogContent className="sm:max-w-3xl p-6 rounded-2xl shadow-2xl bg-white border border-gray-200">
+                        <DialogHeader>
+                          <DialogTitle className="text-2xl font-bold text-gray-800">
+                            Trip Payment Details
+                          </DialogTitle>
+                        </DialogHeader>
+
+                        {/* Trip Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-5">
+                          <div className="rounded-lg overflow-hidden shadow-md">
+                            <Image
+                              src={payment.images}
+                              alt={payment.tripTitle}
+                              width={400}
+                              height={250}
+                              className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
+                            />
+                          </div>
+                          <div className="space-y-3 text-sm text-gray-700">
+                            <p>
+                              <strong>Invoice:</strong> #{payment.id.slice(-4)}
+                            </p>
+                            <p>
+                              <strong>Trip:</strong> {payment.tripTitle}
+                            </p>
+                            <p>
+                              <strong>Location:</strong> {payment.location}
+                            </p>
+                            <p>
+                              <strong>Price:</strong> ${payment.totalPrice}
+                            </p>
+                            <p>
+                              <strong>Status:</strong>{" "}
+                              <span
+                                className={`px-3 py-1 rounded-full text-xs font-semibold ${getPaymentStatusBadgeStyle(
+                                  payment.status
+                                )}`}
+                              >
+                                {payment.status.toUpperCase()}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* User Info */}
+                        <div className="mt-8">
+                          <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                            User Information
+                          </h3>
+                          <div className="text-sm text-gray-600 space-y-1">
+                            <p>
+                              <strong>Email:</strong> {payment.user.email}
+                            </p>
+                            <p>
+                              <strong>Name:</strong> {payment.user.firstName}{" "}
+                              {payment.user.lastName}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Participants */}
+                        <div className="mt-6">
+                          <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                            Participants
+                          </h3>
+                          {payment.participants.length > 0 ? (
+                            <ul className="list-disc ml-6 text-sm text-gray-600 space-y-1">
+                              {payment.participants.map((pt) => (
+                                <li key={pt._id}>
+                                  {pt.firstName} {pt.lastName} ({pt.email})
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-gray-500 text-sm">
+                              No participants
+                            </p>
+                          )}
+                        </div>
+
+                        <DialogClose asChild>
+                          <button className="mt-8 w-full md:w-auto px-5 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 cursor-pointer">
+                            Close
+                          </button>
+                        </DialogClose>
+                      </DialogContent>
+                    </Dialog>
+                  </td>
+                </tr>
+              ))
+            ) : (
               <tr>
                 <td
                   colSpan={6}
@@ -142,30 +254,6 @@ const PaymentsTrip = () => {
           </tbody>
         </table>
       </div>
-
-      {totalPages > 1 && (
-        <div className="flex items-center justify-end gap-2 py-4">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-          <span className="text-sm text-gray-600">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-            }
-            disabled={currentPage === totalPages}
-            className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
-        </div>
-      )}
     </div>
   );
 };

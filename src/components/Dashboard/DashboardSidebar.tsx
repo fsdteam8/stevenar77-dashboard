@@ -12,7 +12,6 @@ import {
   LogOut,
   HardDrive,
   MessageCircleMore,
-  ShoppingBag,
 } from "lucide-react"; 
 import { useState } from "react";
  
@@ -27,7 +26,7 @@ const navigation = [
   { name: "Trips", href: "/trips", icon: Ship },
   { name: "Products", href: "/products", icon: NotebookText },
   { name: "Bookings", href: "/bookings", icon: NotebookText },
-  { name: "Order", href: "/order", icon: ShoppingBag },
+  // { name: "Order", href: "/order", icon: ShoppingBag },
   { name: "Messaging", href: "/messaging", icon: MessageCircleMore },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Payments", href: "/payments", icon: CircleDollarSign },
