@@ -1,13 +1,16 @@
 "use client";
-import React, { useState } from "react";
-import CourseManageTable from "../Table/CourseManageTable";
+import { useState } from "react";
 import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
- 
+import { useDebounce } from "@/hooks/useDebounce";
+import CourseManageTable from "../Table/CourseManageTable";
+
 export default function CoursesManagement() {
   const [searchTerm, setSearchTerm] = useState("");
+
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   return (
     <div>
@@ -17,7 +20,7 @@ export default function CoursesManagement() {
           <div className="relative flex-1 max-w-65">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
-              placeholder="Search"
+              placeholder="Search courses..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -33,7 +36,7 @@ export default function CoursesManagement() {
         </div>
       </div>
       <div className="">
-        <CourseManageTable />
+        <CourseManageTable searchTerm={debouncedSearchTerm} />
       </div>
       <div className=""></div>
     </div>

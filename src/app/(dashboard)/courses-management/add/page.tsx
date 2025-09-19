@@ -1,12 +1,12 @@
-import CourseCreateFormt from '@/components/Dashboard/CoursesManagement/CourseCreateFormt'
-import React from 'react'
+import CourseCreateForm from "@/components/Dashboard/CoursesManagement/CourseCreateForm";
+import React from "react";
 
 const page = () => {
   return (
     <div>
-        <CourseCreateFormt />
+      <CourseCreateForm mode="create" />
     </div>
-  )
-}
+  );
+};
 
-export default page
+export default page;

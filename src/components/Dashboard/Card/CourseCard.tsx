@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { Clock, MapPin,  Star } from "lucide-react";
+import type React from "react";
+import { Clock, MapPin, Star } from "lucide-react";
 import Image from "next/image";
 
 type CourseCardProps = {
@@ -30,25 +30,24 @@ const CourseCard: React.FC<CourseCardProps> = ({
   maxDepth = "Max 40 feet",
   features = [
     "Pool training session",
-    "Basic equipment included", 
+    "Basic equipment included",
     "Professional instruction",
-    "Certificate of participation"
+    "Certificate of participation",
   ],
   price = "450",
   ageRestriction = "Age 12+",
- 
 }) => {
   return (
     <section className="max-w-md mx-auto">
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         {/* Course Image */}
-        <div className="relative h-48 w-full">
+        <div className="relative aspect-video">
           <Image
             src={image}
             alt={title}
-            height={150}
-            width={150}
-            className="w-fit h-full object-cover"
+            height={400}
+            width={400}
+            className="w-full h-full object-cover"
           />
         </div>
 
@@ -59,7 +58,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
             <h2 className="text-xl font-bold text-gray-900">{title}</h2>
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              <span className="text-sm text-gray-600">{rating} ({reviews} reviews)</span>
+              <span className="text-sm text-gray-600">
+                {rating} ({reviews} reviews)
+              </span>
             </div>
           </div>
 
@@ -83,10 +84,15 @@ const CourseCard: React.FC<CourseCardProps> = ({
 
           {/* Course Includes */}
           <div className="mb-6">
-            <h3 className="font-semibold text-gray-900 mb-3">Course Includes:</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">
+              Course Includes:
+            </h3>
             <ul className="space-y-2">
               {features.map((feature, index) => (
-                <li key={index} className="flex items-center gap-2 text-sm text-gray-600">
+                <li
+                  key={index}
+                  className="flex items-center gap-2 text-sm text-gray-600"
+                >
                   <div className="w-2 h-2 bg-teal-600 rounded-full flex-shrink-0"></div>
                   {feature}
                 </li>

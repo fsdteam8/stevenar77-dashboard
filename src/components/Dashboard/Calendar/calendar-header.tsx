@@ -1,18 +1,24 @@
-"use client"
+"use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface CalendarHeaderProps {
-  currentMonth: string
-  onPreviousMonth: () => void
-  onNextMonth: () => void
+  currentMonth: string;
+  onPreviousMonth: () => void;
+  onNextMonth: () => void;
 }
 
-export function CalendarHeader({ currentMonth, onPreviousMonth, onNextMonth }: CalendarHeaderProps) {
+export function CalendarHeader({
+  currentMonth,
+  onPreviousMonth,
+  onNextMonth,
+}: CalendarHeaderProps) {
   return (
     <div className="flex items-center justify-between mb-4 sm:mb-6">
-      <h2 className="text-lg sm:text-xl font-medium text-foreground">{currentMonth}</h2>
+      <h2 className="text-lg sm:text-xl font-medium text-foreground">
+        {currentMonth}
+      </h2>
       <div className="flex gap-1 sm:gap-2">
         <Button
           variant="outline"
@@ -32,5 +38,5 @@ export function CalendarHeader({ currentMonth, onPreviousMonth, onNextMonth }: C
         </Button>
       </div>
     </div>
-  )
+  );
 }
