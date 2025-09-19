@@ -8,7 +8,6 @@ import {
   WavesLadder,
 } from "lucide-react";
 import DashChart from "@/components/Dashboard/Chart/DashChart";
-import PiCard from "@/components/Dashboard/StatCard/PiCard";
 import RecentTripTable from "@/components/Dashboard/Table/RecentTripTable";
 import { useDashboard } from "@/hooks/useDashboard";
 
@@ -43,13 +42,9 @@ export default function Dashboard() {
             icon={<BookmarkPlus />}
           />
         </div>
-        <div className="dashcharts grid grid-cols-12 gap-4 ">
+        <div className="dashcharts  gap-4 ">
           <div className="col-span-8">
             <DashChart />
-          </div>
-          <div className="col-span-4">
-            {/* pi-chart goes here */}
-            <PiCard />
           </div>
         </div>
         <div className="table-data space-y-8">
