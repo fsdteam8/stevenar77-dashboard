@@ -42,7 +42,7 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       // If refresh is already in progress, queue this request
       if (isRefreshing) {
@@ -59,41 +59,45 @@ api.interceptors.response.use(
 
       originalRequest._retry = true;
       isRefreshing = true;
-      
+
       try {
         // Try to refresh the token
-        const response = await axios.post(`${API_URL}/auth/refresh-token`, {}, {
-          withCredentials: true
-        });
-        
+        const response = await axios.post(
+          `${API_URL}/auth/refresh-token`,
+          {},
+          {
+            withCredentials: true,
+          }
+        );
+
         const newAccessToken = response.data.data.accessToken;
-        
+
         if (newAccessToken) {
           // Update session token - this updates the session in memory
           const session = await getSession();
           if (session) {
             session.accessToken = newAccessToken;
           }
-          
+
           // Process other requests waiting for the token
           processQueue(null, newAccessToken);
-          
+
           // Update the current request's authorization header
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          
+
           isRefreshing = false;
           return api(originalRequest);
         }
       } catch (refreshError) {
         processQueue(refreshError as Error);
         isRefreshing = false;
-        
+
         // Sign out user and redirect to login
-        await signOut({ callbackUrl: '/auth/signin' });
+        await signOut({ callbackUrl: "/auth/signin" });
         return Promise.reject(refreshError);
       }
     }
-    
+
     return Promise.reject(error);
   }
 );
@@ -297,12 +301,12 @@ export const getAllUser = async () => {
   }
 };
 
-// Get All User Conversation 
+// Get All User Conversation
 export const getUserConversation = async () => {
   try {
     const res = await api.get(`/conversation`);
     // backend returns { success, data }
-    return res.data.data; 
+    return res.data.data;
   } catch (error) {
     console.error("Error fetching conversations", error);
     return [];
@@ -316,5 +320,123 @@ export const getAdminId = async () => {
     return res.data;
   } catch {
     console.log("Error fetching admin id");
+  }
+};
+
+// Get dashboard admin dashboard
+export const getAdminDashboard = async () => {
+  try {
+    const res = await api.get(`/dashboard/admin-dashboard`);
+    console.log(res.data);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching admin dashboard:", error);
+    throw error;
+  }
+};
+
+// Get Dashboard Chart Data with dynamic year
+export const getDashboardChartData = async (year: number) => {
+  try {
+    const res = await api.get(`/dashboard/chart-data?year=${year}`);
+    return res.data;
+  } catch (error) {
+    console.log("Error fetching dashboard chart data:", error);
+  }
+};
+
+// get all notifications
+export const getNotifications = async (token: string) => {
+  try {
+    if (!token) {
+      console.log("No access token available");
+      return [];
+    }
+
+    const res = await api.get("/notifications", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return res.data;
+  } catch (error) {
+    console.log("Error fetching notifications:", error);
+    return [];
+  }
+};
+
+// Get All getAllTripPayments
+export const getAllTripPayments = async () => {
+  try {
+    const res = await api.get(`/class/bookings/payment/history`);
+    return res.data.data.tripPayments;
+  } catch (error) {
+    console.error("Error fetching trip payments:", error);
+    return [];
+  }
+};
+
+// Get All classPayments
+export const getAllClassPayments = async () => {
+  try {
+    const res = await api.get(`/class/bookings/payment/history`);
+    return res.data.data.classPayments;
+  } catch (error) {
+    console.error("Error fetching trip payments:", error);
+    return [];
+  }
+};
+
+// change password
+export const postChangePassword = async (
+  currentPassword: string,
+  newPassword: string,
+  token: string
+) => {
+  try {
+    const res = await api.post(
+      "/auth/change-password",
+      {
+        currentPassword,
+        newPassword,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return res.data;
+  } catch {
+    throw new Error("Failed to Change Password");
+  }
+};
+
+// Update Profile
+export const updateProfile = async (data: FormData, token: string) => {
+  try {
+    const res = await api.put("/user/update-profile", data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return res.data?.data;  
+  } catch   {
+    console.error("Failed to update profile:");
+  }
+};
+
+// Get My Profile data
+export const getMyProfileData = async () => {
+  try {
+    const res = await api.get(`/user/my-profile`);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching My Profile Data:", error);
+    return [];
   }
 };
