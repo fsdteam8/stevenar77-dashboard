@@ -4,13 +4,12 @@ import { useEffect, useState } from "react";
 import { CalendarHeader } from "./calendar-header";
 import { CalendarGrid } from "./calendar-grid";
 import { Button } from "@/components/ui/button";
-// import { getAllClassBookings, transformBookingsToSessions } from "@/lib/api";
 import { Session } from "@/types/class";
 import { useAllClassBookings } from "@/hooks/useAllClassData";
 import { transformBookingsToSessions } from "@/lib/api";
 
 const months = [
-  { name: "September 2025", days: 30, startDay: 0, month: 8, year: 2025 }, // September is month 8 (0-based)
+  { name: "September 2025", days: 30, startDay: 0, month: 8, year: 2025 },  
   { name: "October 2025", days: 31, startDay: 3, month: 9, year: 2025 },
   { name: "November 2025", days: 30, startDay: 6, month: 10, year: 2025 },
   { name: "December 2025", days: 31, startDay: 1, month: 11, year: 2025 },
@@ -35,13 +34,17 @@ export default function AvailableSessionsPage() {
       try {
         const transformedSessions = transformBookingsToSessions(bookings);
         setSessions(transformedSessions);
-      } catch (err) {
-        console.error("Error loading bookings:", err);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error("Error loading bookings:", err.message);
+        } else {
+          console.error("Unexpected error:", err);
+        }
       }
     };
 
     loadBookings();
-  }, []);
+  }, [bookings]);
 
   const handlePreviousMonth = () => {
     setCurrentMonthIndex((prev) => (prev > 0 ? prev - 1 : months.length - 1));

@@ -17,7 +17,7 @@ export default function Dashboard() {
   const { data, error, isLoading } = useDashboard();
 
   // Chart data state
-  const [chartData, setChartData] = useState<any>(null);
+  const [chartData, setChartData] = useState<unknown>(null);
  
 
   useEffect(() => {
@@ -31,7 +31,6 @@ export default function Dashboard() {
       } finally {
       }
     };
-
     fetchChartData();
   }, []);
 
@@ -67,7 +66,7 @@ export default function Dashboard() {
         </div>
         <div className="dashcharts  gap-4 ">
           <div className="col-span-8">
-            <DashChart data={chartData} />
+            <DashChart/>
           </div>
         </div>
         <div className="table-data space-y-8">
