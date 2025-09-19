@@ -1,8 +1,8 @@
 "use client";
 
-import { KeyIcon, LogOut, Menu, User2Icon } from "lucide-react";
+import { Bell, KeyIcon, LogOut, Menu, User2Icon } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
   DropdownMenu,
@@ -20,29 +20,85 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
+import { getMyProfileData, getNotifications } from "@/lib/api";
+
+interface Notification {
+  _id: string;
+  message: string;
+  isViewed: boolean;
+  to?: {
+    _id: string;
+    email: string;
+  };
+  // Add other fields from your API if needed
+}
+interface UserProfile {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  role?: string;
+  isVerified?: boolean;
+  street?: string;
+  location?: string;
+  image?: {
+    url?: string;
+  };
+}
 
 export default function DashboardHeader() {
   // Sidebar open state
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Logout dialog open state
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const { data: session } = useSession();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!session?.accessToken) return;
+
+      const data = await getNotifications(session.accessToken);
+      setNotifications(data.data);
+    };
+
+    fetchNotifications();
+  }, [session]);
+
+  // Count of unseen notifications
+  const unseenCount = notifications.filter((n) => n.isViewed === false).length;
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await getMyProfileData();
+        setUser(res.data);
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   // Dummy user data for demonstration — replace with your actual user fetching logic
-  const user = {
-    firstName: "Olivia",
-    lastName: "Rhye",
-    email: "olivia@example.com",
-    avatar: {
-      url: "/images/profile-mini.jpg",
-    },
-  };
-
+ console.log(user)
   // Logout handler
   const handleLogout = () => {
     signOut();
     setLogoutDialogOpen(false);
   };
+
+  if (loading) {
+    return <p className="p-5">Loading profile...</p>;
+  }
 
   return (
     <header className="w-full h-[100px] bg-white shadow-sm border-b px-4 py-3 flex items-center justify-between">
@@ -68,6 +124,22 @@ export default function DashboardHeader() {
 
       {/* Right: User Profile Dropdown */}
       <div className="flex items-center gap-4">
+        <Link href="/notification">
+          <button
+            className="relative p-2 rounded-full hover:bg-gray-100 cursor-pointer"
+            aria-label="Notifications"
+          >
+            <Bell className="h-6 w-6 text-gray-600" />
+
+            {/* Notification Badge */}
+            {unseenCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-5 px-1 rounded-full bg-red-500 text-white text-xs font-semibold">
+                {unseenCount}
+              </span>
+            )}
+          </button>
+        </Link>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -76,7 +148,7 @@ export default function DashboardHeader() {
             >
               <Avatar className="h-8 w-8 cursor-pointer">
                 <AvatarImage
-                  src={user?.avatar?.url || "/images/profile-mini.jpg"}
+                  src={user?.image?.url || "/images/profile-mini.jpg"}
                   alt={`${user?.firstName} ${user?.lastName}`}
                 />
                 <AvatarFallback className="cursor-pointer">

@@ -2,7 +2,6 @@
 
 import { SessionCard } from "./session-card";
 
-
 interface Session {
   id: string;
   title: string;
@@ -31,6 +30,8 @@ export function CalendarGrid({
     "Friday",
     "Saturday",
   ];
+
+  console.log(sessions);
 
   // Generate calendar days with proper empty cells for month start
   const calendarCells = [];
@@ -70,7 +71,7 @@ export function CalendarGrid({
         return (
           <div
             key={index}
-            className="bg-background min-h-20 sm:min-h-28 lg:min-h-32 p-1 sm:p-2 relative"
+            className="bg-background min-h-20 sm:min-h-28 lg:min-h-[248px] p-1 sm:p-2 relative"
           >
             {day && (
               <>
