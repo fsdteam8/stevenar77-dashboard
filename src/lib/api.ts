@@ -414,3 +414,29 @@ export const postChangePassword = async (
     throw new Error("Failed to Change Password");
   }
 };
+
+// Update Profile
+export const updateProfile = async (data: FormData, token: string) => {
+  try {
+    const res = await api.put("/user/update-profile", data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return res.data?.data;  
+  } catch   {
+    console.error("Failed to update profile:");
+  }
+};
+
+// Get My Profile data
+export const getMyProfileData = async () => {
+  try {
+    const res = await api.get(`/user/my-profile`);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching My Profile Data:", error);
+    return [];
+  }
+};

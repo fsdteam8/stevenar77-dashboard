@@ -75,7 +75,7 @@ const ChangePassword: React.FC = () => {
       return;
     }
 
-    if (formData.newPassword.length < 8) {
+    if (formData.newPassword.length < 6) {
       // alert("New password must be at least 8 characters long");
       toast.warning("New password must be at least 8 characters long");
       return;
@@ -97,7 +97,7 @@ const ChangePassword: React.FC = () => {
       );
 
       console.log("API Response:", res);
-      alert("Password changed successfully!");
+      // alert("Password changed successfully!");
       toast.success("Password changed successfully!")
 
       // Reset form
