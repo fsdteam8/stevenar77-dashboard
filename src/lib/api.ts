@@ -1,3 +1,11 @@
+import { BookingData, Session } from "@/types/class";
+import type {
+  ApiResponse as CourseApiResponse,
+  ApiCourse,
+  // PaginationParams,
+  // CourseFilters,
+} from "@/types/course";
+
 import axios from "axios";
 import { getSession, signOut } from "next-auth/react";
 
@@ -203,6 +211,7 @@ export async function getProducts({
     return res.data;
   } catch (error) {
     console.error("Error fetching products:", error);
+    console.error("Error fetching products:", error);
     throw error;
   }
 }
@@ -322,7 +331,124 @@ export const getAdminId = async () => {
     console.log("Error fetching admin id");
   }
 };
+// Course API
+export const courseApi = {
+  getCourses: async (
+    page: number,
+    limit: number
+  ): Promise<CourseApiResponse<ApiCourse[]>> => {
+    try {
+      const res = await api.get(`/class?page=${page}&limit=${limit}`);
+      return res.data;
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      throw error;
+    }
+  },
 
+  getCourse: async (id: string): Promise<CourseApiResponse<ApiCourse>> => {
+    try {
+      const res = await api.get(`/class/${id}`);
+      return res.data;
+    } catch (error) {
+      console.error("Failed to delete product:", error);
+      throw error;
+    }
+  },
+
+  createCourse: async (
+    formData: FormData
+  ): Promise<{ success: boolean; message: string; data?: ApiCourse }> => {
+    try {
+      const res = await api.post("/class", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return res.data;
+    } catch (error) {
+      console.error("Failed to create trip:", error);
+      throw error;
+    }
+  },
+
+  updateCourse: async (
+    id: string,
+    courseData: Partial<FormData>
+  ): Promise<CourseApiResponse<ApiCourse>> => {
+    try {
+      const res = await api.put(`/class/update/${id}`, courseData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return res.data;
+    } catch (error) {
+      console.error("Failed to update Product:", error);
+      throw error;
+    }
+  },
+
+  deleteCourse: async (id: string): Promise<CourseApiResponse<null>> => {
+    try {
+      const res = await api.delete(`/class/delete/${id}`);
+      return res.data;
+    } catch (error) {
+      console.error("Failed to delete product:", error);
+      throw error;
+    }
+  },
+};
+
+// API types based on the demo data structure
+
+export async function getAllClassBookings(): Promise<BookingData[]> {
+  try {
+    const res = await api.get(`/class/bookings/all-bookings`);
+    return res.data.data;
+  } catch (error) {
+    console.error("Failed to fetch all booked classes:", error);
+    throw error;
+  }
+}
+
+export function transformBookingsToSessions(
+  bookings: BookingData[] | undefined
+): Session[] {
+  const sessions: Session[] = [];
+
+  bookings?.forEach((booking) => {
+    booking.classDate.forEach((dateString) => {
+      const date = new Date(dateString);
+      const day = date.getDate();
+      const month = date.getMonth(); // 0-based month
+      const year = date.getFullYear();
+
+      // Format time from ISO string
+      const time = date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+
+      // Format price - use the first price if array, or totalPrice
+      const price =
+        booking.classId?.price.length > 0
+          ? `$${booking?.classId?.price[0]}`
+          : `$${booking?.totalPrice}`;
+
+      sessions.push({
+        id: `${booking?._id}-${dateString}`,
+        title: booking?.classId?.title,
+        time,
+        price,
+        day,
+        month,
+        year,
+      });
+    });
+  });
+
+  return sessions;
+}
 // Get dashboard admin dashboard
 export const getAdminDashboard = async () => {
   try {
