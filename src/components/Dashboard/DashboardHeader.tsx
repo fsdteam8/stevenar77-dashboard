@@ -1,8 +1,8 @@
 "use client";
 
-import { KeyIcon, LogOut, Menu, User2Icon } from "lucide-react";
+import { Bell, KeyIcon, LogOut, Menu, User2Icon } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
   DropdownMenu,
@@ -20,13 +20,43 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
+import { getNotifications } from "@/lib/api";
+
+interface Notification {
+  _id: string;
+  message: string;
+  isViewed: boolean;
+  to?: {
+    _id: string;
+    email: string;
+  };
+  // Add other fields from your API if needed
+}
 
 export default function DashboardHeader() {
   // Sidebar open state
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Logout dialog open state
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const { data: session } = useSession();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!session?.accessToken) return;
+
+      const data = await getNotifications(session.accessToken);
+      setNotifications(data.data); // use data.data because your API returns {success, message, data}
+    };
+
+    fetchNotifications();
+  }, [session]);
+
+  // Count of unseen notifications
+  const unseenCount = notifications.filter((n) => n.isViewed === false).length;
+
+  // const hasNotifications = true;
 
   // Dummy user data for demonstration — replace with your actual user fetching logic
   const user = {
@@ -68,6 +98,22 @@ export default function DashboardHeader() {
 
       {/* Right: User Profile Dropdown */}
       <div className="flex items-center gap-4">
+        <Link href="/notification">
+          <button
+            className="relative p-2 rounded-full hover:bg-gray-100 cursor-pointer"
+            aria-label="Notifications"
+          >
+            <Bell className="h-6 w-6 text-gray-600" />
+
+            {/* Notification Badge */}
+            {unseenCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[18px] h-5 px-1 rounded-full bg-red-500 text-white text-xs font-semibold">
+                {unseenCount}
+              </span>
+            )}
+          </button>
+        </Link>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

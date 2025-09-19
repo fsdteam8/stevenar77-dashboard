@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from "react"
-import { ArrowUpDown, Eye } from "lucide-react"
+import { Eye } from "lucide-react"
 import Image from "next/image"
 
 export type Booking = {
@@ -27,143 +27,12 @@ const data: Booking[] = [
     date: "Jan 06, 2025",
     avatar: "/images/profile-mini.jpg"
   },
-  {
-    id: "2",
-    invoice: "#3066",
-    customerName: "Alfredo Korsgaard",
-    customerEmail: "olivia@untitledui.com",
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    price: 2000,
-    status: "Paid",
-    date: "Jan 06, 2025",
-    avatar: "/images/profile-mini.jpg"
-  },
-  {
-    id: "3",
-    invoice: "#3066",
-    customerName: "Zaire Saris",
-    customerEmail: "olivia@untitledui.com",
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    price: 2000,
-    status: "Paid",
-    date: "Jan 06, 2025",
-    avatar: "/images/profile-mini.jpg"
-  },
-  {
-    id: "4",
-    invoice: "#3066",
-    customerName: "Leo Korsgaard",
-    customerEmail: "olivia@untitledui.com",
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    price: 2000,
-    status: "Cancelled",
-    date: "Jan 06, 2025",
-    avatar: "/images/profile-mini.jpg"
-  },
-  {
-    id: "5",
-    invoice: "#3066",
-    customerName: "Maren Franci",
-    customerEmail: "olivia@untitledui.com",
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    price: 2000,
-    status: "Paid",
-    date: "Jan 06, 2025",
-    avatar: "/images/profile-mini.jpg"
-  },
-  {
-    id: "6",
-    invoice: "#3066",
-    customerName: "Martin Franci",
-    customerEmail: "olivia@untitledui.com",
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    price: 2000,
-    status: "Paid",
-    date: "Jan 06, 2025",
-    avatar: "/images/profile-mini.jpg"
-  },
-  {
-    id: "7",
-    invoice: "#3066",
-    customerName: "Phillip Press",
-    customerEmail: "olivia@untitledui.com",
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    price: 2000,
-    status: "Cancelled",
-    date: "Jan 06, 2025",
-    avatar: "/images/profile-mini.jpg"
-  },
-  {
-    id: "8",
-    invoice: "#3066",
-    customerName: "Cristofer Dorwart",
-    customerEmail: "olivia@untitledui.com",
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    price: 2000,
-    status: "Paid",
-    date: "Jan 06, 2025",
-    avatar: "/images/profile-mini.jpg"
-  },
-  {
-    id: "9",
-    invoice: "#3066",
-    customerName: "James Press",
-    customerEmail: "olivia@untitledui.com",
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    price: 2000,
-    status: "Paid",
-    date: "Jan 06, 2025",
-    avatar: "/images/profile-mini.jpg"
-  },
-  {
-    id: "10",
-    invoice: "#3066",
-    customerName: "Justin Mango",
-    customerEmail: "olivia@untitledui.com",
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    price: 2000,
-    status: "Paid",
-    date: "Jan 06, 2025",
-    avatar: "/images/profile-mini.jpg"
-  },
-  {
-    id: "11",
-    invoice: "#3066",
-    customerName: "Justin Mango",
-    customerEmail: "olivia@untitledui.com",
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    price: 2000,
-    status: "Paid",
-    date: "Jan 06, 2025",
-    avatar: "/images/profile-mini.jpg"
-  },
-  {
-    id: "12",
-    invoice: "#3066",
-    customerName: "Justin Mango",
-    customerEmail: "olivia@untitledui.com",
-    location: "2715 Ash Dr. San Jose, South Dakota 83475",
-    price: 2000,
-    status: "Paid",
-    date: "Jan 06, 2025",
-    avatar: "/images/profile-mini.jpg"
-  },
+  // ... rest of your data
 ]
 
 const BookingTable = () => {
-  const [sortField, setSortField] = useState<keyof Booking | null>(null)
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
-
-  const handleSort = (field: keyof Booking) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortField(field)
-      setSortDirection('asc')
-    }
-  }
 
   const handleViewDetails = (booking: Booking) => {
     console.log("View details for:", booking.customerName)
@@ -180,22 +49,9 @@ const BookingTable = () => {
     }
   }
 
-  const sortedData = React.useMemo(() => {
-    if (!sortField) return data
-    
-    return [...data].sort((a, b) => {
-      const aValue = a[sortField]
-      const bValue = b[sortField]
-      
-      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1
-      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1
-      return 0
-    })
-  }, [sortField, sortDirection])
-
-  const totalPages = Math.ceil(sortedData.length / itemsPerPage)
+  const totalPages = Math.ceil(data.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage)
+  const paginatedData = data.slice(startIndex, startIndex + itemsPerPage)
 
   return (
     <div className="w-full bg-white">
@@ -203,41 +59,19 @@ const BookingTable = () => {
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-6 py-3 text-left">
-                <button 
-                  onClick={() => handleSort('invoice')}
-                  className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-                >
-                  Invoice
-                  <ArrowUpDown className="w-4 h-4" />
-                </button>
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Customer
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Location
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Price
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Date
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Action
-              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Invoice</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Customer</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Location</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Price</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Date</th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Action</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
             {paginatedData.map((booking) => (
               <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  {booking.invoice}
-                </td>
+                <td className="px-6 py-4 text-sm text-gray-600">{booking.invoice}</td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <Image
@@ -245,7 +79,7 @@ const BookingTable = () => {
                       alt={booking.customerName}
                       width={30}
                       height={30}
-                      className=" rounded-full object-cover flex-shrink-0"
+                      className="rounded-full object-cover flex-shrink-0"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = `${booking.avatar}`;
@@ -257,20 +91,14 @@ const BookingTable = () => {
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">
-                  {booking.location}
-                </td>
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                  ${booking.price.toLocaleString()}
-                </td>
+                <td className="px-6 py-4 text-sm text-gray-600 max-w-xs">{booking.location}</td>
+                <td className="px-6 py-4 text-sm font-medium text-gray-900">${booking.price.toLocaleString()}</td>
                 <td className="px-6 py-4">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeStyle(booking.status)}`}>
                     {booking.status}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  {booking.date}
-                </td>
+                <td className="px-6 py-4 text-sm text-gray-600">{booking.date}</td>
                 <td className="px-6 py-4">
                   <button
                     onClick={() => handleViewDetails(booking)}
