@@ -3,39 +3,33 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card";
-import { ArrowUpRight } from "lucide-react";
+ 
 
 interface StatCardProps {
   title: string;
   numberInfo: string | number;
   icon: ReactNode;
-  footerText: string;
+ 
 }
 
 const StatCard: React.FC<StatCardProps> = ({
   title,
   numberInfo,
   icon,
-  footerText,
+ 
 }) => {
   return (
     <Card className="p-5 w-[372px] rounded-xl shadow-sm">
       <CardContent className="p-0">
         {/* Title */}
-        <h3 className="text-gray-700 font-semibold text-3xl mb-3">{title}</h3>
+        <h3 className="text-[#343A40] font-semibold text-2xl mb-3">{title}</h3>
 
         {/* Number + Icon */}
         <div className="flex justify-between items-center">
-          <div className="text-5xl font-bold text-primary">
+          <div className="text-5xl font-bold text-[#10421B]">
             {numberInfo}
           </div>
-          <div className="text-primary text-5xl [&>svg]:w-35 [&>svg]:h-35">{icon}</div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center text-sm text-teal-600 mt-2">
-          {footerText}
-          <ArrowUpRight className="w-4 h-4 ml-1" />
+          <div className="text-primary text-3xl [&>svg]:w-26 [&>svg]:h-24">{icon}</div>
         </div>
       </CardContent>
     </Card>
