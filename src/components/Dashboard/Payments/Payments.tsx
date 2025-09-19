@@ -29,7 +29,7 @@ export default function Payments() {
             <button
               className={`px-4 py-2 rounded-md ${
                 activeTab === "trip"
-                  ? "bg-blue-500 text-white cursor-pointer"
+                  ? "bg-[#0694A2] text-white cursor-pointer"
                   : "bg-gray-200 text-gray-700 cursor-pointer"
               }`}
               onClick={() => setActiveTab("trip")}
@@ -39,7 +39,7 @@ export default function Payments() {
             <button
               className={`px-4 py-2 rounded-md ${
                 activeTab === "course"
-                  ? "bg-blue-500 text-white cursor-pointer"
+                  ? "bg-[#0694A2] text-white cursor-pointer"
                   : "bg-gray-200 text-gray-700 cursor-pointer"
               }`}
               onClick={() => setActiveTab("course")}
