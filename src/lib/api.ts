@@ -1,3 +1,4 @@
+import { BookingData, Session } from "@/types/class";
 import type {
   ApiResponse as CourseApiResponse,
   ApiCourse,
@@ -397,3 +398,55 @@ export const courseApi = {
     }
   },
 };
+
+// API types based on the demo data structure
+
+export async function getAllClassBookings(): Promise<BookingData[]> {
+  try {
+    const res = await api.get(`/class/bookings/all-bookings`);
+    return res.data.data;
+  } catch (error) {
+    console.error("Failed to fetch all booked classes:", error);
+    throw error;
+  }
+}
+
+export function transformBookingsToSessions(
+  bookings: BookingData[] | undefined
+): Session[] {
+  const sessions: Session[] = [];
+
+  bookings?.forEach((booking) => {
+    booking.classDate.forEach((dateString) => {
+      const date = new Date(dateString);
+      const day = date.getDate();
+      const month = date.getMonth(); // 0-based month
+      const year = date.getFullYear();
+
+      // Format time from ISO string
+      const time = date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+
+      // Format price - use the first price if array, or totalPrice
+      const price =
+        booking.classId?.price.length > 0
+          ? `$${booking?.classId?.price[0]}`
+          : `$${booking?.totalPrice}`;
+
+      sessions.push({
+        id: `${booking?._id}-${dateString}`,
+        title: booking?.classId?.title,
+        time,
+        price,
+        day,
+        month,
+        year,
+      });
+    });
+  });
+
+  return sessions;
+}
