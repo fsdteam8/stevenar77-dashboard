@@ -23,12 +23,13 @@ import { Button } from "../ui/button";
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Courses", href: "/courses-management", icon: HardDrive },
-  { name: "Bookings", href: "/bookings", icon: NotebookText },
+  { name: "Trips", href: "/trips", icon: Ship },
   { name: "Products", href: "/products", icon: NotebookText },
+  { name: "Bookings", href: "/bookings", icon: NotebookText },
+  // { name: "Order", href: "/order", icon: ShoppingBag },
+  { name: "Messaging", href: "/messaging", icon: MessageCircleMore },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Payments", href: "/payments", icon: CircleDollarSign },
-  { name: "Trips", href: "/trips", icon: Ship },
-  { name: "Messaging", href: "/messaging", icon: MessageCircleMore },
   // { name: "Shop", href: "/shop", icon: ShoppingCart },
 ];
 
