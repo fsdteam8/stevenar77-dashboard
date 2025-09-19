@@ -2,7 +2,7 @@
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import io, { Socket } from "socket.io-client";
-import { Lock, Send } from "lucide-react";
+import { Lock, MessageCircle, Send } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -17,7 +17,7 @@ import Image from "next/image";
 interface Message {
   _id?: string;
   conversationId: string;
-  sender: string;
+  sender: string | { _id: string; name?: string; email?: string };
   text: string;
   createdAt?: string;
 }
@@ -76,7 +76,15 @@ export default function AdminMessaging() {
         currentConversation &&
         msg.conversationId === currentConversation._id
       ) {
-        setMessages((prev) => [...prev, msg]);
+        setMessages((prev) => {
+          const alreadyExists = prev.some(
+            (m) =>
+              m._id === msg._id ||
+              (m.text === msg.text && m.createdAt === msg.createdAt)
+          );
+          if (alreadyExists) return prev;
+          return [...prev, msg];
+        });
       }
       setConversations((prev) =>
         prev.map((conv) =>
@@ -93,31 +101,29 @@ export default function AdminMessaging() {
   }, [ADMIN_ID, currentConversation]);
 
   // Fetch conversations
-const fetchConversations = useCallback(async () => {
-  if (!ADMIN_ID || !session?.accessToken) return;
+  const fetchConversations = useCallback(async () => {
+    if (!ADMIN_ID || !session?.accessToken) return;
 
-  const res = await fetch(`${API_BASE}/conversation`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${session.accessToken}`,
-    },
-  });
+    const res = await fetch(`${API_BASE}/conversation`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.accessToken}`,
+      },
+    });
 
-  const data = await res.json();
-  console.log(data);
+    const data = await res.json();
+    if (Array.isArray(data)) {
+      setConversations(data);
+    } else if (Array.isArray(data.data)) {
+      setConversations(data.data);
+    } else {
+      setConversations([]);
+    }
+  }, [ADMIN_ID, session?.accessToken]);
 
-  if (Array.isArray(data)) {
-    setConversations(data);
-  } else if (Array.isArray(data.data)) {
-    setConversations(data.data);
-  } else {
-    setConversations([]);
-  }
-}, [ADMIN_ID, session?.accessToken]);
-
-useEffect(() => {
-  fetchConversations();
-}, [fetchConversations]);
+  useEffect(() => {
+    fetchConversations();
+  }, [fetchConversations]);
 
   // Open a conversation
   const openConversation = async (conv: Conversation) => {
@@ -156,7 +162,8 @@ useEffect(() => {
     };
 
     socket.emit("sendMessage", payload);
-    setMessages((prev) => [...prev, payload]);
+
+    // ❌ এখানে আর setMessages করবো না, শুধু socket এর response এ append হবে
     setInput("");
   };
 
@@ -171,8 +178,8 @@ useEffect(() => {
   // If not logged in
   if (status === "unauthenticated") {
     return (
-      <div className="flex items-center justify-center my-20  ">
-        <Card className="w-full max-w-md text-center shadow-lg rounded-2xl border border-gray-200 p-6">
+      <div className="flex items-center justify-center my-20">
+        <Card className="w-full max-h-max text-center shadow-lg rounded-2xl border border-gray-200 p-6">
           <CardHeader>
             <div className="flex justify-center mb-3">
               <div className="bg-red-100 text-red-600 p-3 rounded-full">
@@ -201,16 +208,9 @@ useEffect(() => {
   }
 
   return (
-    <div className="flex h-[80vh] border rounded-lg overflow-hidden max-w-6xl mx-auto mt-6 shadow">
+    <div className="flex h-[80vh] border rounded-lg overflow-hidden max-w-8xl mx-auto mt-6 shadow">
       {/* Sidebar */}
       <div className="w-80 border-r bg-white flex flex-col">
-        {/* <div className="p-3 border-b">
-          <input
-            type="text"
-            placeholder="Search Message ......"
-            className="w-full px-3 py-2 rounded border focus:outline-none"
-          />
-        </div> */}
         <div className="flex-1 overflow-y-auto">
           {conversations.map((conv) => {
             const user = conv.participants.find((p) => p._id !== ADMIN_ID);
@@ -219,28 +219,32 @@ useEffect(() => {
               <div
                 key={conv._id}
                 onClick={() => openConversation(conv)}
-                className={`flex items-center gap-3 p-3 cursor-pointer ${
+                className={`grid grid-cols-7 items-center gap-3 p-3 cursor-pointer ${
                   active ? "bg-cyan-100" : "hover:bg-gray-100"
                 }`}
               >
-                <div className="w-10 h-10 rounded-full overflow-hidden">
+                <div className="col-span-1 overflow-hidden">
                   <Image
                     src={"/images/profile-mini.jpg"}
                     alt="User Avatar"
                     width={40}
                     height={40}
-                    className="object-cove w-10 h-10 rounded-full"
+                    className="object-cover w-full aspect-square rounded-full"
                   />
                 </div>
-                <div className="flex-1">
-                  <p className={`font-medium ${active ? "text-cyan-700" : ""}`}>
+                <div className="col-span-5 flex-1">
+                  <p
+                    className={`font-medium truncate ${
+                      active ? "text-cyan-700" : ""
+                    }`}
+                  >
                     {user?.name || user?.email || "Unknown"}
                   </p>
                   <p className="text-xs text-gray-500 truncate">
                     {conv.lastMessage || "No messages"}
                   </p>
                 </div>
-                <span className="text-xs text-gray-400">
+                <span className="col-span-1 text-xs text-gray-400">
                   {formatTime(conv.updatedAt)}
                 </span>
               </div>
@@ -255,16 +259,16 @@ useEffect(() => {
         <div className="flex items-center gap-3 p-3 border-b bg-white">
           {currentConversation ? (
             <>
-              <div className="w-10 h-10 rounded-full overflow-hidden">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden">
                 <Image
                   src={"/images/profile-mini.jpg"}
                   alt="User Avatar"
                   width={40}
                   height={40}
-                  className="object-cove w-10 h-10 rounded-full"
+                  className="object-cover w-10 h-10 rounded-full"
                 />
               </div>
-              <p className="font-semibold">
+              <p className="font-semibold truncate max-w-[calc(100%-3rem)]">
                 {currentConversation.participants
                   .filter((p) => p._id !== ADMIN_ID)
                   .map((p) => p.name || p.email || p._id)
@@ -272,56 +276,81 @@ useEffect(() => {
               </p>
             </>
           ) : (
-            <p className="text-gray-500">Select a conversation</p>
+            <p className="text-gray-500">Choose a chat to view messages</p>
           )}
         </div>
 
         {/* Messages */}
         <div className="flex-1 p-4 overflow-y-auto bg-white">
-          {messages.map((m, i) => {
-            const isAdmin = m.sender === ADMIN_ID;
-            return (
-              <div
-                key={i}
-                className={`mb-4 flex ${
-                  isAdmin ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`max-w-xs px-3 py-2 rounded-2xl relative ${
-                    isAdmin
-                      ? "bg-cyan-600 text-white rounded-br-none"
-                      : "bg-gray-100 text-gray-800 rounded-bl-none"
-                  }`}
-                >
-                  <p>{m.text}</p>
-                  <span className="absolute -bottom-4 right-2 text-xs text-gray-400">
-                    {formatTime(m.createdAt)}
-                  </span>
+          {messages.length === 0 ? (
+            <div className="h-full flex items-center justify-center">
+              <div className="h-full flex items-center justify-center  ">
+                <div className="bg-white shadow-lg rounded-2xl p-10 flex flex-col items-center justify-center space-y-4 max-w-sm text-center">
+                  <div className="w-16 h-16 flex items-center justify-center rounded-full bg-cyan-100 animate-pulse">
+                    <MessageCircle className="w-8 h-8 text-cyan-600" />
+                  </div>
+                  <p className="text-xl font-semibold text-gray-700">
+                    No Conversation Selected
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Choose a conversation from the left or start a new chat to
+                    see messages here.
+                  </p>
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ) : (
+            messages.map((m, i) => {
+              const senderId =
+                typeof m.sender === "object" ? m.sender._id : m.sender;
+              const isAdmin = senderId === ADMIN_ID;
+
+              return (
+                <div
+                  key={m._id || i}
+                  className={`mb-4 flex ${
+                    isAdmin ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <div
+                    className={`max-w-xl px-3 py-2 rounded-2xl relative break-words whitespace-pre-wrap ${
+                      isAdmin
+                        ? "bg-cyan-600 text-white rounded-br-none"
+                        : "bg-gray-100 text-gray-800 rounded-bl-none"
+                    }`}
+                  >
+                    <p>{m.text}</p>
+                    <span className="absolute -bottom-4 right-2 text-xs text-gray-400">
+                      {formatTime(m.createdAt)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
           <div ref={messagesEndRef} />
         </div>
 
         {/* Input */}
-        <div className="flex items-center gap-2 p-3 border-t bg-white">
-          <input
-            type="text"
-            className="flex-1 border rounded-full px-4 py-2 focus:outline-none"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Type your message"
-          />
-          <button
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-cyan-600 text-white hover:bg-cyan-700"
-            onClick={sendMessage}
-          >
-            <Send size={18} />
-          </button>
-        </div>
+        {/* Input */}
+        {currentConversation && messages.length > 0 && (
+          <div className="flex items-center gap-2 p-3 border-t bg-white">
+            <input
+              type="text"
+              className="flex-1 border rounded-full px-4 py-2 focus:outline-none"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              placeholder="Type your message"
+            />
+            <button
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-cyan-600 text-white hover:bg-cyan-700 cursor-pointer"
+              onClick={sendMessage}
+            >
+              <Send size={18} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

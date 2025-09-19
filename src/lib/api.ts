@@ -331,7 +331,6 @@ export const getAdminId = async () => {
     console.log("Error fetching admin id");
   }
 };
-
 // Course API
 export const courseApi = {
   getCourses: async (
@@ -450,3 +449,120 @@ export function transformBookingsToSessions(
 
   return sessions;
 }
+// Get dashboard admin dashboard
+export const getAdminDashboard = async () => {
+  try {
+    const res = await api.get(`/dashboard/admin-dashboard`);
+    console.log(res.data);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching admin dashboard:", error);
+    throw error;
+  }
+};
+
+// Get Dashboard Chart Data with dynamic year
+export const getDashboardChartData = async (year: number) => {
+  try {
+    const res = await api.get(`/dashboard/chart-data?year=${year}`);
+    return res.data;
+  } catch (error) {
+    console.log("Error fetching dashboard chart data:", error);
+  }
+};
+
+// get all notifications
+export const getNotifications = async (token: string) => {
+  try {
+    if (!token) {
+      console.log("No access token available");
+      return [];
+    }
+
+    const res = await api.get("/notifications", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return res.data;
+  } catch (error) {
+    console.log("Error fetching notifications:", error);
+    return [];
+  }
+};
+
+// Get All getAllTripPayments
+export const getAllTripPayments = async () => {
+  try {
+    const res = await api.get(`/class/bookings/payment/history`);
+    return res.data.data.tripPayments;
+  } catch (error) {
+    console.error("Error fetching trip payments:", error);
+    return [];
+  }
+};
+
+// Get All classPayments
+export const getAllClassPayments = async () => {
+  try {
+    const res = await api.get(`/class/bookings/payment/history`);
+    return res.data.data.classPayments;
+  } catch (error) {
+    console.error("Error fetching trip payments:", error);
+    return [];
+  }
+};
+
+// change password
+export const postChangePassword = async (
+  currentPassword: string,
+  newPassword: string,
+  token: string
+) => {
+  try {
+    const res = await api.post(
+      "/auth/change-password",
+      {
+        currentPassword,
+        newPassword,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return res.data;
+  } catch {
+    throw new Error("Failed to Change Password");
+  }
+};
+
+// Update Profile
+export const updateProfile = async (data: FormData, token: string) => {
+  try {
+    const res = await api.put("/user/update-profile", data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return res.data?.data;  
+  } catch   {
+    console.error("Failed to update profile:");
+  }
+};
+
+// Get My Profile data
+export const getMyProfileData = async () => {
+  try {
+    const res = await api.get(`/user/my-profile`);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching My Profile Data:", error);
+    return [];
+  }
+};
