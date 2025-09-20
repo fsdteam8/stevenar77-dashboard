@@ -1164,7 +1164,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                 </div>
 
                 {/* ✅ React Quill Editor for Description */}
-                <div className="mb-12">
+                <div className="mb-16">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Description *
                   </label>

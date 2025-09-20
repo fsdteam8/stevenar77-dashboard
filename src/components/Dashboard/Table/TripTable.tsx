@@ -57,12 +57,7 @@ const TripTable = () => {
     }
   };
 
-  if (isLoading)
-    return (
-      <p className="text-center py-6">
-        <TripsSkeleton />
-      </p>
-    );
+  if (isLoading) return <TripsSkeleton />;
   if (isError)
     return (
       <p className="text-center py-6 text-red-500">Failed to load trips.</p>
@@ -225,9 +220,10 @@ const TripTable = () => {
                   <MapPin className="w-4 h-4 mr-1" />
                   {selectedTrip.location}
                 </div>
-                <p className="mt-4 text-gray-700 leading-relaxed whitespace-pre-line italic">
-                  {selectedTrip.description}
-                </p>
+                <div
+                  className="mt-4 text-gray-700 leading-relaxed italic prose max-w-none"
+                  dangerouslySetInnerHTML={{ __html: selectedTrip.description }}
+                />
               </div>
             </div>
           )}

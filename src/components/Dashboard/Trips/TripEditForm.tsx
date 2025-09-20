@@ -8,6 +8,10 @@ import { useSingleTrip } from "@/hooks/useTrips";
 import { useParams, useRouter } from "next/navigation";
 import { updateSingleTrip } from "@/lib/api";
 import TripCreateFormSkeleton from "./TripCreateFormSkeleton";
+import dynamic from "next/dynamic";
+// ✅ Dynamically import ReactQuill to avoid SSR issues
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
+import "react-quill-new/dist/quill.snow.css";
 
 const TripEditForm = () => {
   const { id } = useParams();
@@ -30,7 +34,11 @@ const TripEditForm = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
-   const router = useRouter();
+  const router = useRouter();
+  const [submitMessage, setSubmitMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   // API থেকে ডাটা আসলে formData তে বসানো
   useEffect(() => {
@@ -71,6 +79,15 @@ const TripEditForm = () => {
       setImagePreview(URL.createObjectURL(file));
       setErrors((prev) => ({ ...prev, image: "" }));
     }
+  };
+
+  // ✅ Special handler for ReactQuill
+  const handleDescriptionChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      description: value,
+    }));
+    if (submitMessage) setSubmitMessage(null);
   };
 
   // Validation
@@ -126,7 +143,12 @@ const TripEditForm = () => {
     }
   };
 
-  if (isLoading) return <p className="p-6"><TripCreateFormSkeleton /></p>;
+  if (isLoading)
+    return (
+      <p className="p-6">
+        <TripCreateFormSkeleton />
+      </p>
+    );
   if (isError) return <p className="p-6 text-red-500">Failed to load trip</p>;
 
   return (
@@ -168,11 +190,11 @@ const TripEditForm = () => {
               </div>
 
               {/* Description */}
-              <div>
+              <div className="mb-16">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Description
                 </label>
-                <textarea
+                {/* <textarea
                   name="description"
                   placeholder="Description here"
                   rows={4}
@@ -181,6 +203,13 @@ const TripEditForm = () => {
                   className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] resize-none ${
                     errors.description ? "border-red-500" : "border-gray-300"
                   }`}
+                /> */}
+
+                <ReactQuill
+                  value={formData.description}
+                  onChange={handleDescriptionChange}
+                  className="h-96"
+                  theme="snow"
                 />
                 {errors.description && (
                   <p className="text-red-500 text-sm mt-1">
