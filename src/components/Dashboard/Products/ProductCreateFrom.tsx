@@ -6,9 +6,14 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateProduct } from "@/hooks/useProducts";
+import dynamic from "next/dynamic";
+
+// ✅ Dynamically import ReactQuill to avoid SSR issues
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
+import "react-quill-new/dist/quill.snow.css";
 
 // ✅ Zod schema
 const productSchema = z.object({
@@ -41,12 +46,14 @@ export default function ProductCreateForm() {
   const router = useRouter();
   const { mutate: createProductMutate, isPending } = useCreateProduct();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [newFeatured, setNewFeatured] = useState("");
 
   const {
     register,
     handleSubmit,
     setValue,
     getValues,
+    control,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<ProductForm>({
@@ -61,8 +68,6 @@ export default function ProductCreateForm() {
       featured: [],
     },
   });
-
-  const [newFeatured, setNewFeatured] = useState("");
 
   // Add featured
   const handleAddFeatured = () => {
@@ -117,10 +122,10 @@ export default function ProductCreateForm() {
 
     createProductMutate(formData, {
       onSuccess: () => {
-        toast.success("✅ Product created successfully!");
+        toast.success("Product created successfully!");
         reset();
         setImagePreview(null);
-        router.push("/products"); // চাইলে product list এ redirect করতে পারেন
+        router.push("/products");
       },
       onError: () => {
         toast.error("❌ Failed to create product!");
@@ -228,14 +233,20 @@ export default function ProductCreateForm() {
                 )}
               </div>
 
-              {/* Long Description */}
-              <div>
+              {/* Long Description (ReactQuill) */}
+              <div className="mb-16">
                 <label className="block text-sm mb-2">Long Description</label>
-                <textarea
-                  rows={4}
-                  {...register("longDescription")}
-                  placeholder="Write product details"
-                  className="w-full px-4 py-3 border rounded-lg"
+                <Controller
+                  name="longDescription"
+                  control={control}
+                  render={({ field }) => (
+                    <ReactQuill
+                      value={field.value}
+                      onChange={field.onChange}
+                      className="h-96"
+                      theme="snow"
+                    />
+                  )}
                 />
                 {errors.longDescription && (
                   <p className="text-red-500 text-sm">
