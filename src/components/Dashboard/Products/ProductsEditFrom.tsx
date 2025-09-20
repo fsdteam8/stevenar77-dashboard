@@ -231,14 +231,14 @@ const ProductsEditForm = () => {
                 }`}
               /> */}
               <ReactQuill
-                value={formData.longDescription}
+                value={formData?.longDescription}
                 onChange={handleDescriptionChange}
                 className="h-96"
                 theme="snow"
               />
               {errors.longDescription && (
                 <p className="text-red-500 text-sm mt-1">
-                  {errors.longDescription}
+                  {errors?.longDescription}
                 </p>
               )}
             </div>
