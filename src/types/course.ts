@@ -26,6 +26,7 @@ export interface ApiCourse {
   totalParticipates?: number;
   createdAt: string;
   updatedAt: string;
+  isActive: boolean;
 }
 
 export interface ApiResponse<T> {

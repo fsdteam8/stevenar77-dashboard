@@ -16,6 +16,10 @@ import DeleteAlertDialog from "../Card/DeleteCard";
 import CourseCard from "../Card/CourseCard";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Switch } from "@/components/ui/switch";
+import axios from "axios";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 interface CourseManageTableProps {
   searchTerm?: string;
@@ -26,9 +30,13 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<ApiCourse | null>(null);
 
+  const session = useSession();
   const router = useRouter();
 
-  const { data, isLoading, isError, error } = useCourses(currentPage, 10);
+  const { data, isLoading, isError, error, refetch } = useCourses(
+    currentPage,
+    10
+  );
   const deleteMutation = useDeleteCourse();
 
   const courses: ApiCourse[] = data?.data || [];
@@ -45,6 +53,25 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
       console.log("Course deleted successfully:", course._id);
     } catch (error) {
       console.error("Failed to delete course:", error);
+    }
+  };
+
+  const handleToggleStatus = async (course: ApiCourse) => {
+    try {
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_API_URL}/class/update-status/${course._id}`,
+        { isActive: !course.isActive }, // 👉 request body
+        {
+          headers: {
+            Authorization: `Bearer ${session?.data?.accessToken || ""}`,
+          },
+        }
+      );
+
+      toast.success(`Status updated: ${course?.title}`,);
+      refetch();
+    } catch (err) {
+      console.error("Failed to update status:", err);
     }
   };
 
@@ -76,19 +103,6 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
       : course.price.toString(),
     location: course.location || "TBD",
   });
-
-  // const getLevelBadgeStyle = (level: ApiCourse["courseLevel"]) => {
-  //   switch (level.toLowerCase()) {
-  //     case "beginner":
-  //       return "bg-blue-100 text-blue-800 border border-blue-200";
-  //     case "intermediate":
-  //       return "bg-teal-100 text-teal-800 border border-teal-200";
-  //     case "advanced":
-  //       return "bg-purple-100 text-purple-800 border border-purple-200";
-  //     default:
-  //       return "bg-gray-100 text-gray-800 border border-gray-200";
-  //   }
-  // };
 
   return (
     <div className="w-full bg-white">
@@ -159,9 +173,7 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium `}
-                      >
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ">
                         {course.courseLevel}
                       </span>
                     </td>
@@ -181,6 +193,13 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
+                        {/* ✅ Toggle for isActive */}
+                        <Switch
+                          checked={course.isActive}
+                          onCheckedChange={() => handleToggleStatus(course)}
+                          className="cursor-pointer"
+                        />
+
                         <Button
                           onClick={() =>
                             router.push(
@@ -188,10 +207,11 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
                             )
                           }
                           className="p-1 text-primary bg-transparent rounded hover:bg-gray-200 cursor-pointer"
-                          title="View course"
+                          title="Edit course"
                         >
                           <Edit className="w-4 h-4" />
-                        </Button>{" "}
+                        </Button>
+
                         <Button
                           onClick={() => handleView(course)}
                           className="p-1 text-primary bg-transparent rounded hover:bg-gray-200 cursor-pointer"
@@ -199,6 +219,7 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
+
                         <DeleteAlertDialog
                           trigger={
                             <Button
@@ -238,6 +259,7 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
         </div>
       )}
 
+      {/* Pagination */}
       {meta && meta.totalPage > 1 && (
         <div className="flex items-center justify-end gap-2 py-4">
           <Button
