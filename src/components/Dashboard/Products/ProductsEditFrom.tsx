@@ -7,6 +7,10 @@ import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 import { useSingleProduct } from "@/hooks/useProducts";
 import { updateSingleProduct } from "@/lib/api";
+import dynamic from "next/dynamic";
+// ✅ Dynamically import ReactQuill to avoid SSR issues
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
+import "react-quill-new/dist/quill.snow.css";
 
 const ProductsEditForm = () => {
   const { id } = useParams();
@@ -30,6 +34,10 @@ const ProductsEditForm = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   // Load product data into form
   useEffect(() => {
@@ -73,6 +81,15 @@ const ProductsEditForm = () => {
       setImagePreview(URL.createObjectURL(file));
       setErrors((prev) => ({ ...prev, image: "" }));
     }
+  };
+
+  // ✅ Special handler for ReactQuill
+  const handleDescriptionChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      description: value,
+    }));
+    if (submitMessage) setSubmitMessage(null);
   };
 
   // Validation
@@ -203,6 +220,7 @@ const ProductsEditForm = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Long Description
               </label>
+              {/* 
               <textarea
                 name="longDescription"
                 rows={4}
@@ -211,10 +229,16 @@ const ProductsEditForm = () => {
                 className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] resize-none ${
                   errors.longDescription ? "border-red-500" : "border-gray-300"
                 }`}
+              /> */}
+              <ReactQuill
+                value={formData?.longDescription}
+                onChange={handleDescriptionChange}
+                className="h-96"
+                theme="snow"
               />
               {errors.longDescription && (
                 <p className="text-red-500 text-sm mt-1">
-                  {errors.longDescription}
+                  {errors?.longDescription}
                 </p>
               )}
             </div>

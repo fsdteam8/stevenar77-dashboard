@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff, ChevronLeft } from "lucide-react";
+import { Eye, EyeOff, ChevronLeftIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSession } from "next-auth/react";
 import { postChangePassword } from "@/lib/api";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface ChangePasswordData {
   currentPassword: string;
@@ -18,6 +19,7 @@ interface ChangePasswordData {
 const ChangePassword: React.FC = () => {
   const { data: session } = useSession();
   const token = session?.accessToken as string;
+  const router = useRouter();
 
   const [formData, setFormData] = useState<ChangePasswordData>({
     currentPassword: "",
@@ -98,7 +100,7 @@ const ChangePassword: React.FC = () => {
 
       console.log("API Response:", res);
       // alert("Password changed successfully!");
-      toast.success("Password changed successfully!")
+      toast.success("Password changed successfully!");
 
       // Reset form
       setFormData({
@@ -109,7 +111,7 @@ const ChangePassword: React.FC = () => {
     } catch (error) {
       console.error("Error changing password:", error);
       // alert("Failed to change password. Please try again.");
-      toast.warning("Error changing password:")
+      toast.warning("Error changing password:");
     } finally {
       setIsLoading(false);
     }
@@ -118,7 +120,10 @@ const ChangePassword: React.FC = () => {
   return (
     <div className="w-full mx-auto p-6">
       {/* Back Button */}
-      <ChevronLeft className="cursor-pointer text-primary w-8 h-8 mb-6" />
+      <ChevronLeftIcon
+        className="cursor-pointer text-primary w-10 h-10 mb-8"
+        onClick={() => router.back()}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Password Fields Grid */}

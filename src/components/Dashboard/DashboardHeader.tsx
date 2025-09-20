@@ -89,7 +89,7 @@ export default function DashboardHeader() {
   }, []);
 
   // Dummy user data for demonstration — replace with your actual user fetching logic
- console.log(user)
+  //  console.log(user)
   // Logout handler
   const handleLogout = () => {
     signOut();
@@ -150,6 +150,7 @@ export default function DashboardHeader() {
                 <AvatarImage
                   src={user?.image?.url || "/images/profile-mini.jpg"}
                   alt={`${user?.firstName} ${user?.lastName}`}
+                  className="object-cover"
                 />
                 <AvatarFallback className="cursor-pointer">
                   {user?.firstName?.charAt(0)}
@@ -166,12 +167,12 @@ export default function DashboardHeader() {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="end" className="cursor-pointer">
-            <Link href="/profile" passHref legacyBehavior>
+            <Link href="/profile">
               <DropdownMenuItem className="cursor-pointer">
                 <User2Icon /> Profile
               </DropdownMenuItem>
             </Link>
-            <Link href="/profile/changePassword" passHref legacyBehavior>
+            <Link href="/profile/changePassword">
               <DropdownMenuItem className="cursor-pointer">
                 <KeyIcon /> Change Password
               </DropdownMenuItem>
