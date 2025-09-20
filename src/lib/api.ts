@@ -338,7 +338,7 @@ export const courseApi = {
     limit: number
   ): Promise<CourseApiResponse<ApiCourse[]>> => {
     try {
-      const res = await api.get(`/class?page=${page}&limit=${limit}`);
+      const res = await api.get(`/class?isAdmin=true&page=${page}&limit=${limit}`);
       return res.data;
     } catch (error) {
       console.error("Error fetching courses:", error);
