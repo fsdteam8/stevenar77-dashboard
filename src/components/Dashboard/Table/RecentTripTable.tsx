@@ -112,7 +112,7 @@ const RecentTripTable: React.FC = () => {
 
       {/* Modal */}
       <Dialog open={!!selectedTrip} onOpenChange={() => setSelectedTrip(null)}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl">
+        <DialogContent className="max-w-2xl h-[800px] p-0 overflow-y-auto rounded-2xl">
           {selectedTrip && (
             <div className="flex flex-col">
               <div className="w-full h-64 relative">
