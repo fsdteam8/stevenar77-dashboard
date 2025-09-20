@@ -220,7 +220,8 @@ const ProductsEditForm = () => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Long Description
               </label>
-              {/* <textarea
+              {/* 
+              <textarea
                 name="longDescription"
                 rows={4}
                 value={formData.longDescription}
