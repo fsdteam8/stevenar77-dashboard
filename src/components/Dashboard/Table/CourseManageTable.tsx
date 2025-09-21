@@ -35,7 +35,7 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
 
   const { data, isLoading, isError, error, refetch } = useCourses(
     currentPage,
-    10
+    8
   );
   const deleteMutation = useDeleteCourse();
 
@@ -68,7 +68,7 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
         }
       );
 
-      toast.success(`Status updated: ${course?.title}`,);
+      toast.success(`Status updated: ${course?.title}`);
       refetch();
     } catch (err) {
       console.error("Failed to update status:", err);
@@ -261,26 +261,50 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
 
       {/* Pagination */}
       {meta && meta.totalPage > 1 && (
-        <div className="flex items-center justify-end gap-2 py-4">
-          <Button
-            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </Button>
-          <span className="text-sm text-gray-600">
-            Page {currentPage} of {meta.totalPage}
-          </span>
-          <Button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(meta.totalPage, prev + 1))
-            }
-            disabled={currentPage === meta.totalPage}
-            className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </Button>
+        <div className="flex items-center justify-between px-6 py-4">
+          {/* Showing results */}
+          <p className="text-sm text-gray-600 cursor-pointer">
+            Showing {(currentPage - 1) * meta.limit + 1} to{" "}
+            {Math.min(currentPage * meta.limit, meta.total)} of {meta.total}{" "}
+            results
+          </p>
+
+          {/* Page numbers */}
+          <div className="flex items-center gap-2">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              &lt;
+            </button>
+
+            {Array.from({ length: meta.totalPage }, (_, i) => i + 1).map(
+              (num) => (
+                <button
+                  key={num}
+                  onClick={() => setCurrentPage(num)}
+                  className={`px-3 py-1 rounded ${
+                    currentPage === num
+                      ? "bg-[#0694A2] hover:bg-[#0694A2] text-white cursor-pointer"
+                      : "bg-gray-100 text-gray-700 border border-[#0694A2] cursor-pointer"
+                  }`}
+                >
+                  {num}
+                </button>
+              )
+            )}
+
+            <button
+              disabled={currentPage === meta.totalPage}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(meta.totalPage, prev + 1))
+              }
+              className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              &gt;
+            </button>
+          </div>
         </div>
       )}
 

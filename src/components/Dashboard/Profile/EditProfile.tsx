@@ -43,7 +43,7 @@ const EditProfile: React.FC = () => {
         const res = await getMyProfileData();
         const userData: UserData = {
           ...res.data,
-          imageUrl: res.data.image?.url, // যদি API থেকে image আসে
+          imageUrl: res.data.image?.url,  
         };
         setFormData(userData);
         setInitialUserData(userData);

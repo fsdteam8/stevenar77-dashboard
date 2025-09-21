@@ -205,7 +205,7 @@ export async function getProducts({
   limit = 10,
 }: GetProductsParams = {}) {
   try {
-    const res = await api.get(`/product`, {
+    const res = await api.get(`/shop`, {
       params: { page, limit },
     });
     return res.data;
@@ -225,7 +225,7 @@ export const deleteProduct = async (
   id: string | number
 ): Promise<ApiResponse> => {
   try {
-    const res = await api.delete<ApiResponse>(`/product/delete/${id}`);
+    const res = await api.delete<ApiResponse>(`/shop/delete/${id}`);
     return res.data;
   } catch (error) {
     console.error("Failed to delete product:", error);
@@ -236,7 +236,7 @@ export const deleteProduct = async (
 // Single create Product
 export const createProduct = async (productData: FormData) => {
   try {
-    const res = await api.post("/product/create", productData, {
+    const res = await api.post("/shop/create", productData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return res.data;
@@ -249,7 +249,7 @@ export const createProduct = async (productData: FormData) => {
 // single product Get
 export const getSingleProduct = async (id: string) => {
   try {
-    const res = await api.get(`/product/${id}`);
+    const res = await api.get(`/shop/${id}`);
     return res.data;
   } catch (error) {
     console.error("Failed to Single product:", error);

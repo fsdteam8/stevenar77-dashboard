@@ -40,7 +40,7 @@ const ProductsTable = () => {
   const meta = data?.data?.meta;
   const totalPages = meta?.totalPages || 1;
   const currentPage = meta?.page || 1;
-  const totalItems = meta?.totalItems || 0; // ✅ ধরে নিচ্ছি API totalItems পাঠাচ্ছে
+  const totalItems = meta?.totalItems || 0; 
 
   const handleView = (product: Product) => setSelectedProduct(product);
 

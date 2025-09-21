@@ -32,7 +32,6 @@ export type Booking = {
   }[];
 };
 
-// Define the API response type
 type BookingAPIResponse = {
   _id: string;
   userId?: { email?: string };
@@ -43,7 +42,7 @@ type BookingAPIResponse = {
   participant?: number;
 };
 
-const itemsPerPage = 10;
+const itemsPerPage = 8;
 
 const BookingTable: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -285,29 +284,50 @@ const BookingTable: React.FC = () => {
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-end gap-2 py-4">
+      {/* Pagination Styled Same as ProductsEditForm */}
+      <div className="flex items-center justify-between px-6 py-4">
+        {/* Showing results */}
+        <p className="text-sm text-gray-600">
+          Showing {startIndex + 1} to{" "}
+          {Math.min(startIndex + itemsPerPage, bookings.length)} of{" "}
+          {bookings.length} results
+        </p>
+
+        {/* Pagination */}
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
-            className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-[#8E938F] rounded cursor-pointer"
           >
-            Previous
+            &lt;
           </button>
-          <span className="text-sm text-gray-600">
-            Page {currentPage} of {totalPages}
-          </span>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+            <button
+              key={num}
+              onClick={() => setCurrentPage(num)}
+              className={`px-3 py-1 rounded ${
+                currentPage === num
+                  ? "bg-[#0694A2] hover:bg-[#0694A2] text-white cursor-pointer"
+                  : "bg-gray-100 text-gray-700 border border-[#0694A2] cursor-pointer"
+              }`}
+            >
+              {num}
+            </button>
+          ))}
+
           <button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-            }
             disabled={currentPage === totalPages}
-            className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-[#8E938F] rounded cursor-pointer"
           >
-            Next
+            &gt;
           </button>
         </div>
-      )}
+      </div>
     </div>
   );
 };

@@ -6,7 +6,9 @@ import { getMyProfileData } from "@/lib/api";
 import { ChevronLeftIcon, PencilLine } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+
 interface UserProfile {
   firstName?: string;
   lastName?: string;
@@ -26,6 +28,7 @@ interface UserProfile {
 const Profile = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -62,12 +65,16 @@ const Profile = () => {
   return (
     <div>
       <div className="mx-auto container p-5">
-        <ChevronLeftIcon className="cursor-pointer text-primary w-10 h-10 mb-8" />
+        <ChevronLeftIcon
+          className="cursor-pointer text-primary w-10 h-10 mb-8"
+          onClick={() => router.back()}
+        />
+
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-6">
             <Image
               src={user.image?.url || "/images/profile-mini.jpg"}
-              className="rounded-full"
+              className="rounded-full object-center"
               alt="Profile Image"
               width={100}
               height={100}

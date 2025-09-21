@@ -57,12 +57,7 @@ const TripTable = () => {
     }
   };
 
-  if (isLoading)
-    return (
-      <p className="text-center py-6">
-        <TripsSkeleton />
-      </p>
-    );
+  if (isLoading) return <TripsSkeleton />;
   if (isError)
     return (
       <p className="text-center py-6 text-red-500">Failed to load trips.</p>
@@ -174,31 +169,55 @@ const TripTable = () => {
 
       {/* Pagination UI */}
 
+      {/* 🔹 Pagination + Results Count (Same as ProductsTable) */}
+      {/* 🔹 Pagination + Results Count (Fixed like ProductsTable) */}
       <div className="flex items-center justify-between px-6 py-4">
-        <Button
-          disabled={currentPage === 1}
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          className="bg-gray-100 text-gray-700 hover:bg-gray-200"
-        >
-          Previous
-        </Button>
-        <span className="text-sm text-gray-600">
-          Page {currentPage} of {totalPages}
-        </span>
-        <Button
-          disabled={currentPage === totalPages}
-          onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-          }
-          className="bg-gray-100 text-gray-700 hover:bg-gray-200"
-        >
-          Next
-        </Button>
+        {/* Showing results */}
+        <p className="text-sm text-gray-600">
+          Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+          {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems}{" "}
+          results
+        </p>
+
+        {/* Pagination */}
+        <div className="flex items-center gap-2">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-[#8E938F] rounded"
+          >
+            &lt;
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+            <button
+              key={num}
+              onClick={() => setCurrentPage(num)}
+              className={`px-3 py-1 rounded ${
+                currentPage === num
+                  ? "bg-[#0694A2] hover:bg-[#0694A2] text-white"
+                  : "bg-gray-100 text-gray-700 border border-[#0694A2]"
+              }`}
+            >
+              {num}
+            </button>
+          ))}
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-[#8E938F] rounded"
+          >
+            &gt;
+          </button>
+        </div>
       </div>
 
       {/* Modal */}
       <Dialog open={!!selectedTrip} onOpenChange={() => setSelectedTrip(null)}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl">
+        <DialogContent className="max-w-2xl h-[800px] p-0 overflow-y-auto rounded-2xl">
           {selectedTrip && (
             <div className="flex flex-col">
               <div className="w-full h-64 relative">
@@ -225,9 +244,10 @@ const TripTable = () => {
                   <MapPin className="w-4 h-4 mr-1" />
                   {selectedTrip.location}
                 </div>
-                <p className="mt-4 text-gray-700 leading-relaxed whitespace-pre-line italic">
-                  {selectedTrip.description}
-                </p>
+                <div
+                  className="mt-4 text-gray-700 leading-relaxed italic prose max-w-none"
+                  dangerouslySetInnerHTML={{ __html: selectedTrip.description }}
+                />
               </div>
             </div>
           )}
