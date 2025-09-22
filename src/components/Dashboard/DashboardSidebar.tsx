@@ -19,6 +19,8 @@ import { signOut } from "next-auth/react";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Button } from "../ui/button";
+import logo from "../../../public/images/logo.png"
+
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -50,10 +52,10 @@ export default function DashboardSidebar() {
         <Link href="/" className="flex items-center ">
           
           <Image
-            src="/images/logo.png"
+            src={logo}
             alt="This is Stevenarr Logo"
-            width={64}
-            height={64}
+            width={68}
+            height={68}
           />
         </Link>
       </div>
