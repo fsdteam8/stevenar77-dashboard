@@ -17,7 +17,7 @@ export default function Dashboard() {
   const { data, error, isLoading } = useDashboard();
 
   // Chart data state
-  const [chartData, setChartData] = useState<unknown>(null);
+  const [, setChartData] = useState<unknown>(null);
  
 
   useEffect(() => {
@@ -34,7 +34,6 @@ export default function Dashboard() {
     fetchChartData();
   }, []);
 
-  console.log(chartData)
 
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error: {(error as Error).message}</p>;
@@ -60,7 +59,7 @@ export default function Dashboard() {
           />
           <StatCard
             title="Product Sales"
-            numberInfo={202}
+            numberInfo={data.data.totalPaidOrders}
             icon={<BookmarkPlus />}
           />
         </div>
