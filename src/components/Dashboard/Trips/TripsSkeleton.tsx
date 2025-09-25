@@ -30,7 +30,13 @@ export default function TripsSkeleton() {
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <Skeleton className="w-10 h-10 rounded" />
-                    <Skeleton className="h-4 w-32" />
+                    <div>
+                      <Skeleton className="h-4 w-32 mb-1" />
+                      {/* Thinking text */}
+                      <span className="text-gray-500 text-sm animate-pulse">
+                        Thinking...
+                      </span>
+                    </div>
                   </div>
                 </td>
                 <td className="px-6 py-4">

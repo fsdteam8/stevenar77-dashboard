@@ -45,7 +45,7 @@ export default function ForgetPassword() {
       }
 
       const token = res?.data?.accessToken;
-      console.log(token);
+      // console.log(token);
       if (token) {
         // redirect(`/verify-otp?token=${token}`);
         router.push(`/verify-otp?token=${token}&mode=forgot`);

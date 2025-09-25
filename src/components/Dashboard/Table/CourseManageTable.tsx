@@ -50,7 +50,7 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
   const handleDelete = async (course: ApiCourse) => {
     try {
       await deleteMutation.mutateAsync(course._id);
-      console.log("Course deleted successfully:", course._id);
+      // console.log("Course deleted successfully:", course._id);
     } catch (error) {
       console.error("Failed to delete course:", error);
     }

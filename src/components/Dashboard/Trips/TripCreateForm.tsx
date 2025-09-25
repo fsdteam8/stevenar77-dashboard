@@ -20,6 +20,7 @@ const TripCreateForm = () => {
     maximumCapacity: "",
     startDate: "",
     endDate: "",
+    index: 0,
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -42,7 +43,6 @@ const TripCreateForm = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
- 
 
   // Image Change
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,6 +84,7 @@ const TripCreateForm = () => {
       maximumCapacity: "",
       startDate: "",
       endDate: "",
+      index: 0,
     });
     setImageFile(null);
     setImagePreview(null);
@@ -97,9 +98,16 @@ const TripCreateForm = () => {
     setLoading(true);
     try {
       const data = new FormData();
-      Object.entries(formData).forEach(([key, value]) =>
-        data.append(key, value)
-      );
+
+      Object.entries(formData).forEach(([key, value]) => {
+        // number হলে string বানাই
+        if (typeof value === "number") {
+          data.append(key, value.toString());
+        } else {
+          data.append(key, value);
+        }
+      });
+
       if (imageFile) data.append("images", imageFile);
 
       await createTrip(data);
@@ -225,28 +233,49 @@ const TripCreateForm = () => {
                 </div>
               </div>
 
-              {/* Capacity */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Maximum Capacity
-                </label>
-                <input
-                  type="number"
-                  name="maximumCapacity"
-                  placeholder="Write Here Number"
-                  value={formData.maximumCapacity}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${
-                    errors.maximumCapacity
-                      ? "border-red-500"
-                      : "border-gray-300"
-                  }`}
-                />
-                {errors.maximumCapacity && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.maximumCapacity}
-                  </p>
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Capacity */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Maximum Capacity
+                  </label>
+                  <input
+                    type="number"
+                    name="maximumCapacity"
+                    placeholder="Write Here Number"
+                    value={formData.maximumCapacity}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${
+                      errors.maximumCapacity
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
+                  />
+                  {errors.maximumCapacity && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.maximumCapacity}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Trips Index
+                  </label>
+                  <input
+                    type="number"
+                    name="index"
+                    placeholder="Trips Index here"
+                    value={formData.index}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${
+                      errors.price ? "border-red-500" : "border-gray-300"
+                    }`}
+                  />
+                  {errors.price && (
+                    <p className="text-red-500 text-sm mt-1">{errors.price}</p>
+                  )}
+                </div>
               </div>
 
               {/* Start & End Date */}
