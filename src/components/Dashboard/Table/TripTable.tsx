@@ -40,9 +40,12 @@ const TripTable = () => {
     refetch,
   } = useTrips(currentPage, itemsPerPage);
 
-  const trips: Trip[] = tripsResponse?.data || [];
-  const totalItems = tripsResponse?.total || 0;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  // console.log(tripsResponse); // Debugging check
+
+  // ✅ Correct mapping from API response
+  const trips: Trip[] = tripsResponse?.data?.data || [];
+  const totalItems = tripsResponse?.data?.totalTrips || 0;
+  const totalPages = tripsResponse?.data?.totalPages || 1;
 
   const handleView = (trip: Trip) => setSelectedTrip(trip);
 
@@ -170,7 +173,6 @@ const TripTable = () => {
       {/* Pagination UI */}
 
       {/* 🔹 Pagination + Results Count (Same as ProductsTable) */}
-      {/* 🔹 Pagination + Results Count (Fixed like ProductsTable) */}
       <div className="flex items-center justify-between px-6 py-4">
         {/* Showing results */}
         <p className="text-sm text-gray-600">

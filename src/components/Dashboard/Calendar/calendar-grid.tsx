@@ -31,7 +31,7 @@ export function CalendarGrid({
     "Saturday",
   ];
 
-  console.log(sessions);
+  // console.log(sessions);
 
   // Generate calendar days with proper empty cells for month start
   const calendarCells = [];

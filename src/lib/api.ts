@@ -577,3 +577,25 @@ export const getAllBookings = async () => {
     return [];
   }
 };
+
+// Get about Data
+export const getAboutData = async () => {
+  try {
+    const res = await api.get(`/about`);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching about:", error);
+    return [];
+  }
+};
+
+
+// Update About From
+export const updateAbout = async (data: FormData, id: string) => {
+  try {
+    const res = await api.put(`/about/${id}`, data);
+    return res.data?.data;  
+  } catch   {
+    console.error("Failed to update About");
+  }
+};

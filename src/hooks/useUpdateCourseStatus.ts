@@ -91,7 +91,7 @@ export const useUpdateCourseStatus = (options?: UseUpdateCourseStatusOptions) =>
       // Custom success callback
       onSuccess?.(data, courseId);
       
-      console.log('Course status updated successfully:', courseId, data);
+      // console.log('Course status updated successfully:', courseId, data);
     },
     onError: (error: Error, courseId) => {
       // Handle authentication errors
