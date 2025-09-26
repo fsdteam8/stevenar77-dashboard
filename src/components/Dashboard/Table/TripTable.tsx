@@ -77,10 +77,10 @@ const TripTable = () => {
                 Trips
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Price
+                index
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                index
+                Price
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Location
