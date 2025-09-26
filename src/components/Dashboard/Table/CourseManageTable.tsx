@@ -117,7 +117,7 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
                   Course
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                  Level
+                  index
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                   Price
@@ -174,7 +174,7 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ">
-                        {course.courseLevel}
+                        {course.index}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">

@@ -26,6 +26,7 @@ export type Trip = {
   startDate: string;
   endDate: string;
   images?: { url: string }[];
+  index: number;
 };
 
 const TripTable = () => {
@@ -79,6 +80,9 @@ const TripTable = () => {
                 Price
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                index
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Location
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
@@ -114,6 +118,9 @@ const TripTable = () => {
                         {trip.title}
                       </span>
                     </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    {trip.index}
                   </td>
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     ${trip.price}
