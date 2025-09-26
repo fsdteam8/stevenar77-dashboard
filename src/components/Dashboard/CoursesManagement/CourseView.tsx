@@ -3,11 +3,11 @@ import CourseCard from '../Card/CourseCard'
 
 const CourseView = () => {
   const handleSeeMore = () => {
-    console.log('See more clicked');
+    // console.log('See more clicked');
   };
 
   const handleBookNow = () => {
-    console.log('Book now clicked');
+    // console.log('Book now clicked');
   };
 
   return (

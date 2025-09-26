@@ -26,6 +26,7 @@ const TripEditForm = () => {
     price: "",
     location: "",
     maximumCapacity: "",
+    index: 0,
     startDate: "",
     endDate: "",
   });
@@ -51,15 +52,14 @@ const TripEditForm = () => {
         maximumCapacity: trip.maximumCapacity?.toString() || "",
         startDate: trip.startDate?.split("T")[0] || "",
         endDate: trip.endDate?.split("T")[0] || "",
+        index: trip.index ?? 0, // ✅ সরাসরি number
       });
 
-      //  যদি images array থাকে, প্রথমটার URL set করা
       if (trip.images && trip.images.length > 0) {
         setImagePreview(trip.images[0].url);
       }
     }
   }, [trip]);
-
   // Input Change
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -80,6 +80,8 @@ const TripEditForm = () => {
       setErrors((prev) => ({ ...prev, image: "" }));
     }
   };
+
+
 
   // ✅ Special handler for ReactQuill
   const handleDescriptionChange = (value: string) => {
@@ -111,6 +113,7 @@ const TripEditForm = () => {
         maximumCapacity: trip.maximumCapacity?.toString() || "",
         startDate: trip.startDate?.split("T")[0] || "",
         endDate: trip.endDate?.split("T")[0] || "",
+        index: trip.index ?? 0, // ✅ index number হিসেবে সেট করা
       });
       setImagePreview(trip.images?.[0]?.url || null);
       setImageFile(null);
@@ -125,9 +128,16 @@ const TripEditForm = () => {
     setLoading(true);
     try {
       const form = new FormData();
-      Object.entries(formData).forEach(([key, value]) =>
-        form.append(key, value)
-      );
+
+      Object.entries(formData).forEach(([key, value]) => {
+        // যদি number হয়, তাহলে string এ convert করে পাঠাই
+        if (typeof value === "number") {
+          form.append(key, value.toString());
+        } else {
+          form.append(key, value);
+        }
+      });
+
       if (imageFile) {
         form.append("images", imageFile);
       }
@@ -261,28 +271,49 @@ const TripEditForm = () => {
                 </div>
               </div>
 
-              {/* Capacity */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Maximum Capacity
-                </label>
-                <input
-                  type="number"
-                  name="maximumCapacity"
-                  placeholder="Write Here Number"
-                  value={formData.maximumCapacity}
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${
-                    errors.maximumCapacity
-                      ? "border-red-500"
-                      : "border-gray-300"
-                  }`}
-                />
-                {errors.maximumCapacity && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.maximumCapacity}
-                  </p>
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Capacity */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Maximum Capacity
+                  </label>
+                  <input
+                    type="number"
+                    name="maximumCapacity"
+                    placeholder="Write Here Number"
+                    value={formData.maximumCapacity}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${
+                      errors.maximumCapacity
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
+                  />
+                  {errors.maximumCapacity && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.maximumCapacity}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Trips Index
+                  </label>
+                  <input
+                    type="number"
+                    name="index"
+                    placeholder="Trips Index here"
+                    value={formData.index}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${
+                      errors.price ? "border-red-500" : "border-gray-300"
+                    }`}
+                  />
+                  {errors.price && (
+                    <p className="text-red-500 text-sm mt-1">{errors.price}</p>
+                  )}
+                </div>
               </div>
 
               {/* Start & End Date */}

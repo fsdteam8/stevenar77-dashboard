@@ -92,13 +92,13 @@ const ChangePassword: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const res = await postChangePassword(
+       await postChangePassword(
         formData.currentPassword,
         formData.newPassword,
         token
       );
 
-      console.log("API Response:", res);
+      // console.log("API Response:", res);
       // alert("Password changed successfully!");
       toast.success("Password changed successfully!");
 
