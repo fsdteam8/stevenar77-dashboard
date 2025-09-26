@@ -12,6 +12,7 @@ import {
   LogOut,
   HardDrive,
   MessageCircleMore,
+  BadgeInfo,
 } from "lucide-react"; 
 import { useState } from "react";
  
@@ -32,6 +33,7 @@ const navigation = [
   { name: "Messaging", href: "/messaging", icon: MessageCircleMore },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Payments", href: "/payments", icon: CircleDollarSign },
+  { name: "Abouts", href: "/abouts", icon: BadgeInfo },
   // { name: "Shop", href: "/shop", icon: ShoppingCart },
 ];
 

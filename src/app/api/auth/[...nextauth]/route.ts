@@ -55,7 +55,7 @@ const handler = NextAuth({
           });
 
           const data = await res.json();
-          console.log("API Login Response:", data);
+          // console.log("API Login Response:", data);
 
           if (!res.ok) {
             throw new Error(data.message || "Login failed");

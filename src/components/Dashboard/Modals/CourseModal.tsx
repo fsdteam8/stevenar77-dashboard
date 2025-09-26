@@ -50,12 +50,13 @@ const CourseModal: React.FC<CourseModalProps> = ({
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSeeMore = () => {
-    console.log('See more clicked in modal');
+    // console.log('See more
+    //  clicked in modal');
     // Add your logic here
   };
 
   const handleBookNow = () => {
-    console.log('Book now clicked in modal');
+    // console.log('Book now clicked in modal');
     // Add your booking logic here
     // You might want to close the modal after booking
     // setIsOpen(false);
