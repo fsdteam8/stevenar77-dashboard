@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Plus, Upload } from "lucide-react";
+import { Loader2, Plus, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAbout, useUpdateAbout } from "@/hooks/useAbout";
 import Image from "next/image";
@@ -364,7 +364,14 @@ export default function Abouts() {
     updateAbout.mutate({ data: formData, id: aboutData._id });
   };
 
-  if (isLoading) return <p>Loading...</p>;
+  // loading
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center py-4">
+        <Loader2 className="animate-spin text-gray-500 w-6 h-6" />
+      </div>
+    );
+
   if (error) return <p>Error loading data</p>;
 
   return (
