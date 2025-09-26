@@ -13,6 +13,19 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 
+export type Participant = {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+};
+
+export type MedicalDocument = {
+  _id: string;
+  public_id: string;
+  url: string;
+};
+
 export type Booking = {
   id: string;
   invoice: string;
@@ -21,25 +34,71 @@ export type Booking = {
   location: string;
   price: number;
   status: "Paid" | "Cancelled" | "Pending" | "Success";
-  date: string;
+  date?: string;
+  dates?: string[];
   avatar: string;
   classImage?: string;
-  participants?: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-  }[];
+  participants?: Participant[];
+  activityLevelSpecificQuestions?: string[];
+  medicalHistory?: string[];
+  medicalDocuments?: MedicalDocument[];
+  courseIncludes?: string[];
+  divingExperience?: string;
+  fitnessLevel?: string;
+  canSwim?: string;
+  gender?: string;
+  height?: number;
+  weight?: number;
+  shoeSize?: number | string;
+  lastPhysicalExamination?: string;
+  description?: string;
+  duration?: string;
+  classId?: string | null;
+  totalParticipates?: number;
+  avgRating?: number;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
-type BookingAPIResponse = {
+export type BookingAPIResponse = {
   _id: string;
-  userId?: { email?: string };
+  userId?: { _id?: string; email?: string };
   totalPrice?: number;
   status?: "paid" | "success" | "cancelled" | string;
   classDate?: string[];
-  classId?: { image?: { url?: string } };
+  classId?: {
+    _id?: string;
+    image?: { public_id?: string; url?: string };
+    classDates?: string[];
+    title?: string;
+    description?: string;
+    price?: number[];
+    courseIncludes?: string[];
+    duration?: string;
+    totalReviews?: number;
+    avgRating?: number;
+    participates?: number;
+    totalParticipates?: number;
+    isActive?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+    index?: number;
+  };
   participant?: number;
+  medicalHistory?: string[];
+  canSwim?: string;
+  divingExperience?: string;
+  lastPhysicalExamination?: string;
+  fitnessLevel?: string;
+  activityLevelSpecificQuestions?: string[];
+  medicalDocuments?: { _id: string; public_id: string; url: string }[];
+  gender?: string;
+  shoeSize?: number | string;
+  hight?: number;
+  weight?: number;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 const itemsPerPage = 8;
@@ -50,24 +109,27 @@ const BookingTable: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
+  console.log(bookings);
+
   useEffect(() => {
     const fetchBookings = async () => {
       setLoading(true);
       try {
         const res = await getAllBookings();
+
         if (res?.success) {
           const mapped: Booking[] = (res.data as BookingAPIResponse[]).map(
             (item, index) => ({
-              id: item._id,
+              id: item._id || `temp-id-${index}`,
               invoice: `#${1000 + index}`,
               customerName: item.userId?.email || "Demo User",
               customerEmail: item.userId?.email || "demo@example.com",
               location: "Not Provided",
               price: item.totalPrice || 0,
               status:
-                item.status === "paid"
+                item.status?.toLowerCase() === "paid"
                   ? "Paid"
-                  : item.status === "success"
+                  : item.status?.toLowerCase() === "success"
                   ? "Success"
                   : "Pending",
               date: item.classDate?.[0]
@@ -77,8 +139,17 @@ const BookingTable: React.FC = () => {
                     year: "numeric",
                   })
                 : "N/A",
+              dates:
+                item.classDate?.map((date) =>
+                  new Date(date).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "2-digit",
+                    year: "numeric",
+                  })
+                ) || [],
               avatar: item.classId?.image?.url || "/images/profile-mini.jpg",
-              classImage: item.classId?.image?.url,
+              classImage:
+                item.classId?.image?.url || "/images/default-class.jpg",
               participants: item.participant
                 ? Array.from({ length: item.participant }).map((_, i) => ({
                     _id: `${item._id}-${i}`,
@@ -87,8 +158,36 @@ const BookingTable: React.FC = () => {
                     email: `participant${i + 1}@example.com`,
                   }))
                 : [],
+              activityLevelSpecificQuestions:
+                item.activityLevelSpecificQuestions || [],
+              medicalHistory: item.medicalHistory || [],
+              medicalDocuments: item.medicalDocuments || [],
+              courseIncludes: item.classId?.courseIncludes || [],
+              divingExperience: item.divingExperience || "",
+              fitnessLevel: item.fitnessLevel || "",
+              canSwim: item.canSwim || "",
+              gender: item.gender || "",
+              height: item.hight || 0,
+              weight: item.weight || 0,
+              shoeSize: item.shoeSize || "",
+              lastPhysicalExamination: item.lastPhysicalExamination
+                ? new Date(item.lastPhysicalExamination).toLocaleDateString()
+                : "",
+              description: item.classId?.description || "",
+              duration: item.classId?.duration || "",
+              classId: item.classId?._id || null,
+              totalParticipates: item.classId?.totalParticipates || 0,
+              avgRating: item.classId?.avgRating || 0,
+              isActive: item.classId?.isActive ?? true,
+              createdAt: item.createdAt
+                ? new Date(item.createdAt).toLocaleDateString()
+                : "",
+              updatedAt: item.updatedAt
+                ? new Date(item.updatedAt).toLocaleDateString()
+                : "",
             })
           );
+
           setBookings(mapped);
         } else {
           setBookings([]);
@@ -204,63 +303,230 @@ const BookingTable: React.FC = () => {
                         Details
                       </button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-3xl p-6 rounded-2xl shadow-2xl bg-white border border-gray-200">
+                    <DialogContent className="sm:max-w-5xl p-6 rounded-3xl shadow-2xl bg-gray-50 border border-gray-200 max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold text-gray-800">
+                        <DialogTitle className="text-3xl font-bold text-gray-800">
                           Booking Details
                         </DialogTitle>
                       </DialogHeader>
 
                       {selectedBooking && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-5">
-                          <div className="rounded-lg overflow-hidden shadow-md">
-                            <Image
-                              src={
-                                selectedBooking.classImage ||
-                                "/images/profile-mini.jpg"
-                              }
-                              alt={selectedBooking.customerName}
-                              width={400}
-                              height={250}
-                              className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
-                            />
+                        <div className="mt-6 space-y-6 text-gray-700 text-sm">
+                          {/* Basic Info Card */}
+                          <div className="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row gap-6">
+                            <div className="flex-shrink-0 rounded-lg overflow-hidden shadow-lg">
+                              <Image
+                                src={
+                                  selectedBooking.classImage ||
+                                  selectedBooking.avatar
+                                }
+                                alt={selectedBooking.customerName}
+                                width={400}
+                                height={250}
+                                className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
+                              />
+                            </div>
+
+                            <div className="flex-1 space-y-2">
+                              <p>
+                                <strong>Invoice:</strong>{" "}
+                                {selectedBooking.invoice || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Customer:</strong>{" "}
+                                {selectedBooking.customerName || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Email:</strong>{" "}
+                                {selectedBooking.customerEmail || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Price:</strong> $
+                                {selectedBooking.price?.toLocaleString() ||
+                                  "N/A"}
+                              </p>
+                              <p>
+                                <strong>Status:</strong>{" "}
+                                <span
+                                  className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeStyle(
+                                    selectedBooking.status
+                                  )}`}
+                                >
+                                  {selectedBooking.status || "N/A"}
+                                </span>
+                              </p>
+                              <p>
+                                <strong>Date:</strong>{" "}
+                                {selectedBooking.date || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Location:</strong>{" "}
+                                {selectedBooking.location || "N/A"}
+                              </p>
+                            </div>
                           </div>
-                          <div className="space-y-3 text-sm text-gray-700">
-                            <p>
-                              <strong>Invoice:</strong>{" "}
-                              {selectedBooking.invoice}
-                            </p>
-                            <p>
-                              <strong>Customer:</strong>{" "}
-                              {selectedBooking.customerName}
-                            </p>
-                            <p>
-                              <strong>Email:</strong>{" "}
-                              {selectedBooking.customerEmail}
-                            </p>
-                            <p>
-                              <strong>Price:</strong> $
-                              {selectedBooking.price.toLocaleString()}
-                            </p>
-                            <p>
-                              <strong>Status:</strong>{" "}
-                              <span
-                                className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeStyle(
-                                  selectedBooking.status
-                                )}`}
-                              >
-                                {selectedBooking.status.toUpperCase()}
-                              </span>
-                            </p>
-                            <p>
-                              <strong>Date:</strong> {selectedBooking.date}
-                            </p>
+
+                          {/* Extended Info Card */}
+                          <div className="bg-white rounded-xl shadow-md p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Left Section */}
+                            <div className="space-y-4">
+                              <p>
+                                <strong>Class Description:</strong>{" "}
+                                {selectedBooking.description || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Duration:</strong>{" "}
+                                {selectedBooking.duration || "N/A"}
+                              </p>
+
+                              <div>
+                                <p className="font-semibold">
+                                  Course Includes:
+                                </p>
+                                <ul className="list-disc list-inside ml-4">
+                                  {selectedBooking.courseIncludes?.length ? (
+                                    selectedBooking.courseIncludes.map(
+                                      (item, idx) => <li key={idx}>{item}</li>
+                                    )
+                                  ) : (
+                                    <li>N/A</li>
+                                  )}
+                                </ul>
+                              </div>
+
+                              <div>
+                                <p className="font-semibold">
+                                  Activity Level Questions:
+                                </p>
+                                <ul className="list-disc list-inside ml-4">
+                                  {selectedBooking
+                                    .activityLevelSpecificQuestions?.length ? (
+                                    selectedBooking.activityLevelSpecificQuestions.map(
+                                      (item, idx) => <li key={idx}>{item}</li>
+                                    )
+                                  ) : (
+                                    <li>N/A</li>
+                                  )}
+                                </ul>
+                              </div>
+
+                              <div>
+                                <p className="font-semibold">
+                                  Medical History:
+                                </p>
+                                <ul className="list-disc list-inside ml-4">
+                                  {selectedBooking.medicalHistory?.length ? (
+                                    selectedBooking.medicalHistory.map(
+                                      (item, idx) => <li key={idx}>{item}</li>
+                                    )
+                                  ) : (
+                                    <li>N/A</li>
+                                  )}
+                                </ul>
+                              </div>
+
+                              <div>
+                                <p className="font-semibold">Documents:</p>
+                                <div className="flex flex-col gap-1 ml-4">
+                                  {selectedBooking.medicalDocuments?.length ? (
+                                    selectedBooking.medicalDocuments.map(
+                                      (doc) => (
+                                        <a
+                                          key={doc._id}
+                                          href={doc.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-teal-600 underline hover:text-teal-800 transition-colors"
+                                        >
+                                          {doc.public_id}
+                                        </a>
+                                      )
+                                    )
+                                  ) : (
+                                    <span>N/A</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Right Section */}
+                            <div className="space-y-4">
+                              <p>
+                                <strong>Diving Experience:</strong>{" "}
+                                {selectedBooking.divingExperience || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Fitness Level:</strong>{" "}
+                                {selectedBooking.fitnessLevel || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Can Swim:</strong>{" "}
+                                {selectedBooking.canSwim || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Gender:</strong>{" "}
+                                {selectedBooking.gender || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Height:</strong>{" "}
+                                {selectedBooking.height || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Weight:</strong>{" "}
+                                {selectedBooking.weight || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Shoe Size:</strong>{" "}
+                                {selectedBooking.shoeSize || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Last Physical Exam:</strong>{" "}
+                                {selectedBooking.lastPhysicalExamination ||
+                                  "N/A"}
+                              </p>
+
+                              <div>
+                                <p className="font-semibold">Participants:</p>
+                                <ul className="list-disc list-inside ml-4">
+                                  {selectedBooking.participants?.length ? (
+                                    selectedBooking.participants.map((p) => (
+                                      <li key={p._id}>
+                                        {p.firstName} {p.lastName} ({p.email})
+                                      </li>
+                                    ))
+                                  ) : (
+                                    <li>N/A</li>
+                                  )}
+                                </ul>
+                              </div>
+
+                              <p>
+                                <strong>Average Rating:</strong>{" "}
+                                {selectedBooking.avgRating ?? "N/A"}
+                              </p>
+                              <p>
+                                <strong>Total Participates:</strong>{" "}
+                                {selectedBooking.totalParticipates ?? "N/A"}
+                              </p>
+                              <p>
+                                <strong>Active:</strong>{" "}
+                                {selectedBooking.isActive ? "Yes" : "No"}
+                              </p>
+                              <p>
+                                <strong>Created At:</strong>{" "}
+                                {selectedBooking.createdAt || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Updated At:</strong>{" "}
+                                {selectedBooking.updatedAt || "N/A"}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       )}
 
                       <DialogClose asChild>
-                        <button className="mt-8 w-full md:w-auto px-5 py-2 bg-[#0694A2] text-white font-medium rounded-lg transition-colors duration-200 cursor-pointer">
+                        <button className="mt-6 w-full md:w-auto px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:bg-teal-700 transition-colors duration-200">
                           Close
                         </button>
                       </DialogClose>
