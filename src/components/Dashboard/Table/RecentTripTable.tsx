@@ -30,13 +30,11 @@ const RecentTripTable: React.FC = () => {
   // Define pagination variables (even if we only show 4 trips)
   const itemsToShow = 4;
 
-  const { data: tripsResponse, isLoading, isError } = useTrips(1, itemsToShow);
+const { data: tripsResponse, isLoading, isError } = useTrips(1, itemsToShow);
 
-  // Get trips array safely
-  const trips: Trip[] = tripsResponse?.data || [];
-
-  // Show only first 4 trips
-  const displayedTrips = trips.slice(0, itemsToShow);
+// Correctly extract trips array
+const trips: Trip[] = tripsResponse?.data?.data || [];
+const displayedTrips = trips.slice(0, itemsToShow);
 
   const handleView = (trip: Trip) => {
     setSelectedTrip(trip);

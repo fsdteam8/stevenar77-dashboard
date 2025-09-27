@@ -13,12 +13,16 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Plus, Upload } from "lucide-react";
+import { Loader2, Plus, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAbout, useUpdateAbout } from "@/hooks/useAbout";
 import Image from "next/image";
+import dynamic from "next/dynamic";
+
+// ✅ Dynamically import ReactQuill to avoid SSR issues
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
+import "react-quill-new/dist/quill.snow.css";
 
 // ---- Schema ----
 const FileSchema =
@@ -30,7 +34,7 @@ const AboutSchema = z.object({
   section1: z.object({
     title: z.string().min(2, "Title is required"),
     description: z.string().min(5, "Description is required"),
-    images: z.array(FileSchema),
+    images: z.array(FileSchema).max(1, "Only 1 image allowed"),
   }),
   section2: z.object({
     title: z.string().min(2),
@@ -102,7 +106,7 @@ const FilePreview = ({
   files,
   onRemove,
 }: {
-  files?: (File | string)[]; // optional to be safe
+  files?: (File | string)[];
   onRemove: (index: number) => void;
 }) => {
   if (!files || files.length === 0) return null;
@@ -139,10 +143,8 @@ const FilePreview = ({
 };
 
 // ---- File Input ----
-// We only require `value` and `onChange` from the Controller field.
-// This keeps things simple & avoids overly complex FieldPath generics here.
 type FileInputFieldShape = {
-  value?: (File | string)[]; // could be undefined initially
+  value?: (File | string)[];
   onChange: (v: (File | string)[]) => void;
   name?: string;
 };
@@ -152,7 +154,7 @@ const FileInput = ({
   limit,
   multiple,
 }: {
-  field: FileInputFieldShape; // accept a narrow shape — compatible with ControllerRenderProps
+  field: FileInputFieldShape;
   limit: number;
   multiple?: boolean;
 }) => {
@@ -161,10 +163,8 @@ const FileInput = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files || []) as File[];
 
-    // Ensure current value is an array; if not, start from empty array.
     const currentFiles = Array.isArray(field.value) ? field.value : [];
 
-    // Keep only items that are string or File
     const currentFilesFiltered = currentFiles.filter(
       (f): f is File | string => typeof f === "string" || f instanceof File
     );
@@ -174,7 +174,6 @@ const FileInput = ({
       ...selected,
     ];
 
-    // Enforce limit
     field.onChange(mergedFiles.slice(0, limit));
   };
 
@@ -304,7 +303,6 @@ export default function Abouts() {
 
     const formData = new FormData();
 
-    // Merge text fields
     const jsonData = {
       section1: {
         title: values.section1.title || aboutData.section1?.title,
@@ -347,7 +345,6 @@ export default function Abouts() {
 
     formData.append("data", JSON.stringify(jsonData));
 
-    // Append only new File objects
     const appendFiles = (files: (File | string)[], fieldName: string) => {
       const onlyFiles = files.filter((f): f is File => f instanceof File);
       onlyFiles.forEach((file) => formData.append(fieldName, file));
@@ -364,7 +361,13 @@ export default function Abouts() {
     updateAbout.mutate({ data: formData, id: aboutData._id });
   };
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center py-4">
+        <Loader2 className="animate-spin text-gray-500 w-6 h-6" />
+      </div>
+    );
+
   if (error) return <p>Error loading data</p>;
 
   return (
@@ -398,8 +401,13 @@ export default function Abouts() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} />
+                    <FormControl className="mb-10">
+                      <ReactQuill
+                        value={field.value}
+                        onChange={field.onChange}
+                        className="h-96"
+                        theme="snow"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -410,8 +418,8 @@ export default function Abouts() {
                 name="section1.images"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Upload 3 Images</FormLabel>
-                    <FileInput field={field} limit={3} multiple />
+                    <FormLabel>Upload 1 Image</FormLabel>
+                    <FileInput field={field} limit={1} />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -444,8 +452,13 @@ export default function Abouts() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} />
+                    <FormControl className="mb-10">
+                      <ReactQuill
+                        value={field.value}
+                        onChange={field.onChange}
+                        className="h-96"
+                        theme="snow"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -490,8 +503,13 @@ export default function Abouts() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} />
+                    <FormControl className="mb-10">
+                      <ReactQuill
+                        value={field.value}
+                        onChange={field.onChange}
+                        className="h-96"
+                        theme="snow"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -536,8 +554,13 @@ export default function Abouts() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} />
+                    <FormControl className="mb-10">
+                      <ReactQuill
+                        value={field.value}
+                        onChange={field.onChange}
+                        className="h-96"
+                        theme="snow"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -571,8 +594,13 @@ export default function Abouts() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} />
+                    <FormControl className="mb-10">
+                      <ReactQuill
+                        value={field.value}
+                        onChange={field.onChange}
+                        className="h-96"
+                        theme="snow"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -625,10 +653,12 @@ export default function Abouts() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="Enter description"
+                        <FormControl className="mb-10">
+                          <ReactQuill
+                            value={field.value}
+                            onChange={field.onChange}
+                            className="h-96"
+                            theme="snow"
                           />
                         </FormControl>
                         <FormMessage />
@@ -729,6 +759,7 @@ export default function Abouts() {
                       type="button"
                       variant="destructive"
                       size="sm"
+                      className="cursor-pointer"
                       onClick={() => removeMember(index)}
                     >
                       Remove Member

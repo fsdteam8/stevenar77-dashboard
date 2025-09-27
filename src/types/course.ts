@@ -27,6 +27,7 @@ export interface ApiCourse {
   createdAt: string;
   updatedAt: string;
   isActive: boolean;
+  index: number;
 }
 
 export interface ApiResponse<T> {
