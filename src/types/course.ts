@@ -4,6 +4,8 @@ export interface ApiImage {
 }
 
 export interface ApiCourse {
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
+  classDates: any;
   _id: string;
   title: string;
   description: string;
