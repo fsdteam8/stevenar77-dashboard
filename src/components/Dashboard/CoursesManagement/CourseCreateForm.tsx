@@ -10,6 +10,22 @@ import Image from "next/image";
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
 
+// interface CourseFormData {
+//   courseTitle: string;
+//   courseLevel: string;
+//   description: string;
+//   image: File | null | string; // File, null, or existing image URL
+//   price: string;
+//   duration: string;
+//   locations: string;
+//   timeSlots: string;
+//   startDate: string;
+//   endDate: string;
+//   instructorAssignment: string;
+//   index: number;
+//   courseIncludes: string;
+// }
+
 interface CourseFormData {
   courseTitle: string;
   courseLevel: string;
@@ -19,8 +35,7 @@ interface CourseFormData {
   duration: string;
   locations: string;
   timeSlots: string;
-  startDate: string;
-  endDate: string;
+  classDates: string[]; // ✅ multiple dates
   instructorAssignment: string;
   index: number;
   courseIncludes: string;
@@ -60,6 +75,22 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
+  // const [formData, setFormData] = useState<CourseFormData>({
+  //   courseTitle: "",
+  //   courseLevel: "Advanced",
+  //   description: "",
+  //   image: null,
+  //   price: "",
+  //   duration: "",
+  //   locations: "",
+  //   timeSlots: "",
+  //   startDate: "",
+  //   endDate: "",
+  //   instructorAssignment: "Monthly",
+  //   index: 0,
+  //   courseIncludes: "",
+  // });
+
   const [formData, setFormData] = useState<CourseFormData>({
     courseTitle: "",
     courseLevel: "Advanced",
@@ -69,8 +100,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     duration: "",
     locations: "",
     timeSlots: "",
-    startDate: "",
-    endDate: "",
+    classDates: [], // ✅
     instructorAssignment: "Monthly",
     index: 0,
     courseIncludes: "",
@@ -86,33 +116,67 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
   } | null>(null);
 
   // ✅ Populate form data when editing
-  useEffect(() => {
-    if (mode === "edit" && courseData) {
-      setFormData({
-        courseTitle: courseData.title || "",
-        courseLevel: courseData.courseLevel || "Advanced",
-        description: courseData.description || "",
-        image: courseData?.image || null,
-        price: Array.isArray(courseData.price)
-          ? courseData.price.join(", ")
-          : courseData.price || "",
-        duration: courseData.duration || "",
-        locations: courseData.locations || "",
-        timeSlots: courseData.timeSlots || "",
-        startDate: courseData.startDate || "",
-        endDate: courseData.endDate || "",
-        instructorAssignment: courseData.instructorAssignment || "Monthly",
-        index: courseData.index || 0, // ✅ Added index
-        courseIncludes: Array.isArray(courseData.courseIncludes)
-          ? courseData.courseIncludes.join(", ")
-          : courseData.courseIncludes || "",
-      });
+  // useEffect(() => {
+  //   if (mode === "edit" && courseData) {
+  //     setFormData({
+  //       courseTitle: courseData.title || "",
+  //       courseLevel: courseData.courseLevel || "Advanced",
+  //       description: courseData.description || "",
+  //       image: courseData?.image || null,
+  //       price: Array.isArray(courseData.price)
+  //         ? courseData.price.join(", ")
+  //         : courseData.price || "",
+  //       duration: courseData.duration || "",
+  //       locations: courseData.locations || "",
+  //       timeSlots: courseData.timeSlots || "",
+  //       classDates: courseData.classDates || "",
+  //       instructorAssignment: courseData.instructorAssignment || "Monthly",
+  //       index: courseData.index || 0, // ✅ Added index
+  //       courseIncludes: Array.isArray(courseData.courseIncludes)
+  //         ? courseData.courseIncludes.join(", ")
+  //         : courseData.courseIncludes || "",
+  //     });
 
-      if (courseData.image) {
-        setExistingImageUrl(courseData?.image?.url);
-      }
+  //     if (courseData.image) {
+  //       setExistingImageUrl(courseData?.image?.url);
+  //     }
+  //   }
+  // }, [mode, courseData]);
+
+  useEffect(() => {
+  if (mode === "edit" && courseData) {
+    setFormData({
+      courseTitle: courseData.title || "",
+      courseLevel: courseData.courseLevel || "Advanced",
+      description: courseData.description || "",
+      image: courseData?.image || null,
+      price: Array.isArray(courseData.price)
+        ? courseData.price.join(", ")
+        : courseData.price || "",
+      duration: courseData.duration || "",
+      locations: courseData.locations || "",
+      timeSlots: courseData.timeSlots || "",
+      // ✅ normalize dates: array, string, or object
+      classDates: Array.isArray(courseData.classDates)
+        ? courseData.classDates.map((d: any) =>
+            typeof d === "string" ? d : d.date || d
+          )
+        : courseData.classDates
+        ? [courseData.classDates]
+        : [],
+      instructorAssignment: courseData.instructorAssignment || "Monthly",
+      index: courseData.index || 0,
+      courseIncludes: Array.isArray(courseData.courseIncludes)
+        ? courseData.courseIncludes.join("\n")
+        : courseData.courseIncludes || "",
+    });
+
+    if (courseData.image) {
+      setExistingImageUrl(courseData?.image?.url);
     }
-  }, [mode, courseData]);
+  }
+}, [mode, courseData]);
+
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -229,8 +293,9 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
       formDataToSend.append("duration", formData.duration);
       formDataToSend.append("locations", formData.locations);
       formDataToSend.append("timeSlots", formData.timeSlots);
-      formDataToSend.append("startDate", formData.startDate);
-      formDataToSend.append("endDate", formData.endDate);
+      formData.classDates
+        .filter((d) => d)
+        .forEach((date) => formDataToSend.append("classDates", date));
       formDataToSend.append(
         "instructorAssignment",
         formData.instructorAssignment
@@ -244,7 +309,8 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
         .forEach((price, i) => formDataToSend.append(`price[${i}]`, price));
 
       formData.courseIncludes
-        .split(/[,\n]/)
+        // .split(/[,\n]/)
+        .split("\n")
         .map((item) => item.trim())
         .filter((item) => item)
         .forEach((include, i) =>
@@ -289,8 +355,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
             duration: "",
             locations: "",
             timeSlots: "",
-            startDate: "",
-            endDate: "",
+            classDates: [],
             instructorAssignment: "Monthly",
             index: 0,
             courseIncludes: "",
@@ -327,8 +392,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
         duration: "",
         locations: "",
         timeSlots: "",
-        startDate: "",
-        endDate: "",
+        classDates: [],
         instructorAssignment: "Monthly",
         index: 0,
         courseIncludes: "",
@@ -388,7 +452,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
                     />
                   </div>
-                  <div>
+                  {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Course Level
                     </label>
@@ -402,7 +466,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                       <option value="Beginner">Beginner</option>
                       <option value="Intermediate">Intermediate</option>
                     </select>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* ✅ React Quill Editor for Description */}
@@ -470,7 +534,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                 </div>
 
                 {/* Locations and Time & Slots Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Locations
@@ -497,39 +561,67 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
                     />
                   </div>
-                </div>
+                </div> */}
 
-                {/* Start Date and End Date Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Course Dates Row */}
+                <div className="grid grid-cols-1 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Start Date
+                      Course Dates *
                     </label>
                     <input
                       type="date"
-                      name="startDate"
-                      value={formData.startDate}
-                      onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                      onChange={(e) => {
+                        const selected = e.target.value;
+                        if (!selected) return;
+
+                        setFormData((prev) => {
+                          // Prevent duplicate dates
+                          if (prev.classDates.includes(selected)) return prev;
+
+                          return {
+                            ...prev,
+                            classDates: [...prev.classDates, selected],
+                          };
+                        });
+
+                        // Clear input so user can select the same date again if deleted
+                        e.target.value = "";
+                      }}
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      End Date
-                    </label>
-                    <input
-                      type="date"
-                      name="endDate"
-                      value={formData.endDate}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
-                    />
+
+                    {/* Show selected dates as cards */}
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {formData.classDates?.map((date: string) => (
+                        <div
+                          key={date}
+                          className="bg-teal-100 text-teal-800 px-4 py-2 rounded-lg shadow-sm flex items-center gap-2"
+                        >
+                          {new Date(date).toLocaleDateString()}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                classDates: prev.classDates.filter(
+                                  (d) => d !== date
+                                ),
+                              }))
+                            }
+                            className="text-red-500 hover:text-red-700 font-bold"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Instructor Assignment */}
-                  <div>
+                  {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Instructor Assignment
                     </label>
@@ -543,7 +635,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                       <option value="Weekly">Weekly</option>
                       <option value="Daily">Daily</option>
                     </select>
-                  </div>
+                  </div> */}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
