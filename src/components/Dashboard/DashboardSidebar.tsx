@@ -33,7 +33,7 @@ const navigation = [
   { name: "Messaging", href: "/messaging", icon: MessageCircleMore },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Payments", href: "/payments", icon: CircleDollarSign },
-  { name: "Abouts", href: "/abouts", icon: BadgeInfo },
+  { name: "About Us", href: "/abouts", icon: BadgeInfo },
   // { name: "Shop", href: "/shop", icon: ShoppingCart },
 ];
 
