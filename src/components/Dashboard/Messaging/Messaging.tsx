@@ -163,8 +163,6 @@ export default function AdminMessaging() {
     };
 
     socket.emit("sendMessage", payload);
-
-    // ❌ এখানে আর setMessages করবো না, শুধু socket এর response এ append হবে
     setInput("");
   };
 

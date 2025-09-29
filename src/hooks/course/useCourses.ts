@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { courseApi } from "@/lib/api";
+import { useQuery, useMutation, useQueryClient,  } from "@tanstack/react-query";
+import { courseApi, getAllCourses, singleUpdateCourse } from "@/lib/api";
 
 export const COURSES_QUERY_KEY = "courses";
 
@@ -58,3 +58,36 @@ export function useDeleteCourse() {
     },
   });
 }
+
+// All Course Get Hook No Pagination
+export function useAllCourses() {
+  return useQuery({
+    queryKey: ["courses"],
+    queryFn: getAllCourses,
+  });
+}
+
+// Course Update Hook (Single)
+export function useSingleUpdateCourse() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      courseData,
+    }: {
+      id: string | number;
+      courseData: FormData;
+    }) => singleUpdateCourse(id, courseData),
+
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["courses"] });
+      queryClient.invalidateQueries({ queryKey: ["courses", id] });
+    },
+
+    onError: (error) => {
+      console.error("Failed to update course:", error);
+    },
+  });
+}
+ 

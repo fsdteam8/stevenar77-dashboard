@@ -100,7 +100,6 @@ const TripCreateForm = () => {
       const data = new FormData();
 
       Object.entries(formData).forEach(([key, value]) => {
-        // number হলে string বানাই
         if (typeof value === "number") {
           data.append(key, value.toString());
         } else {

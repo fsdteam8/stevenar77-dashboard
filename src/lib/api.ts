@@ -338,7 +338,9 @@ export const courseApi = {
     limit: number
   ): Promise<CourseApiResponse<ApiCourse[]>> => {
     try {
-      const res = await api.get(`/class?isAdmin=true&page=${page}&limit=${limit}`);
+      const res = await api.get(
+        `/class?isAdmin=true&page=${page}&limit=${limit}`
+      );
       return res.data;
     } catch (error) {
       console.error("Error fetching courses:", error);
@@ -549,8 +551,8 @@ export const updateProfile = async (data: FormData, token: string) => {
       },
     });
 
-    return res.data?.data;  
-  } catch   {
+    return res.data?.data;
+  } catch {
     console.error("Failed to update profile:");
   }
 };
@@ -565,7 +567,6 @@ export const getMyProfileData = async () => {
     return [];
   }
 };
-
 
 // Get All Booking
 export const getAllBookings = async () => {
@@ -589,13 +590,41 @@ export const getAboutData = async () => {
   }
 };
 
-
 // Update About From
 export const updateAbout = async (data: FormData, id: string) => {
   try {
     const res = await api.put(`/about/${id}`, data);
-    return res.data?.data;  
-  } catch   {
+    return res.data?.data;
+  } catch {
     console.error("Failed to update About");
+  }
+};
+
+// Get All Courses
+export const getAllCourses = async () => {
+  try {
+    const res = await api.get(`/class`);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching courses:", error);
+    return [];
+  }
+};
+
+// Courses Update API
+export const singleUpdateCourse = async (
+  id: string | number,
+  courseData: FormData
+) => {
+  try {
+    const res = await api.put(`/class/update/${id}`, courseData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Failed to update course:", error);
+    throw error;
   }
 };

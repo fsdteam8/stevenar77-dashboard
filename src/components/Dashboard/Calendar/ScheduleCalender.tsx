@@ -1,126 +1,325 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { CalendarHeader } from "./calendar-header";
-import { CalendarGrid } from "./calendar-grid";
-import { Button } from "@/components/ui/button";
-import { Session } from "@/types/class";
-import { useAllClassBookings } from "@/hooks/useAllClassData";
-import { transformBookingsToSessions } from "@/lib/api";
+import * as React from "react";
+import { useAllCourses } from "@/hooks/course/useCourses";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import Image from "next/image";
+import { Toaster, toast } from "sonner";
+import { Course } from "@/types/course";
+import { singleUpdateCourse } from "@/lib/api";
 
-const months = [
-  { name: "September 2025", days: 30, startDay: 0, month: 8, year: 2025 },  
-  { name: "October 2025", days: 31, startDay: 3, month: 9, year: 2025 },
-  { name: "November 2025", days: 30, startDay: 6, month: 10, year: 2025 },
-  { name: "December 2025", days: 31, startDay: 1, month: 11, year: 2025 },
-];
+// --- Single Course Update Hook ---
+export function useSingleUpdateCourse() {
+  const queryClient = useQueryClient();
 
-export default function AvailableSessionsPage() {
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
-  const [courseType] = useState("all");
-  const [sessions, setSessions] = useState<Session[]>([]);
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState<string | null>(null);
+  return useMutation({
+    mutationFn: ({
+      id,
+      courseData,
+    }: {
+      id: string | number;
+      courseData: FormData;
+    }) => singleUpdateCourse(id, courseData),
 
-  const currentMonth = months[currentMonthIndex];
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: ["courses"] });
+      queryClient.invalidateQueries({ queryKey: ["courses", id] });
+    },
 
-  const { data: bookings, isLoading, isError } = useAllClassBookings();
-  // const transformedSessions = transformBookingsToSessions(bookings);
-
-  // console.log(transformedSessions);
-
-  useEffect(() => {
-    const loadBookings = async () => {
-      try {
-        const transformedSessions = transformBookingsToSessions(bookings);
-        setSessions(transformedSessions);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          console.error("Error loading bookings:", err.message);
-        } else {
-          console.error("Unexpected error:", err);
-        }
-      }
-    };
-
-    loadBookings();
-  }, [bookings]);
-
-  const handlePreviousMonth = () => {
-    setCurrentMonthIndex((prev) => (prev > 0 ? prev - 1 : months.length - 1));
-  };
-
-  const handleNextMonth = () => {
-    setCurrentMonthIndex((prev) => (prev < months.length - 1 ? prev + 1 : 0));
-  };
-
-  const filteredSessions = sessions.filter((session) => {
-    // Filter by current month and year
-    if (
-      session.month !== currentMonth.month ||
-      session.year !== currentMonth.year
-    ) {
-      return false;
-    }
-
-    // Filter by course type if not "all"
-    if (
-      courseType !== "all" &&
-      !session.title.toLowerCase().includes(courseType.replace("-", " "))
-    ) {
-      return false;
-    }
-    return true;
+    onError: (error) => {
+      console.error("Failed to update course:", error);
+    },
   });
+}
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading bookings...</p>
-        </div>
-      </div>
-    );
-  }
+// --- ScheduleCalendar Component ---
+export default function ScheduleCalendar() {
+  const [selectedDate, setSelectedDate] = React.useState<string | null>(null);
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [isUpdating, setIsUpdating] = React.useState(false);
 
-  if (isError) {
-    return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">
-            Something was wrong, Plese try again!
-          </p>
-          <Button onClick={() => window.location.reload()}>Try Again</Button>
-        </div>
-      </div>
+  const { data, isLoading, isError, refetch } = useAllCourses();
+  const singleUpdateCourseMutation = useSingleUpdateCourse();
+
+  // Wrapper to use mutation as async/await
+  const updateSingleCourseAsync = async (id: string, formData: FormData) => {
+    return new Promise<void>((resolve, reject) => {
+      singleUpdateCourseMutation.mutate(
+        { id, courseData: formData },
+        {
+          onSuccess: () => resolve(),
+          onError: (err) => reject(err),
+        }
+      );
+    });
+  };
+
+  const today = new Date();
+  const [currentMonth, setCurrentMonth] = React.useState(
+    new Date(today.getFullYear(), today.getMonth(), 1)
+  );
+
+  const formatDateKey = (date: Date) => date.toISOString().split("T")[0];
+
+  const schedules: Record<string, { title: string; price: number }[]> =
+    React.useMemo(() => {
+      if (!data?.data || !Array.isArray(data.data)) return {};
+      const map: Record<string, { title: string; price: number }[]> = {};
+
+      data.data.forEach((course: Course) => {
+        if (Array.isArray(course.classDates)) {
+          course.classDates.forEach((dateStr: string) => {
+            const key = dateStr.split("T")[0];
+            if (!map[key]) map[key] = [];
+            map[key].push({
+              title: course.title,
+              price: course.price?.[0] ?? 0,
+            });
+          });
+        }
+      });
+
+      return map;
+    }, [data]);
+
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(formatDateKey(date));
+    setModalOpen(true);
+  };
+
+  const generateCalendarDays = (month: Date) => {
+    const startDay = new Date(month.getFullYear(), month.getMonth(), 1).getDay();
+    const totalDays = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+    const days: (Date | null)[] = [];
+    for (let i = 0; i < startDay; i++) days.push(null);
+    for (let i = 1; i <= totalDays; i++)
+      days.push(new Date(month.getFullYear(), month.getMonth(), i));
+    return days;
+  };
+
+  const calendarDays = generateCalendarDays(currentMonth);
+
+  const goPrevMonth = () =>
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  const goNextMonth = () =>
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+
+  if (isLoading) return <p>Loading courses...</p>;
+  if (isError) return <p className="text-red-500">Failed to load courses</p>;
+
+  const handleAddDateToCourse = async (course: Course) => {
+    if (!selectedDate) return;
+
+    const existingDates: string[] = Array.isArray(course.classDates)
+      ? course.classDates.map((d) => d.split("T")[0])
+      : [];
+
+    if (existingDates.includes(selectedDate)) {
+      toast.warning("⚠️ This date is already added.");
+      return;
+    }
+
+    const newDates = [...existingDates, selectedDate].map(
+      (d) => new Date(d + "T00:00:00.000Z").toISOString()
     );
-  }
+
+    const formData = new FormData();
+    newDates.forEach((d) => formData.append("classDates", d));
+
+    try {
+      setIsUpdating(true);
+      await updateSingleCourseAsync(course._id, formData);
+      toast.success("Date added successfully!");
+      refetch();
+    } catch {
+      toast.error("❌ Failed to add date.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleRemoveDateFromCourse = async (course: Course) => {
+    if (!selectedDate) return;
+
+    const existingDates: string[] = Array.isArray(course.classDates)
+      ? course.classDates.map((d) => d.split("T")[0])
+      : [];
+
+    if (!existingDates.includes(selectedDate)) {
+      toast.warning("⚠️ This date is not in the course.");
+      return;
+    }
+
+    const newDates = existingDates
+      .filter((d) => d !== selectedDate)
+      .map((d) => new Date(d + "T00:00:00.000Z").toISOString());
+
+    const formData = new FormData();
+    newDates.forEach((d) => formData.append("classDates", d));
+
+    try {
+      setIsUpdating(true);
+      await updateSingleCourseAsync(course._id, formData);
+      toast.success("Date removed successfully!");
+      refetch();
+    } catch {
+      toast.error("❌ Failed to remove date.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
-    <div className="">
-      {/* <div className="flex justify-end mb-6 sm:mb-4">
-        <div className="">
-          <Button>
-            <Plus /> Add Event
-          </Button>
-        </div>
-      </div> */}
-      <div className="p-3 sm:p-4 lg:p-6  mx-auto">
-        {/* Calendar Header */}
-        <CalendarHeader
-          currentMonth={currentMonth.name}
-          onPreviousMonth={handlePreviousMonth}
-          onNextMonth={handleNextMonth}
-        />
+    <div className="flex flex-col items-center p-6 bg-gray-50 min-h-screen">
+      <Toaster position="top-right" richColors />
 
-        {/* Calendar Grid */}
-        <CalendarGrid
-          sessions={filteredSessions}
-          daysInMonth={currentMonth.days}
-          startDay={currentMonth.startDay}
-        />
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">Schedule Courses</h2>
+
+      {/* Calendar Header */}
+      <div className="flex items-center justify-between w-full max-w-8xl mb-4 rounded-xl shadow px-4 py-2 ">
+        <button
+          onClick={goPrevMonth}
+          className="p-2 hover:bg-gray-100 rounded-full"
+        >
+          <ChevronLeft className="w-5 h-5 text-gray-700 cursor-pointer" />
+        </button>
+        <h3 className="font-semibold text-lg text-gray-700">
+          {currentMonth.toLocaleString("default", {
+            month: "long",
+            year: "numeric",
+          })}
+        </h3>
+        <button
+          onClick={goNextMonth}
+          className="p-2 hover:bg-gray-100 rounded-full"
+        >
+          <ChevronRight className="w-5 h-5 text-gray-700 cursor-pointer" />
+        </button>
       </div>
+
+      {/* Weekday Headers */}
+      <div className="grid grid-cols-7 w-full max-w-8xl border rounded-t-xl bg-gray-100 mb-2">
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+          <div
+            key={d}
+            className="text-center font-semibold py-2 border-r last:border-r-0 border-gray-300 text-gray-600"
+          >
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar Grid */}
+      <div className="grid grid-cols-7 gap-2 w-full max-w-8xl">
+        {calendarDays.map((date, idx) => {
+          if (!date)
+            return (
+              <div key={idx} className="h-36 border rounded-lg bg-gray-50" />
+            );
+
+          const key = formatDateKey(date);
+          const courses = schedules[key] || [];
+
+          return (
+            <div
+              key={idx}
+              onClick={() => handleDateClick(date)}
+              className="flex flex-col p-3 border rounded-xl cursor-pointer transition-all duration-200 min-h-36 bg-white hover:shadow-lg"
+            >
+              <span className="font-semibold mb-2 text-gray-700">
+                {date.getDate()}
+              </span>
+              {courses.slice(0, 2).map((course, i) => (
+                <div
+                  key={i}
+                  className="mb-1 px-2 py-1 rounded-md text-white text-xs truncate bg-[#0694A2]"
+                >
+                  {course.title} — ${course.price}
+                </div>
+              ))}
+              {courses.length > 2 && (
+                <span className="text-gray-500 text-xs mt-1">
+                  +{courses.length - 2} more…
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Modal */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="max-w-lg w-full">
+          <DialogHeader>
+            <DialogTitle>Manage Courses — {selectedDate}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4 grid gap-4 max-h-[500px] overflow-y-auto">
+            {data?.data.map((course: Course, i: number) => {
+              const existingDates: string[] = Array.isArray(course.classDates)
+                ? course.classDates.map((d) => d.split("T")[0])
+                : [];
+              const alreadyHas =
+                selectedDate && existingDates.includes(selectedDate);
+
+              return (
+                <div
+                  key={i}
+                  className="flex items-center gap-4 p-3 bg-white rounded-xl shadow hover:shadow-lg transition"
+                >
+                  <div className="w-16 h-16 rounded-lg overflow-hidden relative bg-gray-100">
+                    <Image
+                      src={course.image?.url || "/placeholder.png"}
+                      alt={course.title}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-800 text-sm md:text-base truncate">
+                      {course.title}
+                    </h4>
+                    <p className="text-gray-600 mt-1">
+                      Price: ${course.price?.[0] ?? 0}
+                    </p>
+
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => handleAddDateToCourse(course)}
+                        disabled={!selectedDate || alreadyHas || isUpdating}
+                        className={`text-sm px-3 py-1 rounded-md ${
+                          !selectedDate || alreadyHas || isUpdating
+                            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            : "bg-[#0694A2] text-white hover:opacity-90 cursor-pointer"
+                        }`}
+                      >
+                        {alreadyHas ? "Already Added" : "Add Date"}
+                      </button>
+                      <button
+                        onClick={() => handleRemoveDateFromCourse(course)}
+                        disabled={!selectedDate || !alreadyHas || isUpdating}
+                        className={`text-sm px-3 py-1 rounded-md ${
+                          !selectedDate || !alreadyHas || isUpdating
+                            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            : "bg-red-600 text-white hover:opacity-90 cursor-pointer"
+                        }`}
+                      >
+                        Remove Date
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
