@@ -9,7 +9,7 @@ import { useParams, useRouter } from "next/navigation";
 import { updateSingleTrip } from "@/lib/api";
 import TripCreateFormSkeleton from "./TripCreateFormSkeleton";
 import dynamic from "next/dynamic";
-// ✅ Dynamically import ReactQuill to avoid SSR issues
+// Dynamically import ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
 
@@ -41,7 +41,6 @@ const TripEditForm = () => {
     text: string;
   } | null>(null);
 
-  // API থেকে ডাটা আসলে formData তে বসানো
   useEffect(() => {
     if (trip) {
       setFormData({
@@ -52,7 +51,7 @@ const TripEditForm = () => {
         maximumCapacity: trip.maximumCapacity?.toString() || "",
         startDate: trip.startDate?.split("T")[0] || "",
         endDate: trip.endDate?.split("T")[0] || "",
-        index: trip.index ?? 0, // ✅ সরাসরি number
+        index: trip.index ?? 0, 
       });
 
       if (trip.images && trip.images.length > 0) {
@@ -83,7 +82,7 @@ const TripEditForm = () => {
 
 
 
-  // ✅ Special handler for ReactQuill
+  //  Special handler for ReactQuill
   const handleDescriptionChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -113,7 +112,7 @@ const TripEditForm = () => {
         maximumCapacity: trip.maximumCapacity?.toString() || "",
         startDate: trip.startDate?.split("T")[0] || "",
         endDate: trip.endDate?.split("T")[0] || "",
-        index: trip.index ?? 0, // ✅ index number হিসেবে সেট করা
+        index: trip.index ?? 0,  
       });
       setImagePreview(trip.images?.[0]?.url || null);
       setImageFile(null);
@@ -130,7 +129,6 @@ const TripEditForm = () => {
       const form = new FormData();
 
       Object.entries(formData).forEach(([key, value]) => {
-        // যদি number হয়, তাহলে string এ convert করে পাঠাই
         if (typeof value === "number") {
           form.append(key, value.toString());
         } else {

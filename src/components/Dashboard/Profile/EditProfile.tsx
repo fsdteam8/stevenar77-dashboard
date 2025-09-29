@@ -76,7 +76,7 @@ const EditProfile: React.FC = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setFormData((prev) => ({ ...prev, image: file }));
-      setPreviewImage(URL.createObjectURL(file)); // Preview দেখানোর জন্য
+      setPreviewImage(URL.createObjectURL(file));  
     }
   };
 

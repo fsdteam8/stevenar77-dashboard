@@ -72,3 +72,19 @@ export interface CourseFilters {
   minPrice?: number;
   maxPrice?: number;
 }
+
+// /types/course.ts
+
+export interface CourseImage {
+  url: string;
+  alt?: string;
+}
+
+export interface Course {
+  _id: string;
+  title: string;
+  description?: string;
+  price?: number[];
+  image?: CourseImage;
+  classDates?: string[];
+}
