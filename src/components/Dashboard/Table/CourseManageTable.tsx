@@ -39,6 +39,7 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
   );
   const deleteMutation = useDeleteCourse();
 
+
   const courses: ApiCourse[] = data?.data || [];
   const meta = data?.meta;
 

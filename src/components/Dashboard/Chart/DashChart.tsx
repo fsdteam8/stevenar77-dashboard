@@ -61,14 +61,14 @@ const DashChart: React.FC = () => {
   useEffect(() => {
     const fetchChart = async () => {
       try {
-        const year = new Date().getFullYear(); // dynamic year
+        const year = new Date().getFullYear();  
         const res = await getDashboardChartData(year);
         if (res?.data) {
           // Map API response to chart data
           const mapped: ChartData[] = res.data.map((item: ApiChartData, index: number) => ({
             month: item.month,
             current: item.revenue,
-            previous: index > 0 ? res.data[index - 1].revenue : 0, // আগের মাসের revenue
+            previous: index > 0 ? res.data[index - 1].revenue : 0,  
           }));
           setChartData(mapped);
         }
