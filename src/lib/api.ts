@@ -1,3 +1,4 @@
+import { Social } from "@/hooks/social";
 import { BookingData, Session } from "@/types/class";
 import type {
   ApiResponse as CourseApiResponse,
@@ -7,6 +8,7 @@ import type {
 } from "@/types/course";
 
 import axios from "axios";
+
 import { getSession, signOut } from "next-auth/react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -628,3 +630,31 @@ export const singleUpdateCourse = async (
     throw error;
   }
 };
+
+
+
+// social link or updata function
+export async function fetchSocial() {
+  try {
+    const res = await api.get(`/social`);
+
+  console.log('1',res.data)
+    return res.data;
+  } catch (err) {
+    if (err instanceof Error) throw new Error("Failed to fetch social data");
+    throw err;
+  }
+}
+
+export async function updateSocial(id: string, data: Social) {
+  try {
+    console.log('2',data)
+    const res = await api.put(`/social/${id}`, data);
+    console.log('3',res.data)
+    return res.data;
+  } catch (err) {
+    console.log('4',err)
+    if (err instanceof Error) throw new Error("Failed to update social data");
+    throw err;
+  }
+}
