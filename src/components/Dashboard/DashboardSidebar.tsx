@@ -13,15 +13,23 @@ import {
   HardDrive,
   MessageCircleMore,
   BadgeInfo,
-} from "lucide-react"; 
+  ExternalLink,
+} from "lucide-react";
 import { useState } from "react";
- 
+
 import { signOut } from "next-auth/react";
 import Image from "next/image";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 import { Button } from "../ui/button";
-import logo from "../../../public/images/logo.png"
-
+import logo from "../../../public/images/logo.png";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -34,6 +42,8 @@ const navigation = [
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Payments", href: "/payments", icon: CircleDollarSign },
   { name: "About Us", href: "/abouts", icon: BadgeInfo },
+  { name: "Social", href: "/social", icon: ExternalLink },
+
   // { name: "Shop", href: "/shop", icon: ShoppingCart },
 ];
 
@@ -52,7 +62,6 @@ export default function DashboardSidebar() {
       {/* Logo */}
       <div className="flex  items-center py-5 justify-center px-6">
         <Link href="/" className="flex items-center ">
-          
           <Image
             src={logo}
             alt="This is Stevenarr Logo"
@@ -93,7 +102,7 @@ export default function DashboardSidebar() {
       <div className="border-t border-gray-200 p-3">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button 
+            <Button
               variant="ghost"
               className="w-full justify-start gap-3 h-12 px-4 cursor-pointer rounded-lg font-medium text-[#e5102e] hover:bg-[#feecee] hover:text-[#e5102e] transition-all duration-200"
             >
