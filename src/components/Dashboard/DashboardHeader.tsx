@@ -22,6 +22,7 @@ import {
 } from "../ui/dialog";
 import { signOut, useSession } from "next-auth/react";
 import { getMyProfileData, getNotifications } from "@/lib/api";
+import { Skeleton } from "../ui/skeleton";
 
 interface Notification {
   _id: string;
@@ -97,7 +98,15 @@ export default function DashboardHeader() {
   };
 
   if (loading) {
-    return <p className="p-5">Loading profile...</p>;
+    return (
+      <div className="flex items-center space-x-4 p-5 bg-white rounded-md">
+        <Skeleton className="h-12 w-12 rounded-full" />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-[250px]" />
+          <Skeleton className="h-4 w-[200px]" />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -117,7 +126,8 @@ export default function DashboardHeader() {
         <div className="flex flex-col ">
           <h1 className="text-xl text-primary font-bold  ">My Dashboard</h1>
           <p className="!text-sm text-gray-400">
-            Welcome back! Here&apos;s what&apos;s happening with your Website today.
+            Welcome back! Here&apos;s what&apos;s happening with your Website
+            today.
           </p>
         </div>
       </div>
