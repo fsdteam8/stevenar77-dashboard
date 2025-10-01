@@ -30,11 +30,11 @@ const RecentTripTable: React.FC = () => {
   // Define pagination variables (even if we only show 4 trips)
   const itemsToShow = 4;
 
-const { data: tripsResponse, isLoading, isError } = useTrips(1, itemsToShow);
+  const { data: tripsResponse, isLoading, isError } = useTrips(1, itemsToShow);
 
-// Correctly extract trips array
-const trips: Trip[] = tripsResponse?.data?.data || [];
-const displayedTrips = trips.slice(0, itemsToShow);
+  // Correctly extract trips array
+  const trips: Trip[] = tripsResponse?.data?.data || [];
+  const displayedTrips = trips.slice(0, itemsToShow);
 
   const handleView = (trip: Trip) => {
     setSelectedTrip(trip);
@@ -137,9 +137,13 @@ const displayedTrips = trips.slice(0, itemsToShow);
                   <MapPin className="w-4 h-4 mr-1" />
                   {selectedTrip.location}
                 </div>
-                <p className="mt-4 text-gray-700 leading-relaxed whitespace-pre-line italic">
+                {/* <p className="mt-4 text-gray-700 leading-relaxed whitespace-pre-line italic">
                   {selectedTrip.description}
-                </p>
+                </p> */}
+                <p
+                  className="mt-4 text-gray-700 leading-relaxed whitespace-pre-line italic"
+                  dangerouslySetInnerHTML={{ __html: selectedTrip.description }}
+                />
               </div>
             </div>
           )}

@@ -39,6 +39,7 @@ interface CourseFormData {
   instructorAssignment: string;
   index: number;
   courseIncludes: string;
+  fromTitle: string[];
 }
 
 interface CourseFormProps {
@@ -104,6 +105,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     instructorAssignment: "Monthly",
     index: 0,
     courseIncludes: "",
+    fromTitle: [],
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -143,40 +145,72 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
   //   }
   // }, [mode, courseData]);
 
-  useEffect(() => {
-  if (mode === "edit" && courseData) {
-    setFormData({
-      courseTitle: courseData.title || "",
-      courseLevel: courseData.courseLevel || "Advanced",
-      description: courseData.description || "",
-      image: courseData?.image || null,
-      price: Array.isArray(courseData.price)
-        ? courseData.price.join(", ")
-        : courseData.price || "",
-      duration: courseData.duration || "",
-      locations: courseData.locations || "",
-      timeSlots: courseData.timeSlots || "",
-      // ✅ normalize dates: array, string, or object
-      classDates: Array.isArray(courseData.classDates)
-        ? courseData.classDates.map((d: any) =>
-            typeof d === "string" ? d : d.date || d
-          )
-        : courseData.classDates
-        ? [courseData.classDates]
-        : [],
-      instructorAssignment: courseData.instructorAssignment || "Monthly",
-      index: courseData.index || 0,
-      courseIncludes: Array.isArray(courseData.courseIncludes)
-        ? courseData.courseIncludes.join("\n")
-        : courseData.courseIncludes || "",
-    });
+  const options = [
+    { value: "Standards Form", label: "Standards Form" },
+    { value: "Continuing Education", label: "Continuing Education" },
+    { value: "Divers Activity", label: "Divers Activity" },
+    { value: "Quick Review", label: "Quick Review" },
+    { value: "Divers Medical", label: "Divers Medical" },
+    { value: "Enriched Training", label: "Enriched Training" },
+    { value: "Equipment Rental", label: "Equipment Rental" },
+  ];
 
-    if (courseData.image) {
-      setExistingImageUrl(courseData?.image?.url);
+  const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (value && !formData.fromTitle.includes(value)) {
+      setFormData((prev) => ({
+        ...prev,
+        fromTitle: [...prev.fromTitle, value],
+      }));
     }
-  }
-}, [mode, courseData]);
+    e.target.value = ""; // reset dropdown
+  };
 
+  const handleRemove = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      fromTitle: prev.fromTitle.filter((item) => item !== value),
+    }));
+  };
+
+  useEffect(() => {
+    if (mode === "edit" && courseData) {
+      setFormData({
+        courseTitle: courseData.title || "",
+        courseLevel: courseData.courseLevel || "Advanced",
+        description: courseData.description || "",
+        image: courseData?.image || null,
+        price: Array.isArray(courseData.price)
+          ? courseData.price.join(", ")
+          : courseData.price || "",
+        duration: courseData.duration || "",
+        locations: courseData.locations || "",
+        timeSlots: courseData.timeSlots || "",
+        // ✅ normalize dates: array, string, or object
+        classDates: Array.isArray(courseData.classDates)
+          ? courseData.classDates.map((d: any) =>
+              typeof d === "string" ? d : d.date || d
+            )
+          : courseData.classDates
+          ? [courseData.classDates]
+          : [],
+        instructorAssignment: courseData.instructorAssignment || "Monthly",
+        index: courseData.index || 0,
+        courseIncludes: Array.isArray(courseData.courseIncludes)
+          ? courseData.courseIncludes.join("\n")
+          : courseData.courseIncludes || "",
+        fromTitle: Array.isArray(courseData.fromTitle)
+          ? courseData.fromTitle
+          : courseData.fromTitle
+          ? [courseData.fromTitle]
+          : [],
+      });
+
+      if (courseData.image) {
+        setExistingImageUrl(courseData?.image?.url);
+      }
+    }
+  }, [mode, courseData]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -359,6 +393,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
             instructorAssignment: "Monthly",
             index: 0,
             courseIncludes: "",
+            fromTitle: [],
           });
           setSelectedFile(null);
           if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -396,6 +431,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
         instructorAssignment: "Monthly",
         index: 0,
         courseIncludes: "",
+        fromTitle: [],
       });
       setSelectedFile(null);
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -620,23 +656,6 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Instructor Assignment */}
-                  {/* <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Instructor Assignment
-                    </label>
-                    <select
-                      name="instructorAssignment"
-                      value={formData.instructorAssignment}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none appearance-none bg-white"
-                    >
-                      <option value="Monthly">Monthly</option>
-                      <option value="Weekly">Weekly</option>
-                      <option value="Daily">Daily</option>
-                    </select>
-                  </div> */}
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Index *
@@ -649,6 +668,54 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
                     />
+                  </div>
+
+                  {/* From */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Form
+                    </label>
+
+                    {/* Dropdown */}
+                    <select
+                      onChange={handleSelect}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none bg-white"
+                      defaultValue=""
+                    >
+                      <option value="" disabled>
+                        Select option
+                      </option>
+                      {options.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+
+                    {/* Selected tags */}
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {formData.fromTitle.length > 0 ? (
+                        formData.fromTitle.map((value) => (
+                          <span
+                            key={value}
+                            className="flex items-center gap-2 px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm"
+                          >
+                            {value}
+                            <button
+                              type="button"
+                              onClick={() => handleRemove(value)}
+                              className="hover:text-red-500 cursor-pointer"
+                            >
+                              <X size={16} />
+                            </button>
+                          </span>
+                        ))
+                      ) : (
+                        <p className="text-gray-500 text-sm">
+                          No option selected
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
