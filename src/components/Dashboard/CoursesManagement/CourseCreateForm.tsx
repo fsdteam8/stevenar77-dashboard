@@ -561,7 +561,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Price *{" "}
                       <span className="text-xs text-gray-500">
-                        (comma-separated for multiple prices)
+                        (new line-separated for multiple prices)
                       </span>
                     </label>
                     <input
@@ -579,6 +579,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                     </label>
                     <input
                       type="text"
+                      
                       name="duration"
                       placeholder="2 weekends"
                       value={formData.duration}
