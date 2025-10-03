@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React, { useState, useEffect } from "react";
+import type React from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Upload, Plus, Loader2, X } from "lucide-react";
 import { courseApi } from "@/lib/api";
@@ -10,38 +11,23 @@ import Image from "next/image";
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
 
-// interface CourseFormData {
-//   courseTitle: string;
-//   courseLevel: string;
-//   description: string;
-//   image: File | null | string; // File, null, or existing image URL
-//   price: string;
-//   duration: string;
-//   locations: string;
-//   timeSlots: string;
-//   startDate: string;
-//   endDate: string;
-//   instructorAssignment: string;
-//   index: number;
-//   courseIncludes: string;
-// }
-
 interface CourseFormData {
   courseTitle: string;
   courseLevel: string;
   description: string;
-  image: File | null | string; // File, null, or existing image URL
+  image: File | null | string;
   price: string;
   duration: string;
   location: string;
   timeSlots: string;
-  classDates: string[]; // ✅ multiple dates
+  classDates: string[];
   instructorAssignment: string;
   index: number;
   courseIncludes: string;
   formTitle: string[];
   minAge: number;
   maxAge: number;
+  addOnce: Array<{ title: string; price: string }>; // Added addOnce field
 }
 
 interface CourseFormProps {
@@ -78,22 +64,6 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
-  // const [formData, setFormData] = useState<CourseFormData>({
-  //   courseTitle: "",
-  //   courseLevel: "Advanced",
-  //   description: "",
-  //   image: null,
-  //   price: "",
-  //   duration: "",
-  //   locations: "",
-  //   timeSlots: "",
-  //   startDate: "",
-  //   endDate: "",
-  //   instructorAssignment: "Monthly",
-  //   index: 0,
-  //   courseIncludes: "",
-  // });
-
   const [formData, setFormData] = useState<CourseFormData>({
     courseTitle: "",
     courseLevel: "Advanced",
@@ -103,13 +73,14 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     duration: "",
     location: "",
     timeSlots: "",
-    classDates: [], // ✅
+    classDates: [],
     instructorAssignment: "Monthly",
     index: 1,
     courseIncludes: "",
     formTitle: [],
     minAge: 0,
     maxAge: 0,
+    addOnce: [], // Initialize addOnce array
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -120,34 +91,6 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     type: "success" | "error";
     text: string;
   } | null>(null);
-
-  // ✅ Populate form data when editing
-  // useEffect(() => {
-  //   if (mode === "edit" && courseData) {
-  //     setFormData({
-  //       courseTitle: courseData.title || "",
-  //       courseLevel: courseData.courseLevel || "Advanced",
-  //       description: courseData.description || "",
-  //       image: courseData?.image || null,
-  //       price: Array.isArray(courseData.price)
-  //         ? courseData.price.join(", ")
-  //         : courseData.price || "",
-  //       duration: courseData.duration || "",
-  //       locations: courseData.locations || "",
-  //       timeSlots: courseData.timeSlots || "",
-  //       classDates: courseData.classDates || "",
-  //       instructorAssignment: courseData.instructorAssignment || "Monthly",
-  //       index: courseData.index || 0, // ✅ Added index
-  //       courseIncludes: Array.isArray(courseData.courseIncludes)
-  //         ? courseData.courseIncludes.join(", ")
-  //         : courseData.courseIncludes || "",
-  //     });
-
-  //     if (courseData.image) {
-  //       setExistingImageUrl(courseData?.image?.url);
-  //     }
-  //   }
-  // }, [mode, courseData]);
 
   const options = [
     { value: "Standards Form", label: "Standards Form" },
@@ -190,7 +133,6 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
         duration: courseData.duration || "",
         location: courseData.location || "",
         timeSlots: courseData.timeSlots || "",
-        // ✅ normalize dates: array, string, or object
         classDates: Array.isArray(courseData.classDates)
           ? courseData.classDates.map((d: any) =>
               typeof d === "string" ? d : d.date || d
@@ -210,6 +152,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
           : [],
         minAge: courseData.minAge ? Number(courseData.minAge) : 0,
         maxAge: courseData.maxAge ? Number(courseData.maxAge) : 0,
+        addOnce: courseData.addOnce || [], // Load addOnce from courseData
       });
 
       if (courseData.image) {
@@ -231,7 +174,6 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     if (submitMessage) setSubmitMessage(null);
   };
 
-  // ✅ Special handler for ReactQuill
   const handleDescriptionChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -287,6 +229,33 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     if (mode === "edit" && courseData?.image) {
       setExistingImageUrl(courseData.image);
     }
+  };
+
+  const handleAddItem = () => {
+    setFormData((prev) => ({
+      ...prev,
+      addOnce: [...prev.addOnce, { title: "", price: "" }],
+    }));
+  };
+
+  const handleRemoveItem = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      addOnce: prev.addOnce.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleItemChange = (
+    index: number,
+    field: "title" | "price",
+    value: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      addOnce: prev.addOnce.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      ),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -380,9 +349,17 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
         .forEach((include, i) =>
           formDataToSend.append(`courseIncludes[${i}]`, include)
         );
+
       formData.formTitle
-        .filter((item) => item)  
+        .filter((item) => item)
         .forEach((title, i) => formDataToSend.append(`formTitle[${i}]`, title));
+
+      formData.addOnce.forEach((item, i) => {
+        if (item.title.trim() && item.price.trim()) {
+          formDataToSend.append(`addOnce[${i}][title]`, item.title);
+          formDataToSend.append(`addOnce[${i}][price]`, item.price);
+        }
+      });
 
       if (selectedFile) {
         formDataToSend.append("image", selectedFile, selectedFile.name);
@@ -429,6 +406,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
             formTitle: [],
             minAge: 0,
             maxAge: 0,
+            addOnce: [], // Reset addOnce on success
           });
           setSelectedFile(null);
           if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -469,6 +447,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
         formTitle: [],
         minAge: 0,
         maxAge: 0,
+        addOnce: [], // Reset addOnce on cancel
       });
       setSelectedFile(null);
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -510,7 +489,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column */}
               <div className="lg:col-span-2 space-y-6">
-                {/* Title + Level */}
+                {/* Title */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -525,21 +504,6 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
                     />
                   </div>
-                  {/* <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Course Level
-                    </label>
-                    <select
-                      name="courseLevel"
-                      value={formData.courseLevel}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none appearance-none bg-white"
-                    >
-                      <option value="Advanced">Advanced</option>
-                      <option value="Beginner">Beginner</option>
-                      <option value="Intermediate">Intermediate</option>
-                    </select>
-                  </div> */}
                 </div>
 
                 {/* ✅ React Quill Editor for Description */}
@@ -579,7 +543,6 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                     </label>
                     <input
                       type="text"
-                      
                       name="duration"
                       placeholder="2 weekends"
                       value={formData.duration}
@@ -609,36 +572,6 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                   </div>
                 </div>
 
-                {/* Locations and Time & Slots Row */}
-                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Locations
-                    </label>
-                    <input
-                      type="text"
-                      name="locations"
-                      placeholder="Write Here"
-                      value={formData.locations}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Time & Slots
-                    </label>
-                    <input
-                      type="text"
-                      name="timeSlots"
-                      placeholder="Write Here"
-                      value={formData.timeSlots}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
-                    />
-                  </div>
-                </div> */}
-
                 {/* Course Dates Row */}
                 <div className="grid grid-cols-1 gap-6">
                   <div>
@@ -649,13 +582,13 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                         </label>
                         <input
                           type="date"
+                          min={new Date().toISOString().split("T")[0]}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
                           onChange={(e) => {
                             const selected = e.target.value;
                             if (!selected) return;
 
                             setFormData((prev) => {
-                              // Prevent duplicate dates
                               if (prev.classDates.includes(selected))
                                 return prev;
 
@@ -665,13 +598,12 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                               };
                             });
 
-                            // Clear input so user can select the same date again if deleted
                             e.target.value = "";
                           }}
                         />
                       </div>
 
-                      {/* Min Age */}
+                      {/* Location */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Location *
@@ -715,8 +647,8 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                   </div>
                 </div>
 
+                {/* Min Age + Max Age */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Min Age */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Min Age *
@@ -731,7 +663,6 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                     />
                   </div>
 
-                  {/* Max Age */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Max Age *
@@ -747,6 +678,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                   </div>
                 </div>
 
+                {/* Index + Form */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -762,13 +694,12 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                     />
                   </div>
 
-                  {/* From */}
+                  {/* Form */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Form
                     </label>
 
-                    {/* Dropdown */}
                     <select
                       onChange={handleSelect}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none bg-white"
@@ -784,7 +715,6 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                       ))}
                     </select>
 
-                    {/* Selected tags */}
                     <div className="mt-4 flex flex-wrap gap-2">
                       {formData.formTitle.length > 0 ? (
                         formData.formTitle.map((value) => (
@@ -809,6 +739,79 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                       )}
                     </div>
                   </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Add Once Items
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleAddItem}
+                      className="inline-flex items-center justify-center w-8 h-8 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors"
+                      title="Add new item"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {formData.addOnce.length === 0 ? (
+                    <p className="text-sm text-gray-500 italic">
+                      No add-once items added yet. Click the + button to add
+                      items.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {formData.addOnce.map((item, index) => (
+                        <div
+                          key={index}
+                          className="flex gap-3 items-start bg-gray-50 p-4 rounded-lg border border-gray-200"
+                        >
+                          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <input
+                                type="text"
+                                placeholder="Item title"
+                                value={item.title}
+                                onChange={(e) =>
+                                  handleItemChange(
+                                    index,
+                                    "title",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                              />
+                            </div>
+                            <div>
+                              <input
+                                type="number"
+                                placeholder="Item price"
+                                value={item.price}
+                                onChange={(e) =>
+                                  handleItemChange(
+                                    index,
+                                    "price",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                              />
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(index)}
+                            className="text-red-500 hover:text-red-700 p-2 rounded-md hover:bg-red-50 transition-colors"
+                            title="Remove item"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -848,7 +851,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                           <Image
                             width={400}
                             height={200}
-                            src={currentImageUrl}
+                            src={currentImageUrl || "/placeholder.svg"}
                             alt="Course preview"
                             className="w-full h-32 object-cover rounded-lg"
                           />
@@ -919,16 +922,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                   </Button>
                 </div>
               </div>
-
-              {/* Other Fields */}
-              {/* Locations + Time */}
-              {/* StartDate + EndDate */}
-              {/* Instructor Assignment */}
-              {/* (Kept unchanged from your code) */}
             </div>
-
-            {/* Right Column (Upload + Buttons) stays unchanged */}
-            {/* ... */}
           </div>
         </div>
       </div>
