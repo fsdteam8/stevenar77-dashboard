@@ -49,13 +49,13 @@ export type Booking = {
   avatar: string;
   classImage?: string;
   participants?: Participant[];
-  activityLevelSpecificQuestions?: string[];
-  medicalHistory?: string[];
+  emergencyName?: string[];
+  emergencyPhoneNumber?: string[];
   medicalDocuments?: MedicalDocument[];
   courseIncludes?: string[];
   divingExperience?: string;
   fitnessLevel?: string;
-  canSwim?: string;
+  PhoneNumber?: string;
   gender?: string;
   height?: number;
   weight?: number;
@@ -96,12 +96,12 @@ export type BookingAPIResponse = {
     index?: number;
   };
   participant?: number;
-  medicalHistory?: string[];
-  canSwim?: string;
+  emergencyPhoneNumber?: string[];
+  phoneNumber?: string;
   divingExperience?: string;
   lastPhysicalExamination?: string;
   fitnessLevel?: string;
-  activityLevelSpecificQuestions?: string[];
+  emergencyName?: string[];
   medicalDocuments?: { _id: string; public_id: string; url: string }[];
   gender?: string;
   shoeSize?: number | string;
@@ -168,14 +168,13 @@ const BookingTable: React.FC = () => {
                     email: `participant${i + 1}@example.com`,
                   }))
                 : [],
-              activityLevelSpecificQuestions:
-                item.activityLevelSpecificQuestions || [],
-              medicalHistory: item.medicalHistory || [],
+              emergencyName: item.emergencyName || [],
+              emergencyPhoneNumber: item.emergencyPhoneNumber || [],
               medicalDocuments: item.medicalDocuments || [],
               courseIncludes: item.classId?.courseIncludes || [],
               divingExperience: item.divingExperience || "",
               fitnessLevel: item.fitnessLevel || "",
-              canSwim: item.canSwim || "",
+              PhoneNumber: item.phoneNumber || "",
               gender: item.gender || "",
               height: item.hight || 0,
               weight: item.weight || 0,
@@ -275,7 +274,7 @@ const BookingTable: React.FC = () => {
                       alt={booking.customerName}
                       width={30}
                       height={30}
-                      className="rounded-full object-cover flex-shrink-0"
+                      className="rounded-md object-cover flex-shrink-0"
                     />
                     <div>
                       <div className="text-sm font-medium text-gray-900">
@@ -303,314 +302,310 @@ const BookingTable: React.FC = () => {
                   {booking.date}
                 </td>
 
-              
-                  <td className="px-6 py-4">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="inline-flex items-center gap-1 text-sm text-teal-600 hover:text-teal-700 font-medium"
-                        >
-                         <Ellipsis/>
-                        </Button>
-                      </DropdownMenuTrigger>
+                <td className="px-6 py-4">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="inline-flex items-center gap-1 text-sm text-teal-600 hover:text-teal-700 font-medium"
+                      >
+                        <Ellipsis />
+                      </Button>
+                    </DropdownMenuTrigger>
 
-                      <DropdownMenuContent className="w-48">
-                        {/* Details (opens Dialog without auto-closing) */}
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <DropdownMenuItem
-                              onSelect={(e) => e.preventDefault()} // prevent menu from closing immediately
-                              onClick={() => setSelectedBooking(booking)}
-                              className="cursor-pointer"
-                            >
-                              <Eye className="w-4 h-4" />
-                              Details
-                            </DropdownMenuItem>
-                          </DialogTrigger>
+                    <DropdownMenuContent className="w-48">
+                      {/* Details (opens Dialog without auto-closing) */}
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <DropdownMenuItem
+                            onSelect={(e) => e.preventDefault()} // prevent menu from closing immediately
+                            onClick={() => setSelectedBooking(booking)}
+                            className="cursor-pointer"
+                          >
+                            <Eye className="w-4 h-4" />
+                            Details
+                          </DropdownMenuItem>
+                        </DialogTrigger>
 
-                          <DialogContent className="sm:max-w-5xl p-6 rounded-3xl shadow-2xl bg-gray-50 border border-gray-200 max-h-[80vh] overflow-y-auto">
-                            <DialogHeader>
-                              <DialogTitle className="text-3xl font-bold text-gray-800">
-                                Booking Details
-                              </DialogTitle>
-                            </DialogHeader>
+                        <DialogContent className="sm:max-w-5xl p-6 rounded-3xl shadow-2xl bg-gray-50 border border-gray-200 max-h-[80vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle className="text-3xl font-bold text-gray-800">
+                              Booking Details
+                            </DialogTitle>
+                          </DialogHeader>
 
-                            {/* show booking details */}
-                            {selectedBooking && (
-                              <div className="mt-6 space-y-6 text-gray-700 text-sm">
-                                {/* Basic Info Card */}
-                                <div className="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row gap-6">
-                                  <div className="flex-shrink-0 rounded-lg overflow-hidden shadow-lg">
-                                    <Image
-                                      src={
-                                        selectedBooking?.classImage ||
-                                        selectedBooking?.avatar
-                                      }
-                                      alt={selectedBooking.customerName}
-                                      width={400}
-                                      height={250}
-                                      className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
-                                    />
-                                  </div>
-
-                                  <div className="flex-1 space-y-2">
-                                    <p>
-                                      <strong>Invoice:</strong>{" "}
-                                      {selectedBooking.invoice || "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Customer:</strong>{" "}
-                                      {selectedBooking.customerName || "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Email:</strong>{" "}
-                                      {selectedBooking.customerEmail || "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Price:</strong> $
-                                      {selectedBooking.price?.toLocaleString() ||
-                                        "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Status:</strong>{" "}
-                                      <span
-                                        className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeStyle(
-                                          selectedBooking.status
-                                        )}`}
-                                      >
-                                        {selectedBooking.status || "N/A"}
-                                      </span>
-                                    </p>
-                                    <p>
-                                      <strong>Date:</strong>{" "}
-                                      {selectedBooking.date || "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Location:</strong>{" "}
-                                      {selectedBooking.location || "N/A"}
-                                    </p>
-                                  </div>
+                          {/* show booking details */}
+                          {selectedBooking && (
+                            <div className="mt-6 space-y-6 text-gray-700 text-sm">
+                              {/* Basic Info Card */}
+                              <div className="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row gap-6">
+                                <div className="flex-shrink-0 rounded-lg overflow-hidden shadow-lg">
+                                  <Image
+                                    src={
+                                      selectedBooking?.classImage ||
+                                      selectedBooking?.avatar
+                                    }
+                                    alt={selectedBooking.customerName}
+                                    width={400}
+                                    height={250}
+                                    className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
+                                  />
                                 </div>
 
-                                {/* Extended Info Card */}
-                                <div className="bg-white rounded-xl shadow-md p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                  {/* Left Section */}
-                                  <div className="space-y-4">
-                                    <p>
-                                      <strong>Class Description:</strong>{" "}
-                                      {selectedBooking.description || "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Duration:</strong>{" "}
-                                      {selectedBooking.duration || "N/A"}
-                                    </p>
-
-                                    <div>
-                                      <p className="font-semibold">
-                                        Course Includes:
-                                      </p>
-                                      <ul className="list-disc list-inside ml-4">
-                                        {selectedBooking.courseIncludes
-                                          ?.length ? (
-                                          selectedBooking.courseIncludes.map(
-                                            (item, idx) => (
-                                              <li key={idx}>{item}</li>
-                                            )
-                                          )
-                                        ) : (
-                                          <li>N/A</li>
-                                        )}
-                                      </ul>
-                                    </div>
-
-                                    <div>
-                                      <p className="font-semibold">
-                                        Activity Level Questions:
-                                      </p>
-                                      <ul className="list-disc list-inside ml-4">
-                                        {selectedBooking
-                                          .activityLevelSpecificQuestions
-                                          ?.length ? (
-                                          selectedBooking.activityLevelSpecificQuestions.map(
-                                            (item, idx) => (
-                                              <li key={idx}>{item}</li>
-                                            )
-                                          )
-                                        ) : (
-                                          <li>N/A</li>
-                                        )}
-                                      </ul>
-                                    </div>
-
-                                    <div>
-                                      <p className="font-semibold">
-                                        Medical History:
-                                      </p>
-                                      <ul className="list-disc list-inside ml-4">
-                                        {selectedBooking.medicalHistory
-                                          ?.length ? (
-                                          selectedBooking.medicalHistory.map(
-                                            (item, idx) => (
-                                              <li key={idx}>{item}</li>
-                                            )
-                                          )
-                                        ) : (
-                                          <li>N/A</li>
-                                        )}
-                                      </ul>
-                                    </div>
-
-                                    <div>
-                                      <p className="font-semibold">
-                                        Documents:
-                                      </p>
-                                      <div className="flex flex-col gap-1 ml-4">
-                                        {selectedBooking.medicalDocuments
-                                          ?.length ? (
-                                          selectedBooking.medicalDocuments.map(
-                                            (doc) => (
-                                              <a
-                                                key={doc._id}
-                                                href={doc.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-teal-600 underline hover:text-teal-800 transition-colors"
-                                              >
-                                                {doc.public_id}
-                                              </a>
-                                            )
-                                          )
-                                        ) : (
-                                          <span>N/A</span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* Right Section */}
-                                  <div className="space-y-4">
-                                    <p>
-                                      <strong>Diving Experience:</strong>{" "}
-                                      {selectedBooking.divingExperience ||
-                                        "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Fitness Level:</strong>{" "}
-                                      {selectedBooking.fitnessLevel || "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Can Swim:</strong>{" "}
-                                      {selectedBooking.canSwim || "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Gender:</strong>{" "}
-                                      {selectedBooking.gender || "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Height:</strong>{" "}
-                                      {selectedBooking.height || "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Weight:</strong>{" "}
-                                      {selectedBooking.weight || "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Shoe Size:</strong>{" "}
-                                      {selectedBooking.shoeSize || "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Last Physical Exam:</strong>{" "}
-                                      {selectedBooking.lastPhysicalExamination ||
-                                        "N/A"}
-                                    </p>
-
-                                    <div>
-                                      <p className="font-semibold">
-                                        Participants:
-                                      </p>
-                                      <ul className="list-disc list-inside ml-4">
-                                        {selectedBooking.participants
-                                          ?.length ? (
-                                          selectedBooking.participants.map(
-                                            (p) => (
-                                              <li key={p._id}>
-                                                {p.firstName} {p.lastName} (
-                                                {p.email})
-                                              </li>
-                                            )
-                                          )
-                                        ) : (
-                                          <li>N/A</li>
-                                        )}
-                                      </ul>
-                                    </div>
-
-                                    <p>
-                                      <strong>Average Rating:</strong>{" "}
-                                      {selectedBooking.avgRating ?? "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Total Participates:</strong>{" "}
-                                      {selectedBooking.totalParticipates ??
-                                        "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Active:</strong>{" "}
-                                      {selectedBooking.isActive ? "Yes" : "No"}
-                                    </p>
-                                    <p>
-                                      <strong>Created At:</strong>{" "}
-                                      {selectedBooking.createdAt || "N/A"}
-                                    </p>
-                                    <p>
-                                      <strong>Updated At:</strong>{" "}
-                                      {selectedBooking.updatedAt || "N/A"}
-                                    </p>
-                                  </div>
+                                <div className="flex-1 space-y-2">
+                                  <p>
+                                    <strong>Invoice:</strong>{" "}
+                                    {selectedBooking.invoice || "N/A"}
+                                  </p>
+                                  <p>
+                                    <strong>Customer:</strong>{" "}
+                                    {selectedBooking.customerName || "N/A"}
+                                  </p>
+                                  <p>
+                                    <strong>Email:</strong>{" "}
+                                    {selectedBooking.customerEmail || "N/A"}
+                                  </p>
+                                  <p>
+                                    <strong>Price:</strong> $
+                                    {selectedBooking.price?.toLocaleString() ||
+                                      "N/A"}
+                                  </p>
+                                  <p>
+                                    <strong>Status:</strong>{" "}
+                                    <span
+                                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeStyle(
+                                        selectedBooking.status
+                                      )}`}
+                                    >
+                                      {selectedBooking.status || "N/A"}
+                                    </span>
+                                  </p>
+                                  <p>
+                                    <strong>Date:</strong>{" "}
+                                    {selectedBooking.date || "N/A"}
+                                  </p>
+                                  <p>
+                                    <strong>Location:</strong>{" "}
+                                    {selectedBooking.location || "N/A"}
+                                  </p>
                                 </div>
                               </div>
-                            )}
 
-                            <DialogClose asChild>
-                              <button className="mt-6 w-full md:w-auto px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:bg-teal-700 transition-colors duration-200">
-                                Close
-                              </button>
-                            </DialogClose>
-                          </DialogContent>
-                        </Dialog>
+                              {/* Extended Info Card */}
+                              <div className="bg-white rounded-xl shadow-md p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Left Section */}
+                                <div className="space-y-4">
+                                  {/* <p>
+                                    <strong>Class Description:</strong>{" "}
+                                    {selectedBooking.description || "N/A"}
+                                  </p> */}
+                                  <p>
+                                    <strong>Class Description:</strong>{" "}
+                                    <span
+                                      dangerouslySetInnerHTML={{
+                                        __html:
+                                          selectedBooking.description || "N/A",
+                                      }}
+                                    />
+                                  </p>
 
-                        {/* Review Submenu */}
-                        <DropdownMenuSub>
-                          <DropdownMenuSubTrigger>
-                            Sent Review Form
-                          </DropdownMenuSubTrigger>
-                          <DropdownMenuSubContent>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                console.log("Rescue Diver clicked")
-                              }
-                            >
-                              Rescue Diver
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => console.log("Enrich Air clicked")}
-                            >
-                              Enrich Air
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                console.log("Quick Review clicked")
-                              }
-                            >
-                              Quick Review
-                            </DropdownMenuItem>
-                          </DropdownMenuSubContent>
-                        </DropdownMenuSub>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </td>
-         
+                                  <p>
+                                    <strong>Duration:</strong>{" "}
+                                    {selectedBooking.duration || "N/A"}
+                                  </p>
+
+                                  <div>
+                                    <p className="font-semibold">
+                                      Course Includes:
+                                    </p>
+                                    <ul className="list-disc list-inside ml-4">
+                                      {selectedBooking.courseIncludes
+                                        ?.length ? (
+                                        selectedBooking.courseIncludes.map(
+                                          (item, idx) => (
+                                            <li key={idx}>{item}</li>
+                                          )
+                                        )
+                                      ) : (
+                                        <li>N/A</li>
+                                      )}
+                                    </ul>
+                                  </div>
+
+                                  <div>
+                                    <p className="font-semibold">
+                                      Emergency Contact Person:
+                                    </p>
+                                    <ul className="list-disc list-inside ml-4">
+                                      {selectedBooking?.emergencyName ? (
+                                        <li>
+                                          ({selectedBooking?.emergencyName})
+                                        </li>
+                                      ) : (
+                                        <li>N/A</li>
+                                      )}
+                                    </ul>
+                                  </div>
+
+                                  <div>
+                                    <p className="font-semibold">
+                                      Emergency Person PhoneNumber:
+                                    </p>
+                                    <ul className="list-disc list-inside ml-4">
+                                      {selectedBooking?.emergencyPhoneNumber ? (
+                                        <li>
+                                          (
+                                          {
+                                            selectedBooking?.emergencyPhoneNumber
+                                          }
+                                          )
+                                        </li>
+                                      ) : (
+                                        <li>N/A</li>
+                                      )}
+                                    </ul>
+                                  </div>
+
+                                  <div>
+                                    <p className="font-semibold">Documents:</p>
+                                    <div className="flex flex-col gap-1 ml-4">
+                                      {selectedBooking.medicalDocuments
+                                        ?.length ? (
+                                        selectedBooking.medicalDocuments.map(
+                                          (doc) => (
+                                            <a
+                                              key={doc._id}
+                                              href={doc.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-teal-600 underline hover:text-teal-800 transition-colors"
+                                            >
+                                              {doc.public_id}
+                                            </a>
+                                          )
+                                        )
+                                      ) : (
+                                        <span>N/A</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Right Section */}
+                                <div className="space-y-4">
+                                  {/* <p>
+                                    <strong>Diving Experience:</strong>{" "}
+                                    {selectedBooking.divingExperience || "N/A"}
+                                  </p>
+                                  <p>
+                                    <strong>Fitness Level:</strong>{" "}
+                                    {selectedBooking.fitnessLevel || "N/A"}
+                                  </p> */}
+                                  <p>
+                                    <strong>Phone Number:</strong>{" "}
+                                    {selectedBooking.PhoneNumber || "N/A"}
+                                  </p>
+                                  <p>
+                                    <strong>Gender:</strong>{" "}
+                                    {selectedBooking.gender || "N/A"}
+                                  </p>
+                                  <p>
+                                    <strong>Height:</strong>{" "}
+                                    {selectedBooking.height || "N/A"}
+                                  </p>
+                                  <p>
+                                    <strong>Weight:</strong>{" "}
+                                    {selectedBooking.weight || "N/A"}
+                                  </p>
+                                  <p>
+                                    <strong>Shoe Size:</strong>{" "}
+                                    {selectedBooking.shoeSize || "N/A"}
+                                  </p>
+                                  <p>
+                                    <strong>Last Physical Exam:</strong>{" "}
+                                    {selectedBooking.lastPhysicalExamination ||
+                                      "N/A"}
+                                  </p>
+
+                                  <div>
+                                    <p className="font-semibold">
+                                      Participants:
+                                    </p>
+                                    <ul className="list-disc list-inside ml-4">
+                                      {selectedBooking.participants?.length ? (
+                                        selectedBooking.participants.map(
+                                          (p) => (
+                                            <li key={p._id}>
+                                              {p.firstName} {p.lastName} (
+                                              {p.email})
+                                            </li>
+                                          )
+                                        )
+                                      ) : (
+                                        <li>N/A</li>
+                                      )}
+                                    </ul>
+                                  </div>
+
+                                  <p>
+                                    <strong>Average Rating:</strong>{" "}
+                                    {selectedBooking.avgRating ?? "N/A"}
+                                  </p>
+                                  <p>
+                                    <strong>Total Participates:</strong>{" "}
+                                    {selectedBooking.totalParticipates ?? "N/A"}
+                                  </p>
+                                  <p>
+                                    <strong>Active:</strong>{" "}
+                                    {selectedBooking.isActive ? "Yes" : "No"}
+                                  </p>
+                                  <p>
+                                    <strong>Course Booked On:</strong>{" "}
+                                    {selectedBooking.createdAt || "N/A"}
+                                  </p>
+                                  {/* <p>
+                                    <strong>Updated At:</strong>{" "}
+                                    {selectedBooking.updatedAt || "N/A"}
+                                  </p> */}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          <DialogClose asChild>
+                            <button className="mt-6 w-full md:w-auto px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:bg-teal-700 transition-colors duration-200">
+                              Close
+                            </button>
+                          </DialogClose>
+                        </DialogContent>
+                      </Dialog>
+
+                      {/* Review Submenu */}
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          Sent Review Form
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                          <DropdownMenuItem
+                            onClick={() => console.log("Rescue Diver clicked")}
+                          >
+                            Rescue Diver
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => console.log("Enrich Air clicked")}
+                          >
+                            Enrich Air
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => console.log("Quick Review clicked")}
+                          >
+                            Quick Review
+                          </DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </td>
               </tr>
             ))}
 
@@ -827,7 +822,7 @@ export default BookingTable;
               {selectedBooking.fitnessLevel || "N/A"}
             </p>
             <p>
-              <strong>Can Swim:</strong> {selectedBooking.canSwim || "N/A"}
+              <strong>Can Swim:</strong> {selectedBooking.PhoneNumber || "N/A"}
             </p>
             <p>
               <strong>Gender:</strong> {selectedBooking.gender || "N/A"}
