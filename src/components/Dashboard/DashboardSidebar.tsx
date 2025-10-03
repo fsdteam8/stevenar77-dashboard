@@ -58,7 +58,7 @@ export default function DashboardSidebar() {
   };
 
   return (
-    <div className="flex min-h-screen w-64 flex-col   bg-white border-r border-gray-200 fixed">
+    <div className="flex h-screen w-64 flex-col bg-white border-r border-gray-200 fixed">
       {/* Logo */}
       <div className="flex  items-center py-5 justify-center px-6">
         <Link href="/" className="flex items-center ">
@@ -72,7 +72,7 @@ export default function DashboardSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-6 px-3 py-4">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
         {navigation.map((item) => {
           // Active logic
           const isActive =
