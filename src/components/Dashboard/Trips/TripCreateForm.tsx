@@ -20,7 +20,7 @@ const TripCreateForm = () => {
     maximumCapacity: "",
     startDate: "",
     endDate: "",
-    index: 0,
+    index: 1,
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -84,7 +84,7 @@ const TripCreateForm = () => {
       maximumCapacity: "",
       startDate: "",
       endDate: "",
-      index: 0,
+      index: 1,
     });
     setImageFile(null);
     setImagePreview(null);

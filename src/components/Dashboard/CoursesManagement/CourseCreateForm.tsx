@@ -33,12 +33,15 @@ interface CourseFormData {
   image: File | null | string; // File, null, or existing image URL
   price: string;
   duration: string;
-  locations: string;
+  location: string;
   timeSlots: string;
   classDates: string[]; // ✅ multiple dates
   instructorAssignment: string;
   index: number;
   courseIncludes: string;
+  formTitle: string[];
+  minAge: number;
+  maxAge: number;
 }
 
 interface CourseFormProps {
@@ -98,12 +101,15 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     image: null,
     price: "",
     duration: "",
-    locations: "",
+    location: "",
     timeSlots: "",
     classDates: [], // ✅
     instructorAssignment: "Monthly",
-    index: 0,
+    index: 1,
     courseIncludes: "",
+    formTitle: [],
+    minAge: 0,
+    maxAge: 0,
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -143,40 +149,74 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
   //   }
   // }, [mode, courseData]);
 
-  useEffect(() => {
-  if (mode === "edit" && courseData) {
-    setFormData({
-      courseTitle: courseData.title || "",
-      courseLevel: courseData.courseLevel || "Advanced",
-      description: courseData.description || "",
-      image: courseData?.image || null,
-      price: Array.isArray(courseData.price)
-        ? courseData.price.join(", ")
-        : courseData.price || "",
-      duration: courseData.duration || "",
-      locations: courseData.locations || "",
-      timeSlots: courseData.timeSlots || "",
-      // ✅ normalize dates: array, string, or object
-      classDates: Array.isArray(courseData.classDates)
-        ? courseData.classDates.map((d: any) =>
-            typeof d === "string" ? d : d.date || d
-          )
-        : courseData.classDates
-        ? [courseData.classDates]
-        : [],
-      instructorAssignment: courseData.instructorAssignment || "Monthly",
-      index: courseData.index || 0,
-      courseIncludes: Array.isArray(courseData.courseIncludes)
-        ? courseData.courseIncludes.join("\n")
-        : courseData.courseIncludes || "",
-    });
+  const options = [
+    { value: "Standards Form", label: "Standards Form" },
+    { value: "Continuing Education", label: "Continuing Education" },
+    { value: "Divers Activity", label: "Divers Activity" },
+    { value: "Quick Review", label: "Quick Review" },
+    { value: "Divers Medical", label: "Divers Medical" },
+    { value: "Enriched Training", label: "Enriched Training" },
+    { value: "Equipment Rental", label: "Equipment Rental" },
+  ];
 
-    if (courseData.image) {
-      setExistingImageUrl(courseData?.image?.url);
+  const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (value && !formData.formTitle.includes(value)) {
+      setFormData((prev) => ({
+        ...prev,
+        formTitle: [...prev.formTitle, value],
+      }));
     }
-  }
-}, [mode, courseData]);
+    e.target.value = "";
+  };
 
+  const handleRemove = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      formTitle: prev.formTitle.filter((item) => item !== value),
+    }));
+  };
+
+  useEffect(() => {
+    if (mode === "edit" && courseData) {
+      setFormData({
+        courseTitle: courseData.title || "",
+        courseLevel: courseData.courseLevel || "Advanced",
+        description: courseData.description || "",
+        image: courseData?.image || null,
+        price: Array.isArray(courseData.price)
+          ? courseData.price.join(", ")
+          : courseData.price || "",
+        duration: courseData.duration || "",
+        location: courseData.location || "",
+        timeSlots: courseData.timeSlots || "",
+        // ✅ normalize dates: array, string, or object
+        classDates: Array.isArray(courseData.classDates)
+          ? courseData.classDates.map((d: any) =>
+              typeof d === "string" ? d : d.date || d
+            )
+          : courseData.classDates
+          ? [courseData.classDates]
+          : [],
+        instructorAssignment: courseData.instructorAssignment || "Monthly",
+        index: courseData.index || 1,
+        courseIncludes: Array.isArray(courseData.courseIncludes)
+          ? courseData.courseIncludes.join("\n")
+          : courseData.courseIncludes || "",
+        formTitle: Array.isArray(courseData.formTitle)
+          ? courseData.formTitle
+          : courseData.formTitle
+          ? [courseData.formTitle]
+          : [],
+        minAge: courseData.minAge ? Number(courseData.minAge) : 0,
+        maxAge: courseData.maxAge ? Number(courseData.maxAge) : 0,
+      });
+
+      if (courseData.image) {
+        setExistingImageUrl(courseData?.image?.url);
+      }
+    }
+  }, [mode, courseData]);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -254,6 +294,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     setIsSubmitting(true);
     setSubmitMessage(null);
 
+    // ✅ Validations
     if (!formData.courseTitle.trim()) {
       setSubmitMessage({ type: "error", text: "Course title is required" });
       setIsSubmitting(false);
@@ -274,6 +315,24 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
       setIsSubmitting(false);
       return;
     }
+    if (formData.minAge === 0) {
+      setSubmitMessage({ type: "error", text: "Minimum age is required" });
+      setIsSubmitting(false);
+      return;
+    }
+    if (formData.maxAge === 0) {
+      setSubmitMessage({ type: "error", text: "Maximum age is required" });
+      setIsSubmitting(false);
+      return;
+    }
+    if (formData.maxAge < formData.minAge) {
+      setSubmitMessage({
+        type: "error",
+        text: "Max age cannot be less than Min age",
+      });
+      setIsSubmitting(false);
+      return;
+    }
     if (mode === "create" && !selectedFile) {
       setSubmitMessage({ type: "error", text: "Please upload a course image" });
       setIsSubmitting(false);
@@ -291,16 +350,22 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
       formDataToSend.append("courseLevel", formData.courseLevel);
       formDataToSend.append("description", formData.description);
       formDataToSend.append("duration", formData.duration);
-      formDataToSend.append("locations", formData.locations);
+      formDataToSend.append("location", formData.location);
       formDataToSend.append("timeSlots", formData.timeSlots);
+
       formData.classDates
         .filter((d) => d)
         .forEach((date) => formDataToSend.append("classDates", date));
+
       formDataToSend.append(
         "instructorAssignment",
         formData.instructorAssignment
       );
       formDataToSend.append("index", formData.index.toString());
+
+      // ✅ Append minAge & maxAge
+      formDataToSend.append("minAge", formData.minAge.toString());
+      formDataToSend.append("maxAge", formData.maxAge.toString());
 
       formData.price
         .split(",")
@@ -309,13 +374,15 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
         .forEach((price, i) => formDataToSend.append(`price[${i}]`, price));
 
       formData.courseIncludes
-        // .split(/[,\n]/)
         .split("\n")
         .map((item) => item.trim())
         .filter((item) => item)
         .forEach((include, i) =>
           formDataToSend.append(`courseIncludes[${i}]`, include)
         );
+      formData.formTitle
+        .filter((item) => item)  
+        .forEach((title, i) => formDataToSend.append(`formTitle[${i}]`, title));
 
       if (selectedFile) {
         formDataToSend.append("image", selectedFile, selectedFile.name);
@@ -353,12 +420,15 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
             image: null,
             price: "",
             duration: "",
-            locations: "",
+            location: "",
             timeSlots: "",
             classDates: [],
             instructorAssignment: "Monthly",
-            index: 0,
+            index: 1,
             courseIncludes: "",
+            formTitle: [],
+            minAge: 0,
+            maxAge: 0,
           });
           setSelectedFile(null);
           if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -390,12 +460,15 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
         image: null,
         price: "",
         duration: "",
-        locations: "",
+        location: "",
         timeSlots: "",
         classDates: [],
         instructorAssignment: "Monthly",
-        index: 0,
+        index: 1,
         courseIncludes: "",
+        formTitle: [],
+        minAge: 0,
+        maxAge: 0,
       });
       setSelectedFile(null);
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -488,7 +561,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Price *{" "}
                       <span className="text-xs text-gray-500">
-                        (comma-separated for multiple prices)
+                        (new line-separated for multiple prices)
                       </span>
                     </label>
                     <input
@@ -506,6 +579,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                     </label>
                     <input
                       type="text"
+                      
                       name="duration"
                       placeholder="2 weekends"
                       value={formData.duration}
@@ -516,21 +590,23 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                 </div>
 
                 {/* Course Includes */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Course Includes{" "}
-                    <span className="text-xs text-gray-500">
-                      (comma or line-separated)
-                    </span>
-                  </label>
-                  <textarea
-                    name="courseIncludes"
-                    placeholder="Instructor guidance, Course materials..."
-                    rows={3}
-                    value={formData.courseIncludes}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none resize-none"
-                  />
+                <div className="">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Course Includes{" "}
+                      <span className="text-xs text-gray-500">
+                        (comma or line-separated)
+                      </span>
+                    </label>
+                    <textarea
+                      name="courseIncludes"
+                      placeholder="Instructor guidance, Course materials..."
+                      rows={3}
+                      value={formData.courseIncludes}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none resize-none"
+                    />
+                  </div>
                 </div>
 
                 {/* Locations and Time & Slots Row */}
@@ -566,30 +642,50 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                 {/* Course Dates Row */}
                 <div className="grid grid-cols-1 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Course Dates *
-                    </label>
-                    <input
-                      type="date"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
-                      onChange={(e) => {
-                        const selected = e.target.value;
-                        if (!selected) return;
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Course Dates *
+                        </label>
+                        <input
+                          type="date"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                          onChange={(e) => {
+                            const selected = e.target.value;
+                            if (!selected) return;
 
-                        setFormData((prev) => {
-                          // Prevent duplicate dates
-                          if (prev.classDates.includes(selected)) return prev;
+                            setFormData((prev) => {
+                              // Prevent duplicate dates
+                              if (prev.classDates.includes(selected))
+                                return prev;
 
-                          return {
-                            ...prev,
-                            classDates: [...prev.classDates, selected],
-                          };
-                        });
+                              return {
+                                ...prev,
+                                classDates: [...prev.classDates, selected],
+                              };
+                            });
 
-                        // Clear input so user can select the same date again if deleted
-                        e.target.value = "";
-                      }}
-                    />
+                            // Clear input so user can select the same date again if deleted
+                            e.target.value = "";
+                          }}
+                        />
+                      </div>
+
+                      {/* Min Age */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Location *
+                        </label>
+                        <input
+                          type="text"
+                          name="location"
+                          placeholder="locations"
+                          value={formData.location}
+                          onChange={handleInputChange}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        />
+                      </div>
+                    </div>
 
                     {/* Show selected dates as cards */}
                     <div className="mt-2 flex flex-wrap gap-2">
@@ -620,23 +716,38 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Instructor Assignment */}
-                  {/* <div>
+                  {/* Min Age */}
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Instructor Assignment
+                      Min Age *
                     </label>
-                    <select
-                      name="instructorAssignment"
-                      value={formData.instructorAssignment}
+                    <input
+                      type="number"
+                      name="minAge"
+                      placeholder="Minimum Age"
+                      value={formData.minAge}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none appearance-none bg-white"
-                    >
-                      <option value="Monthly">Monthly</option>
-                      <option value="Weekly">Weekly</option>
-                      <option value="Daily">Daily</option>
-                    </select>
-                  </div> */}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                    />
+                  </div>
 
+                  {/* Max Age */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Max Age *
+                    </label>
+                    <input
+                      type="number"
+                      name="maxAge"
+                      placeholder="Maximum Age"
+                      value={formData.maxAge}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Index *
@@ -649,6 +760,54 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
                     />
+                  </div>
+
+                  {/* From */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Form
+                    </label>
+
+                    {/* Dropdown */}
+                    <select
+                      onChange={handleSelect}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none bg-white"
+                      defaultValue=""
+                    >
+                      <option value="" disabled>
+                        Select option
+                      </option>
+                      {options.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+
+                    {/* Selected tags */}
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {formData.formTitle.length > 0 ? (
+                        formData.formTitle.map((value) => (
+                          <span
+                            key={value}
+                            className="flex items-center gap-2 px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm"
+                          >
+                            {value}
+                            <button
+                              type="button"
+                              onClick={() => handleRemove(value)}
+                              className="hover:text-red-500 cursor-pointer"
+                            >
+                              <X size={16} />
+                            </button>
+                          </span>
+                        ))
+                      ) : (
+                        <p className="text-gray-500 text-sm">
+                          No option selected
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
