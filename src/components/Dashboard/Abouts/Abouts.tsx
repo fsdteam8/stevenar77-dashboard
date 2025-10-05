@@ -810,7 +810,7 @@ export default function Abouts() {
             className="w-full"
             disabled={updateAbout.isPending}
           >
-            {updateAbout.isPending ? "Updating..." : "Update About Page"}
+            {updateAbout.isPending ? "Updating..." : "Update About Us Page"}
           </Button>
         </form>
       </Form>
