@@ -36,6 +36,8 @@ const ProductsTable = () => {
   const { data, isLoading, isError } = useProducts(page, limit);
   const deleteMutation = useDeleteProduct();
 
+  console.log(data)
+
   const products: Product[] = data?.data?.products || [];
   const meta = data?.data?.meta;
   const totalPages = meta?.totalPages || 1;

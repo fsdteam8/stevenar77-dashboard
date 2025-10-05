@@ -78,9 +78,10 @@ const CourseCard: React.FC<CourseCardProps> = ({
           </div>
 
           {/* Description */}
-          <p className="text-gray-600 text-sm mb-4 leading-relaxed">
-            {description}
-          </p>
+          <p
+            className="text-gray-600 text-sm mb-4 leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: description }}
+          />
 
           {/* Course Includes */}
           <div className="mb-6">

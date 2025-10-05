@@ -18,7 +18,7 @@ const ProductsEditForm = () => {
 
   const { data, isLoading, isError } = useSingleProduct(id as string);
   const product = data?.data;
-
+ 
   const [formData, setFormData] = useState({
     title: "",
     shortDescription: "",
@@ -41,21 +41,21 @@ const ProductsEditForm = () => {
 
   // Load product data into form
   useEffect(() => {
-    if (product) {
-      setFormData({
-        title: product.title || "",
-        shortDescription: product.shortDescription || "",
-        longDescription: product.longDescription || "",
-        price: product.price?.toString() || "",
-        category: product.category || "",
-        quantity: product.quantity?.toString() || "",
-        inStock: product.inStock ?? true,
-        featured: product.featured || [],
-      });
+    if (!product) return;
 
-      if (product.images && product.images.length > 0) {
-        setImagePreview(product.images[0].url);
-      }
+    setFormData({
+      title: product.title || "",
+      shortDescription: product.shortDescription || "",
+      longDescription: product.longDescription || "",
+      price: product.price?.toString() || "",
+      category: product.category || "",
+      quantity: product.quantity?.toString() || "",
+      inStock: product.inStock ?? true,
+      featured: product.featured || [],
+    });
+
+    if (product.images?.length) {
+      setImagePreview(product.images[0].url);
     }
   }, [product]);
 
@@ -87,11 +87,10 @@ const ProductsEditForm = () => {
   const handleDescriptionChange = (value: string) => {
     setFormData((prev) => ({
       ...prev,
-      description: value,
+      longDescription: value,  
     }));
     if (submitMessage) setSubmitMessage(null);
   };
-
   // Validation
   const validate = () => {
     const newErrors: { [key: string]: string } = {};

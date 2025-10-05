@@ -265,7 +265,7 @@ export const updateSingleProduct = async (
   updatedData: FormData
 ) => {
   try {
-    const res = await api.put(`/product/update/${id}`, updatedData, {
+    const res = await api.put(`/shop/update/${id}`, updatedData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
