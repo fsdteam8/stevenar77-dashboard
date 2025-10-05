@@ -248,6 +248,7 @@ const BookingTable: React.FC = () => {
   const paginatedData = bookings.slice(startIndex, startIndex + itemsPerPage);
 
   const handleQuickReviewMutation = useMutation({
+    
     mutationFn: ({ id, link }: { id: string; link: string }) =>
       sentQuickReview(id, link),
     onSuccess: (data) => {
@@ -260,6 +261,7 @@ const BookingTable: React.FC = () => {
 
   const handleQuickReview = (id: string, link: string) => {
     handleQuickReviewMutation.mutate({ id, link });
+    toast.success("Review sent successfully")
   };
   if (loading)
     return <div className="text-center py-10">Loading bookings...</div>;
