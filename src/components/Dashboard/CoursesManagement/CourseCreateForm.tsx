@@ -314,19 +314,19 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
       setIsSubmitting(false);
       return;
     }
-    if (formData.maxAge === 0) {
-      setSubmitMessage({ type: "error", text: "Maximum age is required" });
-      setIsSubmitting(false);
-      return;
-    }
-    if (formData.maxAge < formData.minAge) {
-      setSubmitMessage({
-        type: "error",
-        text: "Max age cannot be less than Min age",
-      });
-      setIsSubmitting(false);
-      return;
-    }
+    // if (formData.maxAge === 0) {
+    //   setSubmitMessage({ type: "error", text: "Maximum age is required" });
+    //   setIsSubmitting(false);
+    //   return;
+    // }
+    // if (formData.maxAge < formData.minAge) {
+    //   setSubmitMessage({
+    //     type: "error",
+    //     text: "Max age cannot be less than Min age",
+    //   });
+    //   setIsSubmitting(false);
+    //   return;
+    // }
     if (mode === "create" && !selectedFile) {
       setSubmitMessage({ type: "error", text: "Please upload a course image" });
       setIsSubmitting(false);
@@ -687,7 +687,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Max Age *
+                      Max Age <span className="text-xs ">(optional)</span>
                     </label>
                     <input
                       type="number"
@@ -766,7 +766,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-sm font-medium text-gray-700">
-                      Add Once Items
+                      Add-ons Items
                     </label>
                     <button
                       type="button"
@@ -780,7 +780,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
 
                   {formData.addOnce.length === 0 ? (
                     <p className="text-sm text-gray-500 italic">
-                      No add-once items added yet. Click the + button to add
+                      No add-ons items added yet. Click the + button to add
                       items.
                     </p>
                   ) : (
