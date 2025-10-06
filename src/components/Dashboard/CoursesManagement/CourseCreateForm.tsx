@@ -6,6 +6,8 @@ import dynamic from "next/dynamic";
 import { Upload, Plus, Loader2, X } from "lucide-react";
 import { courseApi } from "@/lib/api";
 import Image from "next/image";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 // ✅ Dynamically import ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -91,6 +93,29 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  // Inside your component
+  const [classDates, setClassDates] = useState<string[]>([]);
+
+  // Update formData.classDates whenever classDates changes
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      classDates: classDates,
+    }));
+  }, [classDates]);
+
+  const toBackendUTC = (date: Date, offsetHours: number = -6) => {
+    const d = new Date(date);
+    d.setHours(d.getHours() - offsetHours);
+    return d.toISOString();
+  };
+
+  useEffect(() => {
+    if (formData?.classDates?.length) {
+      setClassDates(formData.classDates);
+    }
+  }, [formData]);
 
   const options = [
     { value: "Standards Form", label: "Standards Form" },
@@ -322,10 +347,9 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
       formDataToSend.append("location", formData.location);
       formDataToSend.append("timeSlots", formData.timeSlots);
 
-      formData.classDates
-        .filter((d) => d)
-        .forEach((date) => formDataToSend.append("classDates", date));
-
+      classDates.forEach((date, i) => {
+        formDataToSend.append(`classDates[${i}]`, date);
+      });
       formDataToSend.append(
         "instructorAssignment",
         formData.instructorAssignment
@@ -355,9 +379,9 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
         .forEach((title, i) => formDataToSend.append(`formTitle[${i}]`, title));
 
       formData.addOnce.forEach((item, i) => {
-        if (item.title.trim() && item.price.trim()) {
+        if (item.title.trim() && String(item.price).trim()) {
           formDataToSend.append(`addOnce[${i}][title]`, item.title);
-          formDataToSend.append(`addOnce[${i}][price]`, item.price);
+          formDataToSend.append(`addOnce[${i}][price]`, String(item.price));
         }
       });
 
@@ -406,7 +430,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
             formTitle: [],
             minAge: 0,
             maxAge: 0,
-            addOnce: [], // Reset addOnce on success
+            addOnce: [],
           });
           setSelectedFile(null);
           if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -576,31 +600,55 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                 <div className="grid grid-cols-1 gap-6">
                   <div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Course Dates *
-                        </label>
-                        <input
-                          type="date"
-                          min={new Date().toISOString().split("T")[0]}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
-                          onChange={(e) => {
-                            const selected = e.target.value;
-                            if (!selected) return;
+                      {/* Date Picker */}
+                      <div className="flex gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Course Dates *
+                          </label>
+                          <DatePicker
+                            selected={null}
+                            onChange={(date: Date | null) => {
+                              if (!date) return;
 
-                            setFormData((prev) => {
-                              if (prev.classDates.includes(selected))
-                                return prev;
+                              const isoString = toBackendUTC(date, -6);
 
-                              return {
-                                ...prev,
-                                classDates: [...prev.classDates, selected],
-                              };
-                            });
-
-                            e.target.value = "";
-                          }}
-                        />
+                              setClassDates((prev) =>
+                                prev.includes(isoString)
+                                  ? prev
+                                  : [...prev, isoString]
+                              );
+                            }}
+                            minDate={new Date()}
+                            inline
+                          />
+                        </div>
+                        {/* Selected Dates Preview */}
+                        <div>
+                          {classDates.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-6">
+                              {classDates.map((date) => (
+                                <div
+                                  key={date}
+                                  className="bg-teal-100 text-teal-800 px-4 py-2 rounded-lg shadow-sm flex items-center gap-2"
+                                >
+                                  {new Date(date).toLocaleDateString()}
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setClassDates((prev) =>
+                                        prev.filter((d) => d !== date)
+                                      )
+                                    }
+                                    className="text-red-500 hover:text-red-700 font-semibold"
+                                  >
+                                    <X size={16} className="cursor-pointer" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* Location */}
@@ -617,32 +665,6 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
                         />
                       </div>
-                    </div>
-
-                    {/* Show selected dates as cards */}
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {formData.classDates?.map((date: string) => (
-                        <div
-                          key={date}
-                          className="bg-teal-100 text-teal-800 px-4 py-2 rounded-lg shadow-sm flex items-center gap-2"
-                        >
-                          {new Date(date).toLocaleDateString()}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                classDates: prev.classDates.filter(
-                                  (d) => d !== date
-                                ),
-                              }))
-                            }
-                            className="text-red-500 hover:text-red-700 font-bold"
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
-                      ))}
                     </div>
                   </div>
                 </div>

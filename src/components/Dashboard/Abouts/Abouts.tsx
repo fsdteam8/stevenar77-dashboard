@@ -356,7 +356,11 @@ export default function Abouts() {
 
     values.team.forEach((member) => appendFiles(member.image, "teamImages"));
 
-    appendFiles(values.galleryImages || [], "galleryImages");
+    console.log("this is gallery images", values.galleryImages);
+    const result = appendFiles(values.galleryImages || [], "galleryImages");
+
+    
+    console.log("Append Result:", result);
 
     updateAbout.mutate({ data: formData, id: aboutData._id });
   };
