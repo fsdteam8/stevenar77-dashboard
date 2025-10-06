@@ -36,13 +36,13 @@ const ProductsTable = () => {
   const { data, isLoading, isError } = useProducts(page, limit);
   const deleteMutation = useDeleteProduct();
 
-  console.log(data)
+  console.log(data);
 
   const products: Product[] = data?.data?.products || [];
   const meta = data?.data?.meta;
   const totalPages = meta?.totalPages || 1;
   const currentPage = meta?.page || 1;
-  const totalItems = meta?.totalItems || 0; 
+  const totalItems = meta?.totalItems || 0;
 
   const handleView = (product: Product) => setSelectedProduct(product);
 
@@ -289,9 +289,10 @@ const ProductsTable = () => {
       >
         <DialogContent className="max-w-2xl p-0 overflow-hidden rounded-2xl">
           {selectedProduct && (
-            <div className="flex flex-col">
+            <div className="flex flex-col h-[80vh]">
+              {" "}
               {/* Top Image */}
-              <div className="w-full h-64 relative">
+              <div className="w-full h-64 relative flex-shrink-0">
                 {selectedProduct.images?.length ? (
                   <Image
                     src={selectedProduct.images[0].url}
@@ -305,31 +306,24 @@ const ProductsTable = () => {
                   </div>
                 )}
               </div>
-
               {/* Content */}
-              <div className="p-6">
+              <div className="p-6 overflow-y-auto flex-1">
+                {" "}
+                {/* ✅ Scrollable content */}
                 <DialogHeader>
                   <DialogTitle className="text-xl font-semibold">
                     {selectedProduct.title}
                   </DialogTitle>
                 </DialogHeader>
-
-                {/* Short Description */}
-                <p className="mt-4 text-gray-700 leading-relaxed whitespace-pre-line italic">
-                  {selectedProduct.shortDescription}
-                </p>
-
                 {/* Reviews */}
                 <p className="mt-4 text-gray-600 text-sm">
                   ⭐ {selectedProduct.averageRating} (
                   {selectedProduct.totalReviews} reviews)
                 </p>
-
                 {/* Price */}
                 <p className="mt-4 text-lg font-medium text-teal-600">
                   ${selectedProduct.price}
                 </p>
-
                 {/* Quantity + Stock */}
                 <div className="mt-2 flex items-center gap-4 text-sm text-gray-600">
                   <span>Quantity: {selectedProduct.quantity}</span>
@@ -345,6 +339,20 @@ const ProductsTable = () => {
                     )}
                   </span>
                 </div>
+                {/* Short Description */}
+                <p
+                  className="mt-4 text-gray-700 leading-relaxed whitespace-pre-line italic"
+                  dangerouslySetInnerHTML={{
+                    __html: selectedProduct.shortDescription,
+                  }}
+                />
+                {/* Long Description */}
+                <p
+                  className="mt-4 text-gray-700 leading-relaxed whitespace-pre-line italic"
+                  dangerouslySetInnerHTML={{
+                    __html: selectedProduct.longDescription,
+                  }}
+                />
               </div>
             </div>
           )}
