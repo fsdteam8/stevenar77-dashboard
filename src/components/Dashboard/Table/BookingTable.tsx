@@ -616,7 +616,7 @@ const BookingTable: React.FC = () => {
                             onClick={() =>
                               handleQuickReview(
                                 booking?.customerId?._id ?? '',
-                                "/QuickReview"
+                                "https://stevenar77-website.vercel.app/rescue-diver"
                               )
                             }
                           >
@@ -626,7 +626,7 @@ const BookingTable: React.FC = () => {
                             onClick={() =>
                               handleQuickReview(
                                 booking?.customerId?._id ?? "",
-                                "/QuickReview"
+                                "https://stevenar77-website.vercel.app/enrich-air"
                               )
                             }
                           >
@@ -636,7 +636,7 @@ const BookingTable: React.FC = () => {
                             onClick={() =>
                               handleQuickReview(
                                 booking?.customerId?._id ?? "",
-                                "/QuickReview"
+                                "https://stevenar77-website.vercel.app/quick-review"
                               )
                             }
                           >
