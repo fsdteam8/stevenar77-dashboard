@@ -5,6 +5,7 @@ import {
   BookmarkPlus,
   ChartLine,
   CircleDollarSign,
+  Loader2,
   WavesLadder,
 } from "lucide-react";
 import DashChart from "@/components/Dashboard/Chart/DashChart";
@@ -12,18 +13,16 @@ import RecentTripTable from "@/components/Dashboard/Table/RecentTripTable";
 import { useDashboard } from "@/hooks/useDashboard";
 import { getDashboardChartData } from "@/lib/api";
 
-
 export default function Dashboard() {
   const { data, error, isLoading } = useDashboard();
 
   // Chart data state
   const [, setChartData] = useState<unknown>(null);
- 
 
   useEffect(() => {
     const fetchChartData = async () => {
       try {
-        const year = new Date().getFullYear();  
+        const year = new Date().getFullYear();
         const data = await getDashboardChartData(year);
         setChartData(data);
       } catch (err) {
@@ -34,8 +33,13 @@ export default function Dashboard() {
     fetchChartData();
   }, []);
 
-
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading)
+    return (
+      <div className="flex justify-center items-center py-10">
+        <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+        <span className="ml-2 text-gray-600">Loading...</span>
+      </div>
+    );
   if (error) return <p>Error: {(error as Error).message}</p>;
 
   return (
@@ -65,7 +69,7 @@ export default function Dashboard() {
         </div>
         <div className="dashcharts  gap-4 ">
           <div className="col-span-8">
-            <DashChart/>
+            <DashChart />
           </div>
         </div>
         <div className="table-data space-y-8">

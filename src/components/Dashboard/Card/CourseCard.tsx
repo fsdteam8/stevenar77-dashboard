@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { Clock, MapPin, Star } from "lucide-react";
+import { Clock,  Star } from "lucide-react";
 import Image from "next/image";
 
 type CourseCardProps = {
@@ -27,7 +27,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   rating = 4.8,
   reviews = 32,
   duration = "4 days",
-  maxDepth = "Max 40 feet",
+  // maxDepth = "Max 40 feet",
   features = [
     "Pool training session",
     "Basic equipment included",
@@ -54,7 +54,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
         {/* Content */}
         <div className="p-6">
           {/* Title and Rating */}
-          <div className="flex justify-between items-start mb-4">
+          <div className="items-start mb-4">
             <h2 className="text-xl font-bold text-gray-900">{title}</h2>
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
@@ -71,10 +71,15 @@ const CourseCard: React.FC<CourseCardProps> = ({
               <span>{duration}</span>
             </div>
             <div className="flex items-center gap-1">
-              <MapPin className="w-4 h-4" />
-              <span>{maxDepth}</span>
+              {/* <MapPin className="w-4 h-4" />
+              <span>{maxDepth}</span> */}
             </div>
             <span>{ageRestriction}</span>
+          </div>
+
+          {/* Price */}
+          <div className="mb-6">
+            Price: <span className="font-semibold text-gray-900"> ${price}</span>
           </div>
 
           {/* Description */}
@@ -99,11 +104,6 @@ const CourseCard: React.FC<CourseCardProps> = ({
                 </li>
               ))}
             </ul>
-          </div>
-
-          {/* Price */}
-          <div className="mb-6">
-            <span className="text-2xl font-bold text-gray-900">$ {price}</span>
           </div>
 
           {/* Action Buttons */}

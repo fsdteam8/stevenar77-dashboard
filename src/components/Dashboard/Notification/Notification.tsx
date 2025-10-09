@@ -25,7 +25,7 @@ export default function Notification() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/notifications/read/${session?.user?.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/notifications/read/all`,
         {
           method: "PATCH",
           headers: {

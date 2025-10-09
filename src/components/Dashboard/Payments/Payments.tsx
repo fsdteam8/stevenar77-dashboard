@@ -1,12 +1,12 @@
 "use client";
 import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+// import { Input } from "@/components/ui/input";
+// import { Search } from "lucide-react";
 import PaymentsTrip from "../Table/PaymentsTrip";
 import PaymentsCourse from "../Table/PaymentsCourse";
 
 export default function Payments() {
-  const [searchTerm, setSearchTerm] = useState("");
+  // const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"trip" | "course">("trip");
 
   return (
@@ -14,7 +14,7 @@ export default function Payments() {
       <div className="mb-6">
         {/* Search and Tabs */}
         <div className="flex flex-col sm:flex-row justify-between gap-4 mb-4">
-          <div className="relative flex-1 max-w-65">
+          {/* <div className="relative flex-1 max-w-65">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
               placeholder="Search"
@@ -22,7 +22,7 @@ export default function Payments() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
-          </div>
+          </div> */}
 
           {/* Tabs */}
           <div className="flex gap-2">
