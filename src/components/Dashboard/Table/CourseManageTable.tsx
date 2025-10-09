@@ -126,9 +126,9 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
                 <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                   Location
                 </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                {/* <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                   Date
-                </th>
+                </th> */}
                 <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                   Action
                 </th>
@@ -187,11 +187,11 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {course.location || "TBD"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    {/* <td className="px-6 py-4 text-sm text-gray-600">
                       {course.courseDate
                         ? new Date(course.courseDate).toLocaleDateString()
                         : "TBD"}
-                    </td>
+                    </td> */}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         {/* ✅ Toggle for isActive */}

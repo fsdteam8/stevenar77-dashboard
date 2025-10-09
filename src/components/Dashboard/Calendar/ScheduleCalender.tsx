@@ -140,6 +140,13 @@ export default function ScheduleCalendar() {
   const handleAddDateToCourse = async (course: Course) => {
     if (!selectedDate) return;
 
+    // 🚫 Prevent adding past dates
+    const todayStr = new Date().toISOString().split("T")[0];
+    if (selectedDate < todayStr) {
+      toast.warning("You cannot add a course to a past date.");
+      return;
+    }
+
     const existingDates: string[] = Array.isArray(course.classDates)
       ? course.classDates.map((d) => d.split("T")[0])
       : [];
@@ -159,7 +166,7 @@ export default function ScheduleCalendar() {
     try {
       setIsUpdating(true);
       await updateSingleCourseAsync(course._id, formData);
-      toast.success("Date added successfully!");
+      toast.success("✅ Date added successfully!");
       refetch();
     } catch {
       toast.error("❌ Failed to add date.");

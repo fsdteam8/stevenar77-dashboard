@@ -1,6 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Upload, Plus, ArrowLeft, Trash2 } from "lucide-react";
+import {
+  Upload,
+  Plus,
+  ArrowLeft,
+  Trash2,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -275,9 +282,27 @@ const ProductsEditForm: React.FC = () => {
     }
   };
 
-  if (isLoading) return <p className="p-6">Loading...</p>;
+  if (isLoading)
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-teal-50">
+          <Loader2 className="animate-spin text-[#0694A2] w-8 h-8" />
+        </div>
+        <p className="mt-4 text-gray-600 text-lg font-medium">Loading...</p>
+      </div>
+    );
   if (isError)
-    return <p className="p-6 text-red-500">Failed to load product</p>;
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-50">
+          <AlertCircle className="text-red-500 w-8 h-8" />
+        </div>
+        <p className="mt-4 text-red-600 text-lg font-medium">
+          Failed to load product
+        </p>
+        <p className="text-gray-500 text-sm mt-1">Please try again later.</p>
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-gray-50">

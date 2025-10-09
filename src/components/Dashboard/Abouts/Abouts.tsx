@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import type React from "react";
+
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -39,71 +41,74 @@ type ImageValue = File | ImageWithId;
 
 // ---- Schema ----
 const FileSchema = z.union([
-  z.custom<File>((val) => val instanceof File, {
+  z.custom<File | string>((val) => val instanceof File || String, {
     message: "Must be a File instance",
   }),
-  z.object({
-    _id: z.string(),
-    url: z.string(),
-    public_id: z.string().optional(),
-  }),
+  z
+    .object({
+      _id: z.string(),
+      url: z.string(),
+      public_id: z.string().optional(),
+    })
+    .passthrough(),
 ]);
 
-const AboutSchema = z.object({
-  section1: z.object({
-    title: z.string().min(2, "Title is required"),
-    description: z.string().min(5, "Description is required"),
-    images: z.array(FileSchema).max(1, "Only 1 image allowed"),
-  }),
-  section2: z.object({
-    title: z.string().min(2),
-    description: z.string().min(5),
-    images: z.array(FileSchema),
-  }),
-  section3: z.object({
-    title: z.string().min(2),
-    description: z.string().min(5),
-    images: z.array(FileSchema),
-  }),
-  section4: z.object({
-    title: z.string().min(2),
-    description: z.string().min(5),
-  }),
-  section5: z.object({
-    title: z.string().min(2),
-    description: z.string().min(5),
-  }),
-  team: z.array(
-    z
-      .object({
-        _id: z.string().optional(),
-        title: z.string().min(2, "Member name required"),
-        possition: z.string().min(2, "Position required"),
-        description: z.string().min(5, "Description required"),
-        quote: z.string().min(2, "Quote required"),
-        features: z.array(z.string().min(2)).min(1, "At least 1 feature"),
-        image: z.array(FileSchema),
-        _delete: z.boolean().optional(),
-        _isNew: z.boolean().optional(),
-        _removeImage: z.boolean().optional(),
-      })
-      .refine(
-        (data) => {
-          // Only validate image for new members or if not marked for deletion
-          if (data._isNew && !data._delete) {
-            return data.image && data.image.length > 0;
+const AboutSchema = z
+  .object({
+    section1: z.object({
+      title: z.string().min(2, "Title is required"),
+      description: z.string().min(5, "Description is required"),
+      images: z.array(FileSchema).max(1, "Only 1 image allowed"),
+    }),
+    section2: z.object({
+      title: z.string().min(2),
+      description: z.string().min(5),
+      images: z.array(FileSchema),
+    }),
+    section3: z.object({
+      title: z.string().min(2),
+      description: z.string().min(5),
+      images: z.array(FileSchema),
+    }),
+    section4: z.object({
+      title: z.string().min(2),
+      description: z.string().min(5),
+    }),
+    section5: z.object({
+      title: z.string().min(2),
+      description: z.string().min(5),
+    }),
+    team: z.array(
+      z
+        .object({
+          _id: z.string().optional(),
+          title: z.string().min(2, "Member name required"),
+          possition: z.string().min(2, "Position required"),
+          description: z.string().min(5, "Description required"),
+          quote: z.string().min(2, "Quote required"),
+          features: z.array(z.string().min(2)).min(1, "At least 1 feature"),
+          image: z.array(FileSchema).optional(),
+          _delete: z.boolean().optional(),
+          _isNew: z.boolean().optional(),
+          _removeImage: z.boolean().optional(),
+        })
+        .refine(
+          (data) => {
+            // Existing members (_id present) never need image validation
+            if (data._isNew && !data._delete) {
+              return data.image && data.image.length > 0;
+            }
+            return true;
+          },
+          {
+            message: "Team member image is required for new members",
+            path: ["image"],
           }
-          // For existing members, image is optional (they already have one on server)
-          return true;
-        },
-        {
-          message: "Team member image is required for new members",
-          path: ["image"],
-        }
-      )
-  ),
-  galleryImages: z.array(FileSchema),
-});
+        )
+    ),
+    galleryImages: z.array(FileSchema),
+  })
+  // .passthrough(); // Allow extra fields like _id from API response
 
 export type AboutFormValues = z.infer<typeof AboutSchema>;
 
@@ -171,7 +176,7 @@ const FilePreview = ({
           <div key={idx} className="relative">
             {src && (
               <Image
-                src={src}
+                src={src || "/placeholder.svg"}
                 alt="preview"
                 width={96}
                 height={96}
@@ -240,7 +245,7 @@ const FileInput = ({
       <Button
         type="button"
         variant="outline"
-        className="flex items-center gap-2 cursor-pointer"
+        className="flex items-center gap-2 cursor-pointer bg-transparent"
         onClick={() => inputRef.current?.click()}
       >
         <Upload className="w-4 h-4" /> Upload Image{multiple ? "s" : ""}
@@ -296,13 +301,13 @@ export default function Abouts() {
     remove: removeMember,
   } = useFieldArray({
     control: form.control,
-    name: "team",
+    name: "team" ,
   });
 
   // Debug form state
   useEffect(() => {
-    const subscription = form.watch((value) => {
-      console.log("Form values changed:", value);
+    const subscription = form.watch( () => {
+      // console.log("Form values changed:", value);
     });
     return () => subscription.unsubscribe();
   }, [form]);
@@ -376,6 +381,8 @@ export default function Abouts() {
               description: m?.description || "",
               quote: m?.quote || "",
               features: m?.features || [""],
+              // This ensures existing members always have a valid image array
+              // Schema validation now properly recognizes this as valid for existing members
               image: m?.image ? [m.image] : [],
               _delete: false,
               _isNew: false,
@@ -401,8 +408,8 @@ export default function Abouts() {
   }, [data]);
 
   const onSubmit = async (values: AboutFormValues) => {
-    console.log("=== FORM SUBMISSION START ===");
-    console.log("Form submitted with values:", values);
+    // console.log("=== FORM SUBMISSION START ===");
+    // console.log("Form submitted with values:", values);
 
     if (!aboutData) {
       console.error("No aboutData available");
@@ -417,7 +424,7 @@ export default function Abouts() {
     const teamImagesToUpload: File[] = [];
 
     values.team.forEach((member, index) => {
-      console.log(`Processing team member ${index}:`, member);
+      // console.log(`Processing team member ${index}:`, member);
 
       // Case 1: Delete existing card
       if (member._delete && member._id) {
@@ -431,7 +438,7 @@ export default function Abouts() {
 
       // Case 2: Add new card
       if (member._isNew) {
-        console.log(`Member ${index} is NEW`);
+        // console.log(`Member ${index} is NEW`);
         const newCard: any = {
           title: member.title,
           possition: member.possition,
@@ -443,9 +450,9 @@ export default function Abouts() {
         teamCards.push(newCard);
 
         // Add new image if provided
-        member.image.forEach((img) => {
+        member.image?.forEach((img) => {
           if (img instanceof File) {
-            console.log(`Adding new image for new member ${index}`);
+            // console.log(`Adding new image for new member ${index}`);
             teamImagesToUpload.push(img);
           }
         });
@@ -454,7 +461,7 @@ export default function Abouts() {
 
       // Case 3: Update existing card - remove image
       if (member._removeImage && member._id) {
-        console.log(`Member ${index} removing image`);
+        // console.log(`Member ${index} removing image`);
         teamCards.push({
           _id: member._id,
           title: member.title,
@@ -467,9 +474,9 @@ export default function Abouts() {
         return;
       }
 
-      // Case 4: Update existing card - add/update image
+      // Case 4: Update existing card - add/update image OR keep existing
       if (member._id) {
-        const hasNewImage = member.image.some((img) => img instanceof File);
+        const hasNewImage = member.image?.some((img) => img instanceof File);
 
         const cardData: any = {
           _id: member._id,
@@ -483,24 +490,19 @@ export default function Abouts() {
         teamCards.push(cardData);
 
         if (hasNewImage) {
-          console.log(`Member ${index} has new image to upload`);
+          // console.log(`Member ${index} has new image to upload`);
           teamCardIdsForImages.push(member._id);
 
-          member.image.forEach((img) => {
+          member?.image!.forEach((img) => {
             if (img instanceof File) {
               teamImagesToUpload.push(img);
             }
           });
         }
-        // FIXED: Image is unchanged (ImageWithId) - no special handling needed
         // The card data is already added above, server will keep existing image
         return;
       }
     });
-
-    // console.log("Team cards to send:", teamCards);
-    // console.log("Team card IDs with new images:", teamCardIdsForImages);
-    // console.log("Team images to upload:", teamImagesToUpload.length);
 
     // --- Build main data object ---
     const jsonData: any = {
@@ -552,20 +554,40 @@ export default function Abouts() {
       onlyFiles.forEach((file) => formData.append(fieldName, file));
     };
 
-    appendFiles(values.section1.images, "section1Images");
-    appendFiles(values.section2.images, "section2Images");
-    appendFiles(values.section3.images, "section3Images");
-    appendFiles(values.galleryImages || [], "galleryImages");
+    appendFiles(
+      (values?.section1?.images || []).filter(
+        (img) => typeof img !== "string"
+      ),
+      "section1Images"
+    );
+    appendFiles(
+      (values?.section2?.images || []).filter(
+        (img) => typeof img !== "string"
+      ),
+      "section2Images"
+    );
+    appendFiles(
+      (values.section3?.images || []).filter(
+        (img) => typeof img !== "string"
+      ),
+      "section3Images"
+    );
+    appendFiles(
+      (values.galleryImages || []).filter(
+        (img) => typeof img !== "string"
+      ),
+      "galleryImages"
+    );
 
     console.log("=== FORMDATA CONTENTS ===");
     for (const [key, value] of formData.entries()) {
       if (value instanceof File) {
-        console.log(key, "File:", value.name);
+        // console.log(key, "File:", value.name);
       } else {
         console.log(key, value);
       }
     }
-    console.log("=== CALLING API ===");
+    // console.log("=== CALLING API ===");
 
     updateAbout.mutate(
       { data: formData, id: aboutData._id },
@@ -660,7 +682,15 @@ export default function Abouts() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Upload 1 Image</FormLabel>
-                    <FileInput field={field} limit={1} />
+                    <FileInput
+                      field={{
+                        ...field,
+                        value: Array.isArray(field.value)
+                          ? field.value.filter((v) => typeof v !== "string")
+                          : [],
+                      }}
+                      limit={1}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -711,7 +741,15 @@ export default function Abouts() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Upload 1 Image</FormLabel>
-                    <FileInput field={field} limit={1} />
+                    <FileInput
+                      field={{
+                        ...field,
+                        value: Array.isArray(field.value)
+                          ? field.value.filter((v) => typeof v !== "string")
+                          : [],
+                      }}
+                      limit={1}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -762,7 +800,15 @@ export default function Abouts() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Upload 1 Image</FormLabel>
-                    <FileInput field={field} limit={1} />
+                    <FileInput
+                      field={{
+                        ...field,
+                        value: Array.isArray(field.value)
+                          ? field.value.filter((v) => typeof v !== "string")
+                          : [],
+                      }}
+                      limit={1}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -981,7 +1027,7 @@ export default function Abouts() {
                               type="button"
                               variant="outline"
                               size="sm"
-                              className="cursor-pointer"
+                              className="cursor-pointer bg-transparent"
                               disabled={isMarkedForDeletion}
                               onClick={() => {
                                 const currentFeatures = form.getValues(
@@ -1008,7 +1054,7 @@ export default function Abouts() {
                         variant="outline"
                         size="sm"
                         disabled={isMarkedForDeletion}
-                        className="cursor-pointer"
+                        className="cursor-pointer bg-transparent"
                         onClick={() => {
                           const currentFeatures = form.getValues(
                             `team.${index}.features`
@@ -1029,15 +1075,20 @@ export default function Abouts() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Upload Image</FormLabel>
-                          <div className="space-y-2">
+                          <div className="space-y-2 flex gap-4">
                             {!isMarkedForDeletion && (
                               <FileInput
-                                field={field}
+                                field={{
+                                  ...field,
+                                  value: Array.isArray(field.value)
+                                    ? field.value.filter((v) => typeof v !== "string")
+                                    : [],
+                                }}
                                 limit={1}
                                 aboutId={aboutData?._id}
                               />
                             )}
-                            {memberData?.image?.length > 0 &&
+                            {Array.isArray(memberData?.image) && memberData.image.length > 0 &&
                               memberData._id &&
                               !isNew &&
                               !isMarkedForDeletion && (
@@ -1125,7 +1176,12 @@ export default function Abouts() {
                   <FormItem>
                     <FormLabel>Upload Gallery Images</FormLabel>
                     <FileInput
-                      field={field}
+                      field={{
+                        ...field,
+                        value: Array.isArray(field.value)
+                          ? field.value.filter((v) => typeof v !== "string")
+                          : [],
+                      }}
                       limit={20}
                       multiple
                       onDelete={handleGalleryImageDelete}

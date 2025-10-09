@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Eye } from "lucide-react";
+import { AlertCircle, Eye, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -68,10 +68,29 @@ const OrdersTable = () => {
   //     }
   //   };
 
-  if (isLoading) return <div>Loading...</div>;
+
+  if (isLoading)
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-50">
+          <Loader2 className="animate-spin text-blue-600 w-8 h-8" />
+        </div>
+        <p className="mt-4 text-gray-600 text-lg font-medium">
+          Loading bookings...
+        </p>
+      </div>
+    );
   if (isError)
     return (
-      <p className="text-center py-6 text-red-500">Failed to load orders.</p>
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-50">
+          <AlertCircle className="text-red-500 w-8 h-8" />
+        </div>
+        <p className="mt-4 text-red-600 text-lg font-medium">
+          Failed to load product
+        </p>
+        <p className="text-gray-500 text-sm mt-1">Please try again later.</p>
+      </div>
     );
 
   return (
