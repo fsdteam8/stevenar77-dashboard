@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Ellipsis, Eye } from "lucide-react";
 import Image from "next/image";
-import { getAllBookings } from "@/lib/api";
+import { getAllBookings, sentQuickReview } from "@/lib/api";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export type Participant = {
   _id: string;
@@ -37,6 +39,10 @@ export type MedicalDocument = {
 };
 
 export type Booking = {
+  customerId: {
+    _id?: string;
+    email?: string;
+  };
   id: string;
   invoice: string;
   customerName: string;
@@ -69,6 +75,10 @@ export type Booking = {
   isActive?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  medicalHistory?:string[];
+  activityLevelSpecificQuestions?:string[];
+  canSwim?:string;
+
 };
 
 export type BookingAPIResponse = {
@@ -127,11 +137,19 @@ const BookingTable: React.FC = () => {
       try {
         const res = await getAllBookings();
 
+        console.log(res.data);
         if (res?.success) {
           const mapped: Booking[] = (res.data as BookingAPIResponse[]).map(
             (item, index) => ({
               id: item._id || `temp-id-${index}`,
               invoice: `#${1000 + index}`,
+              customerId:
+                typeof item.userId === "string"
+                  ? { _id: item.userId, email: "demo@example.com" }
+                  : {
+                      _id: item.userId?._id || `demo-id-${index}`,
+                      email: item.userId?.email || "demo@example.com",
+                    },
               customerName: item.userId?.email || "Demo User",
               customerEmail: item.userId?.email || "demo@example.com",
               location: "Not Provided",
@@ -229,9 +247,24 @@ const BookingTable: React.FC = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = bookings.slice(startIndex, startIndex + itemsPerPage);
 
+  const handleQuickReviewMutation = useMutation({
+    
+    mutationFn: ({ id, link }: { id: string; link: string }) =>
+      sentQuickReview(id, link),
+    onSuccess: (data) => {
+      toast.success(data.message || "Review sent successfully!");
+    },
+    onError: (error) => {
+      toast.error(error?.message || "Failed to send review");
+    },
+  });
+
+  const handleQuickReview = (id: string, link: string) => {
+    handleQuickReviewMutation.mutate({ id, link });
+    toast.success("Review sent successfully")
+  };
   if (loading)
     return <div className="text-center py-10">Loading bookings...</div>;
-
   return (
     <div className="w-full">
       <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
@@ -395,20 +428,10 @@ const BookingTable: React.FC = () => {
                               <div className="bg-white rounded-xl shadow-md p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Left Section */}
                                 <div className="space-y-4">
-                                  {/* <p>
-                                    <strong>Class Description:</strong>{" "}
-                                    {selectedBooking.description || "N/A"}
-                                  </p> */}
                                   <p>
                                     <strong>Class Description:</strong>{" "}
-                                    <span
-                                      dangerouslySetInnerHTML={{
-                                        __html:
-                                          selectedBooking.description || "N/A",
-                                      }}
-                                    />
+                                    {selectedBooking.description || "N/A"}
                                   </p>
-
                                   <p>
                                     <strong>Duration:</strong>{" "}
                                     {selectedBooking.duration || "N/A"}
@@ -434,13 +457,17 @@ const BookingTable: React.FC = () => {
 
                                   <div>
                                     <p className="font-semibold">
-                                      Emergency Contact Person:
+                                      Activity Level Questions:
                                     </p>
                                     <ul className="list-disc list-inside ml-4">
-                                      {selectedBooking?.emergencyName ? (
-                                        <li>
-                                          ({selectedBooking?.emergencyName})
-                                        </li>
+                                      {selectedBooking
+                                        .activityLevelSpecificQuestions
+                                        ?.length ? (
+                                        selectedBooking?.activityLevelSpecificQuestions?.map(
+                                          (item, idx) => (
+                                            <li key={idx}>{item}</li>
+                                          )
+                                        )
                                       ) : (
                                         <li>N/A</li>
                                       )}
@@ -449,17 +476,16 @@ const BookingTable: React.FC = () => {
 
                                   <div>
                                     <p className="font-semibold">
-                                      Emergency Person PhoneNumber:
+                                      Medical History:
                                     </p>
                                     <ul className="list-disc list-inside ml-4">
-                                      {selectedBooking?.emergencyPhoneNumber ? (
-                                        <li>
-                                          (
-                                          {
-                                            selectedBooking?.emergencyPhoneNumber
-                                          }
+                                      {selectedBooking.medicalHistory
+                                        ?.length ? (
+                                        selectedBooking.medicalHistory.map(
+                                          (item, idx) => (
+                                            <li key={idx}>{item}</li>
                                           )
-                                        </li>
+                                        )
                                       ) : (
                                         <li>N/A</li>
                                       )}
@@ -493,17 +519,17 @@ const BookingTable: React.FC = () => {
 
                                 {/* Right Section */}
                                 <div className="space-y-4">
-                                  {/* <p>
+                                  <p>
                                     <strong>Diving Experience:</strong>{" "}
                                     {selectedBooking.divingExperience || "N/A"}
                                   </p>
                                   <p>
                                     <strong>Fitness Level:</strong>{" "}
                                     {selectedBooking.fitnessLevel || "N/A"}
-                                  </p> */}
+                                  </p>
                                   <p>
-                                    <strong>Phone Number:</strong>{" "}
-                                    {selectedBooking.PhoneNumber || "N/A"}
+                                    <strong>Can Swim:</strong>{" "}
+                                    {selectedBooking.canSwim || "N/A"}
                                   </p>
                                   <p>
                                     <strong>Gender:</strong>{" "}
@@ -560,13 +586,13 @@ const BookingTable: React.FC = () => {
                                     {selectedBooking.isActive ? "Yes" : "No"}
                                   </p>
                                   <p>
-                                    <strong>Course Booked On:</strong>{" "}
+                                    <strong>Created At:</strong>{" "}
                                     {selectedBooking.createdAt || "N/A"}
                                   </p>
-                                  {/* <p>
+                                  <p>
                                     <strong>Updated At:</strong>{" "}
                                     {selectedBooking.updatedAt || "N/A"}
-                                  </p> */}
+                                  </p>
                                 </div>
                               </div>
                             </div>
@@ -587,17 +613,32 @@ const BookingTable: React.FC = () => {
                         </DropdownMenuSubTrigger>
                         <DropdownMenuSubContent>
                           <DropdownMenuItem
-                            onClick={() => console.log("Rescue Diver clicked")}
+                            onClick={() =>
+                              handleQuickReview(
+                                booking?.customerId?._id ?? '',
+                                "https://stevenar77-website.vercel.app/rescue-diver"
+                              )
+                            }
                           >
                             Rescue Diver
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => console.log("Enrich Air clicked")}
+                            onClick={() =>
+                              handleQuickReview(
+                                booking?.customerId?._id ?? "",
+                                "https://stevenar77-website.vercel.app/enrich-air"
+                              )
+                            }
                           >
                             Enrich Air
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => console.log("Quick Review clicked")}
+                            onClick={() =>
+                              handleQuickReview(
+                                booking?.customerId?._id ?? "",
+                                "https://stevenar77-website.vercel.app/quick-review"
+                              )
+                            }
                           >
                             Quick Review
                           </DropdownMenuItem>
@@ -672,217 +713,3 @@ const BookingTable: React.FC = () => {
 };
 
 export default BookingTable;
-
-{
-  /* <Dialog>
-  <DialogTrigger asChild>
-    <button
-      onClick={() => setSelectedBooking(booking)}
-      className="inline-flex items-center gap-1 text-sm text-teal-600 hover:text-teal-700 font-medium cursor-pointer"
-    >
-      <Eye className="w-4 h-4" />
-      Details
-    </button>
-  </DialogTrigger>
-  <DialogContent className="sm:max-w-5xl p-6 rounded-3xl shadow-2xl bg-gray-50 border border-gray-200 max-h-[80vh] overflow-y-auto">
-    <DialogHeader>
-      <DialogTitle className="text-3xl font-bold text-gray-800">
-        Booking Details
-      </DialogTitle>
-    </DialogHeader>
-
-    {selectedBooking && (
-      <div className="mt-6 space-y-6 text-gray-700 text-sm">
-      
-        <div className="bg-white rounded-xl shadow-md p-6 flex flex-col md:flex-row gap-6">
-          <div className="flex-shrink-0 rounded-lg overflow-hidden shadow-lg">
-            <Image
-              src={selectedBooking.classImage || selectedBooking.avatar}
-              alt={selectedBooking.customerName}
-              width={400}
-              height={250}
-              className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
-            />
-          </div>
-
-          <div className="flex-1 space-y-2">
-            <p>
-              <strong>Invoice:</strong> {selectedBooking.invoice || "N/A"}
-            </p>
-            <p>
-              <strong>Customer:</strong> {selectedBooking.customerName || "N/A"}
-            </p>
-            <p>
-              <strong>Email:</strong> {selectedBooking.customerEmail || "N/A"}
-            </p>
-            <p>
-              <strong>Price:</strong> $
-              {selectedBooking.price?.toLocaleString() || "N/A"}
-            </p>
-            <p>
-              <strong>Status:</strong>{" "}
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeStyle(
-                  selectedBooking.status
-                )}`}
-              >
-                {selectedBooking.status || "N/A"}
-              </span>
-            </p>
-            <p>
-              <strong>Date:</strong> {selectedBooking.date || "N/A"}
-            </p>
-            <p>
-              <strong>Location:</strong> {selectedBooking.location || "N/A"}
-            </p>
-          </div>
-        </div>
-
-   
-        <div className="bg-white rounded-xl shadow-md p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-        
-          <div className="space-y-4">
-            <p>
-              <strong>Class Description:</strong>{" "}
-              {selectedBooking.description || "N/A"}
-            </p>
-            <p>
-              <strong>Duration:</strong> {selectedBooking.duration || "N/A"}
-            </p>
-
-            <div>
-              <p className="font-semibold">Course Includes:</p>
-              <ul className="list-disc list-inside ml-4">
-                {selectedBooking.courseIncludes?.length ? (
-                  selectedBooking.courseIncludes.map((item, idx) => (
-                    <li key={idx}>{item}</li>
-                  ))
-                ) : (
-                  <li>N/A</li>
-                )}
-              </ul>
-            </div>
-
-            <div>
-              <p className="font-semibold">Activity Level Questions:</p>
-              <ul className="list-disc list-inside ml-4">
-                {selectedBooking.activityLevelSpecificQuestions?.length ? (
-                  selectedBooking.activityLevelSpecificQuestions.map(
-                    (item, idx) => <li key={idx}>{item}</li>
-                  )
-                ) : (
-                  <li>N/A</li>
-                )}
-              </ul>
-            </div>
-
-            <div>
-              <p className="font-semibold">Medical History:</p>
-              <ul className="list-disc list-inside ml-4">
-                {selectedBooking.medicalHistory?.length ? (
-                  selectedBooking.medicalHistory.map((item, idx) => (
-                    <li key={idx}>{item}</li>
-                  ))
-                ) : (
-                  <li>N/A</li>
-                )}
-              </ul>
-            </div>
-
-            <div>
-              <p className="font-semibold">Documents:</p>
-              <div className="flex flex-col gap-1 ml-4">
-                {selectedBooking.medicalDocuments?.length ? (
-                  selectedBooking.medicalDocuments.map((doc) => (
-                    <a
-                      key={doc._id}
-                      href={doc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-teal-600 underline hover:text-teal-800 transition-colors"
-                    >
-                      {doc.public_id}
-                    </a>
-                  ))
-                ) : (
-                  <span>N/A</span>
-                )}
-              </div>
-            </div>
-          </div>
-
-       
-          <div className="space-y-4">
-            <p>
-              <strong>Diving Experience:</strong>{" "}
-              {selectedBooking.divingExperience || "N/A"}
-            </p>
-            <p>
-              <strong>Fitness Level:</strong>{" "}
-              {selectedBooking.fitnessLevel || "N/A"}
-            </p>
-            <p>
-              <strong>Can Swim:</strong> {selectedBooking.PhoneNumber || "N/A"}
-            </p>
-            <p>
-              <strong>Gender:</strong> {selectedBooking.gender || "N/A"}
-            </p>
-            <p>
-              <strong>Height:</strong> {selectedBooking.height || "N/A"}
-            </p>
-            <p>
-              <strong>Weight:</strong> {selectedBooking.weight || "N/A"}
-            </p>
-            <p>
-              <strong>Shoe Size:</strong> {selectedBooking.shoeSize || "N/A"}
-            </p>
-            <p>
-              <strong>Last Physical Exam:</strong>{" "}
-              {selectedBooking.lastPhysicalExamination || "N/A"}
-            </p>
-
-            <div>
-              <p className="font-semibold">Participants:</p>
-              <ul className="list-disc list-inside ml-4">
-                {selectedBooking.participants?.length ? (
-                  selectedBooking.participants.map((p) => (
-                    <li key={p._id}>
-                      {p.firstName} {p.lastName} ({p.email})
-                    </li>
-                  ))
-                ) : (
-                  <li>N/A</li>
-                )}
-              </ul>
-            </div>
-
-            <p>
-              <strong>Average Rating:</strong>{" "}
-              {selectedBooking.avgRating ?? "N/A"}
-            </p>
-            <p>
-              <strong>Total Participates:</strong>{" "}
-              {selectedBooking.totalParticipates ?? "N/A"}
-            </p>
-            <p>
-              <strong>Active:</strong> {selectedBooking.isActive ? "Yes" : "No"}
-            </p>
-            <p>
-              <strong>Created At:</strong> {selectedBooking.createdAt || "N/A"}
-            </p>
-            <p>
-              <strong>Updated At:</strong> {selectedBooking.updatedAt || "N/A"}
-            </p>
-          </div>
-        </div>
-      </div>
-    )}
-
-    <DialogClose asChild>
-      <button className="mt-6 w-full md:w-auto px-6 py-2 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:bg-teal-700 transition-colors duration-200">
-        Close
-      </button>
-    </DialogClose>
-  </DialogContent>
-</Dialog>; */
-}

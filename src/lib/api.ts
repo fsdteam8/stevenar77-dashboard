@@ -646,12 +646,28 @@ export async function fetchSocial() {
 
 export async function updateSocial(id: string, data: Social) {
   try {
-    // console.log('2',data)
+    console.log("2", data);
     const res = await api.put(`/social/${id}`, data);
-    // console.log('3',res.data)
+    console.log("3", res.data);
     return res.data;
   } catch (err) {
-    // console.log('4',err)
+    console.log("4", err);
+    if (err instanceof Error) throw new Error("Failed to update social data");
+    throw err;
+  }
+}
+
+export async function sentQuickReview(id: string, link: string) {
+  const data = {
+    userId: id,
+    formLink: link,
+  };
+  try {
+    const res = await api.post(`class/bookings/send-form-link`, data);
+    console.log("3", res.data);
+    return res.data;
+  } catch (err) {
+    console.log("4", err);
     if (err instanceof Error) throw new Error("Failed to update social data");
     throw err;
   }
