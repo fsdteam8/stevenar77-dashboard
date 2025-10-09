@@ -125,6 +125,8 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     { value: "Divers Medical", label: "Divers Medical" },
     { value: "Enriched Training", label: "Enriched Training" },
     { value: "Equipment Rental", label: "Equipment Rental" },
+    { value: "Enriched Air -Quick Review", label: "Enriched Air -Quick Review" },
+    { value: "Resque Diver-Quick Review", label: "Resque Diver-Quick Review" },
   ];
 
   const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
