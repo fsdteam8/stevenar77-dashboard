@@ -32,7 +32,6 @@ interface Notification {
     _id: string;
     email: string;
   };
-  // Add other fields from your API if needed
 }
 interface UserProfile {
   firstName?: string;
@@ -74,6 +73,8 @@ export default function DashboardHeader() {
   // Count of unseen notifications
   const unseenCount = notifications.filter((n) => n.isViewed === false).length;
 
+  // console.log(unseenCount)
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -89,8 +90,7 @@ export default function DashboardHeader() {
     fetchProfile();
   }, []);
 
-  // Dummy user data for demonstration — replace with your actual user fetching logic
-  //  console.log(user)
+
   // Logout handler
   const handleLogout = () => {
     signOut();

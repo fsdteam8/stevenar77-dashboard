@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useAllCourses } from "@/hooks/course/useCourses";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -95,8 +95,16 @@ export default function ScheduleCalendar() {
   };
 
   const generateCalendarDays = (month: Date) => {
-    const startDay = new Date(month.getFullYear(), month.getMonth(), 1).getDay();
-    const totalDays = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+    const startDay = new Date(
+      month.getFullYear(),
+      month.getMonth(),
+      1
+    ).getDay();
+    const totalDays = new Date(
+      month.getFullYear(),
+      month.getMonth() + 1,
+      0
+    ).getDate();
     const days: (Date | null)[] = [];
     for (let i = 0; i < startDay; i++) days.push(null);
     for (let i = 1; i <= totalDays; i++)
@@ -107,15 +115,37 @@ export default function ScheduleCalendar() {
   const calendarDays = generateCalendarDays(currentMonth);
 
   const goPrevMonth = () =>
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
+    );
   const goNextMonth = () =>
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
+    );
 
-  if (isLoading) return <p>Loading courses...</p>;
+  if (isLoading)
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-teal-50 shadow-inner">
+          <Loader2 className="animate-spin text-[#06B6D4] w-8 h-8" />
+        </div>
+        <p className="mt-4 text-[#047481] font-medium text-sm animate-pulse tracking-wide">
+          Loading courses, please wait...
+        </p>
+      </div>
+    );
+
   if (isError) return <p className="text-red-500">Failed to load courses</p>;
 
   const handleAddDateToCourse = async (course: Course) => {
     if (!selectedDate) return;
+
+    // 🚫 Prevent adding past dates
+    const todayStr = new Date().toISOString().split("T")[0];
+    if (selectedDate < todayStr) {
+      toast.warning("You cannot add a course to a past date.");
+      return;
+    }
 
     const existingDates: string[] = Array.isArray(course.classDates)
       ? course.classDates.map((d) => d.split("T")[0])
@@ -126,8 +156,8 @@ export default function ScheduleCalendar() {
       return;
     }
 
-    const newDates = [...existingDates, selectedDate].map(
-      (d) => new Date(d + "T00:00:00.000Z").toISOString()
+    const newDates = [...existingDates, selectedDate].map((d) =>
+      new Date(d + "T00:00:00.000Z").toISOString()
     );
 
     const formData = new FormData();
@@ -136,7 +166,7 @@ export default function ScheduleCalendar() {
     try {
       setIsUpdating(true);
       await updateSingleCourseAsync(course._id, formData);
-      toast.success("Date added successfully!");
+      toast.success("✅ Date added successfully!");
       refetch();
     } catch {
       toast.error("❌ Failed to add date.");
@@ -180,7 +210,9 @@ export default function ScheduleCalendar() {
     <div className="flex flex-col items-center p-6 bg-gray-50 min-h-screen">
       <Toaster position="top-right" richColors />
 
-      <h2 className="text-3xl font-bold mb-6 text-gray-800">Schedule Courses</h2>
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">
+        Schedule Courses
+      </h2>
 
       {/* Calendar Header */}
       <div className="flex items-center justify-between w-full max-w-8xl mb-4 rounded-xl shadow px-4 py-2 ">

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Ellipsis, Eye } from "lucide-react";
+import { Ellipsis, Eye, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { getAllBookings, sentQuickReview } from "@/lib/api";
 import {
@@ -75,10 +75,9 @@ export type Booking = {
   isActive?: boolean;
   createdAt?: string;
   updatedAt?: string;
-  medicalHistory?:string[];
-  activityLevelSpecificQuestions?:string[];
-  canSwim?:string;
-
+  medicalHistory?: string[];
+  activityLevelSpecificQuestions?: string[];
+  canSwim?: string;
 };
 
 export type BookingAPIResponse = {
@@ -129,7 +128,7 @@ const BookingTable: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
-  console.log(bookings);
+  // console.log(bookings);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -137,7 +136,7 @@ const BookingTable: React.FC = () => {
       try {
         const res = await getAllBookings();
 
-        console.log(res.data);
+        // console.log(res.data);
         if (res?.success) {
           const mapped: Booking[] = (res.data as BookingAPIResponse[]).map(
             (item, index) => ({
@@ -248,7 +247,6 @@ const BookingTable: React.FC = () => {
   const paginatedData = bookings.slice(startIndex, startIndex + itemsPerPage);
 
   const handleQuickReviewMutation = useMutation({
-    
     mutationFn: ({ id, link }: { id: string; link: string }) =>
       sentQuickReview(id, link),
     onSuccess: (data) => {
@@ -261,10 +259,20 @@ const BookingTable: React.FC = () => {
 
   const handleQuickReview = (id: string, link: string) => {
     handleQuickReviewMutation.mutate({ id, link });
-    toast.success("Review sent successfully")
+    toast.success("Review sent successfully");
   };
   if (loading)
-    return <div className="text-center py-10">Loading bookings...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-50">
+          <Loader2 className="animate-spin text-blue-600 w-8 h-8" />
+        </div>
+        <p className="mt-4 text-gray-600 text-lg font-medium">
+          Loading bookings...
+        </p>
+      </div>
+    );
+
   return (
     <div className="w-full">
       <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
@@ -307,7 +315,7 @@ const BookingTable: React.FC = () => {
                       alt={booking.customerName}
                       width={30}
                       height={30}
-                      className="rounded-md object-cover flex-shrink-0"
+                      className="rounded-full object-cover flex-shrink-0 h-10 w-10 "
                     />
                     <div>
                       <div className="text-sm font-medium text-gray-900">
@@ -430,7 +438,12 @@ const BookingTable: React.FC = () => {
                                 <div className="space-y-4">
                                   <p>
                                     <strong>Class Description:</strong>{" "}
-                                    {selectedBooking.description || "N/A"}
+                                    <span
+                                      dangerouslySetInnerHTML={{
+                                        __html:
+                                          selectedBooking?.description || "N/A",
+                                      }}
+                                    />
                                   </p>
                                   <p>
                                     <strong>Duration:</strong>{" "}
@@ -478,7 +491,7 @@ const BookingTable: React.FC = () => {
                                     <p className="font-semibold">
                                       Medical History:
                                     </p>
-                                    <ul className="list-disc list-inside ml-4">
+                                    <ul className="list-disc list-inside ml-4 cursor-pointer">
                                       {selectedBooking.medicalHistory
                                         ?.length ? (
                                         selectedBooking.medicalHistory.map(
@@ -615,7 +628,7 @@ const BookingTable: React.FC = () => {
                           <DropdownMenuItem
                             onClick={() =>
                               handleQuickReview(
-                                booking?.customerId?._id ?? '',
+                                booking?.customerId?._id ?? "",
                                 "https://stevenar77-website.vercel.app/rescue-diver"
                               )
                             }

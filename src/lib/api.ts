@@ -636,7 +636,7 @@ export async function fetchSocial() {
   try {
     const res = await api.get(`/social`);
 
-    console.log("1", res.data);
+    // console.log("1", res.data);
     return res.data;
   } catch (err) {
     if (err instanceof Error) throw new Error("Failed to fetch social data");
@@ -646,9 +646,9 @@ export async function fetchSocial() {
 
 export async function updateSocial(id: string, data: Social) {
   try {
-    console.log("2", data);
+    // console.log("2", data);
     const res = await api.put(`/social/${id}`, data);
-    console.log("3", res.data);
+    // console.log("3", res.data);
     return res.data;
   } catch (err) {
     console.log("4", err);
@@ -664,11 +664,33 @@ export async function sentQuickReview(id: string, link: string) {
   };
   try {
     const res = await api.post(`class/bookings/send-form-link`, data);
-    console.log("3", res.data);
+    // console.log("3", res.data);
     return res.data;
   } catch (err) {
     console.log("4", err);
     if (err instanceof Error) throw new Error("Failed to update social data");
     throw err;
+  }
+}
+
+// About Gallery Images Delete api
+export async function galleryImageDelete(aboutId: string, imageId: string) {
+  try {
+    const res = await api.delete(`/about/${aboutId}/gallery/${imageId}`);
+    return res.data;
+  } catch (err) {
+    if (err instanceof Error) throw new Error("Failed to Delete gallery Image");
+    throw err;
+  }
+}
+
+// Get All Orders with pagination and dynamic params
+export async function allOrder(page = 1, limit = 10) {
+  try {
+    const res = await api.get(`/order/all-order?page=${page}&limit=${limit}`);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching orders:", err);
+    throw new Error("Failed to fetch all orders with pagination");
   }
 }

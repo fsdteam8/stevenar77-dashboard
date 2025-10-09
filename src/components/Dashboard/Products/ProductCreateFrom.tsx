@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 import { Upload, Plus, X, ArrowLeft, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,11 +12,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateProduct } from "@/hooks/useProducts";
 import dynamic from "next/dynamic";
 
-// Dynamically import ReactQuill
+//  Dynamically import ReactQuill
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
 
-// Zod schema
+//  Validation Schema
 const productSchema = z.object({
   title: z.string().min(1, "Title is required"),
   shortDescription: z.string().min(1, "Short Description is required"),
@@ -48,6 +49,7 @@ const productSchema = z.object({
           .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
             message: "Quantity must be a number",
           }),
+        image: z.any().optional(),
       })
     )
     .optional(),
@@ -58,7 +60,9 @@ type ProductForm = z.infer<typeof productSchema>;
 export default function ProductCreateForm() {
   const router = useRouter();
   const { mutate: createProductMutate, isPending } = useCreateProduct();
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [variantPreviews, setVariantPreviews] = useState<(string | null)[]>([]);
   const [newFeatured, setNewFeatured] = useState("");
 
   const {
@@ -84,36 +88,55 @@ export default function ProductCreateForm() {
     },
   });
 
-  // Watch variants for dynamic UI
   const variants = (watch("variants") || []) as {
     title: string;
     quantity: string;
+    image?: File;
   }[];
 
-  // Add Variant
+  //  Add Variant
   const handleAddVariant = () => {
     setValue("variants", [...variants, { title: "", quantity: "" }]);
+    setVariantPreviews([...variantPreviews, null]);
   };
 
-  // Change Variant
+  //  Update Variant Field
   const handleVariantChange = (
     index: number,
     field: keyof NonNullable<ProductForm["variants"]>[0],
-    value: string
+    value: string | File
   ) => {
     const updated = [...variants];
     updated[index] = { ...updated[index], [field]: value };
     setValue("variants", updated);
   };
 
-  // Remove Variant
-  const handleRemoveVariant = (index: number) => {
-    const updated = [...variants];
-    updated.splice(index, 1);
-    setValue("variants", updated);
+  //  Handle Variant Image Upload with Preview
+  const handleVariantImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleVariantChange(index, "image", file);
+      const previewURL = URL.createObjectURL(file);
+      const updatedPreviews = [...variantPreviews];
+      updatedPreviews[index] = previewURL;
+      setVariantPreviews(updatedPreviews);
+    }
   };
 
-  // Featured handlers
+  //  Remove Variant
+  const handleRemoveVariant = (index: number) => {
+    const updated = [...variants];
+    const updatedPreviews = [...variantPreviews];
+    updated.splice(index, 1);
+    updatedPreviews.splice(index, 1);
+    setValue("variants", updated);
+    setVariantPreviews(updatedPreviews);
+  };
+
+  //  Featured Tags
   const handleAddFeatured = () => {
     if (newFeatured.trim()) {
       const current = getValues("featured") || [];
@@ -132,7 +155,7 @@ export default function ProductCreateForm() {
     );
   };
 
-  // Image change
+  //  Main Image Preview
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -141,11 +164,11 @@ export default function ProductCreateForm() {
     }
   };
 
-  // Submit
-  // Submit handler
+  //  Submit Form
   const onSubmit = (data: ProductForm) => {
     const formData = new FormData();
 
+    // Append main fields
     formData.append("title", data.title);
     formData.append("shortDescription", data.shortDescription);
     formData.append("category", data.category);
@@ -156,28 +179,36 @@ export default function ProductCreateForm() {
     // Featured tags
     (data.featured || []).forEach((tag) => formData.append("featured[]", tag));
 
-    // Image
-    if (data.image) formData.append("image", data.image);
-
-    // Variants as array of objects
-    if (data.variants && data.variants.length > 0) {
-      const formattedVariants = data.variants.map((v) => ({
-        title: v.title,
-        quantity: Number(v.quantity),
-      }));
-
-      // Append the whole array as JSON
-      formData.append("variants", JSON.stringify(formattedVariants));
+    // Main Product Image
+    if (data.image instanceof File) {
+      formData.append("image", data.image);
     }
+
+    const variantsData =
+      data.variants?.map((v, i) => {
+        if (v.image instanceof File) {
+          formData.append(`variant_${i}`, v.image);
+        }
+        const {...rest } = v;
+        return { ...rest, quantity: Number(rest.quantity) };  
+      }) || [];
+
+    formData.append("variants", JSON.stringify(variantsData));
+
+    // // Debug: log formData
+    // for (const [key, value] of formData.entries()) {
+    //   console.log(key, value);
+    // }
 
     createProductMutate(formData, {
       onSuccess: () => {
-        toast.success("Product created successfully!");
+        toast.success("✅ Product created successfully!");
         reset();
         setImagePreview(null);
-        router.push("/products");
+        setVariantPreviews([]);
       },
-      onError: () => {
+      onError: (err) => {
+        console.error(err);
         toast.error("❌ Failed to create product!");
       },
     });
@@ -186,14 +217,13 @@ export default function ProductCreateForm() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="mx-auto container p-6">
-        {/* Back */}
+        {/* Back Button */}
         <div className="my-4">
           <button
             onClick={() => router.back()}
-            className="flex items-center p-2 gap-2 cursor-pointer border border-[#0694A2] text-[#0694A2] rounded-md hover:bg-[#0694A2] hover:text-white"
+            className="flex items-center p-2 gap-2 border border-[#0694A2] text-[#0694A2] rounded-md hover:bg-[#0694A2] hover:text-white"
           >
-            <ArrowLeft />
-            Back
+            <ArrowLeft /> Back
           </button>
         </div>
 
@@ -205,7 +235,7 @@ export default function ProductCreateForm() {
           onSubmit={handleSubmit(onSubmit)}
           className="grid grid-cols-1 lg:grid-cols-3 gap-8"
         >
-          {/* Left */}
+          {/* Left Side */}
           <div className="lg:col-span-2 space-y-6">
             {/* Title */}
             <div>
@@ -244,11 +274,6 @@ export default function ProductCreateForm() {
                   placeholder="Category"
                   className="w-full px-4 py-3 border rounded-lg"
                 />
-                {errors.category && (
-                  <p className="text-red-500 text-sm">
-                    {errors.category.message}
-                  </p>
-                )}
               </div>
               <div>
                 <label className="block text-sm mb-2">Price</label>
@@ -258,9 +283,6 @@ export default function ProductCreateForm() {
                   placeholder="Price"
                   className="w-full px-4 py-3 border rounded-lg"
                 />
-                {errors.price && (
-                  <p className="text-red-500 text-sm">{errors.price.message}</p>
-                )}
               </div>
             </div>
 
@@ -273,11 +295,6 @@ export default function ProductCreateForm() {
                 placeholder="Quantity"
                 className="w-full px-4 py-3 border rounded-lg"
               />
-              {errors.quantity && (
-                <p className="text-red-500 text-sm">
-                  {errors.quantity.message}
-                </p>
-              )}
             </div>
 
             {/* Long Description */}
@@ -295,11 +312,6 @@ export default function ProductCreateForm() {
                   />
                 )}
               />
-              {errors.longDescription && (
-                <p className="text-red-500 text-sm">
-                  {errors.longDescription.message}
-                </p>
-              )}
             </div>
 
             {/* Featured */}
@@ -338,35 +350,69 @@ export default function ProductCreateForm() {
               </div>
             </div>
 
-            {/* Variants */}
+            {/*  Variants with Image Preview */}
             <div>
               <label className="block text-sm mb-2">Variants</label>
               {variants.map((v, idx) => (
-                <div key={idx} className="flex gap-3 mb-3 items-center">
-                  <input
-                    type="text"
-                    placeholder="Example:Red"
-                    value={v.title}
-                    onChange={(e) =>
-                      handleVariantChange(idx, "title", e.target.value)
-                    }
-                    className="flex-1 px-4 py-2 border rounded-lg"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Quantity"
-                    value={v.quantity}
-                    onChange={(e) =>
-                      handleVariantChange(idx, "quantity", e.target.value)
-                    }
-                    className="w-32 px-4 py-2 border rounded-lg"
-                  />
-                  <Trash2
-                    className="cursor-pointer text-red-500"
-                    onClick={() => handleRemoveVariant(idx)}
-                  />
+                <div
+                  key={idx}
+                  className="flex flex-col gap-2 mb-4 p-4 border rounded-lg bg-white"
+                >
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      placeholder="Example: Red"
+                      value={v.title}
+                      onChange={(e) =>
+                        handleVariantChange(idx, "title", e.target.value)
+                      }
+                      className="flex-1 px-4 py-2 border rounded-lg"
+                    />
+
+                    <input
+                      type="number"
+                      placeholder="Quantity"
+                      value={v.quantity}
+                      onChange={(e) =>
+                        handleVariantChange(idx, "quantity", e.target.value)
+                      }
+                      className="flex-1 px-4 py-2 border rounded-lg"
+                    />
+                  </div>
+
+                  {/* Variant Image Upload */}
+                  <div className="flex items-center gap-3">
+                    <label className="cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 text-center w-40 h-40">
+                      {variantPreviews[idx] ? (
+                        <Image
+                          src={variantPreviews[idx]!}
+                          alt="Variant Preview"
+                          width={160}
+                          height={160}
+                          className="w-32 h-32 object-cover rounded-md"
+                        />
+                      ) : (
+                        <>
+                          <Upload className="h-6 w-6 text-gray-400 mb-2" />
+                          <p className="text-xs text-gray-500">Upload Image</p>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleVariantImageChange(e, idx)}
+                      />
+                    </label>
+
+                    <Trash2
+                      className="cursor-pointer text-red-500"
+                      onClick={() => handleRemoveVariant(idx)}
+                    />
+                  </div>
                 </div>
               ))}
+
               <Button
                 type="button"
                 onClick={handleAddVariant}
@@ -377,9 +423,8 @@ export default function ProductCreateForm() {
             </div>
           </div>
 
-          {/* Right */}
+          {/* Right Side */}
           <div className="lg:col-span-1">
-            {/* Image Upload */}
             <div className="bg-white p-6 rounded-lg border">
               <h3 className="text-lg font-medium mb-4">Upload Image</h3>
               <label
@@ -423,6 +468,7 @@ export default function ProductCreateForm() {
                 onClick={() => {
                   reset();
                   setImagePreview(null);
+                  setVariantPreviews([]);
                 }}
                 disabled={isSubmitting}
                 className="px-6 py-3 border w-1/2 border-red-300 text-red-600 bg-transparent hover:bg-red-50"
@@ -432,7 +478,7 @@ export default function ProductCreateForm() {
               <Button
                 type="submit"
                 disabled={isPending}
-                className="px-8 py-3 w-1/2 bg-[#0694A2] text-white hover:bg-[#057f89] flex items-center justify-center gap-2"
+                className="px-8 py-3 w-1/2 bg-[#0694A2] text-white hover:bg-[#057f89]"
               >
                 {isPending ? "Saving..." : "Save"}
               </Button>
