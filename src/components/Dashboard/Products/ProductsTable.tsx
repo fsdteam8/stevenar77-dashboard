@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Eye, SquarePen, Trash2 } from "lucide-react";
+import { Eye, Loader2, SquarePen, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DeleteAlertDialog from "../Card/DeleteCard";
 import {
@@ -58,7 +58,16 @@ const ProductsTable = () => {
   };
 
   if (isLoading) {
-    return <p className="text-center py-6">Loading products...</p>;
+    return (
+      <div className="flex flex-col items-center justify-center py-10">
+        <div className="flex items-center justify-center w-14 h-14 rounded-full bg-teal-50 shadow-inner">
+          <Loader2 className="animate-spin text-[#06B6D4] w-7 h-7" />
+        </div>
+        <p className="mt-3 text-[#047481] font-medium text-sm animate-pulse tracking-wide">
+          Loading products, please wait...
+        </p>
+      </div>
+    );
   }
   if (isError) {
     return (

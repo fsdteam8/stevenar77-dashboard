@@ -672,3 +672,25 @@ export async function sentQuickReview(id: string, link: string) {
     throw err;
   }
 }
+
+// About Gallery Images Delete api
+export async function galleryImageDelete(aboutId: string, imageId: string) {
+  try {
+    const res = await api.delete(`/about/${aboutId}/gallery/${imageId}`);
+    return res.data;
+  } catch (err) {
+    if (err instanceof Error) throw new Error("Failed to Delete gallery Image");
+    throw err;
+  }
+}
+
+// Get All Orders with pagination and dynamic params
+export async function allOrder(page = 1, limit = 10) {
+  try {
+    const res = await api.get(`/order/all-order?page=${page}&limit=${limit}`);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching orders:", err);
+    throw new Error("Failed to fetch all orders with pagination");
+  }
+}

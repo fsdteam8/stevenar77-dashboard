@@ -12,10 +12,11 @@ import dynamic from "next/dynamic";
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
 
-// ✅ Define types
+// ✅ Types
 interface VariantType {
   title: string;
   quantity: number;
+  image?: string | File;
 }
 
 interface ProductFormData {
@@ -45,6 +46,7 @@ interface ProductData {
     variantsQuantity?: string | number;
     title?: string;
     quantity?: string | number;
+    image?: { url: string };
   }[];
 }
 
@@ -68,6 +70,7 @@ const ProductsEditForm: React.FC = () => {
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [variantPreviews, setVariantPreviews] = useState<(string | null)[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
@@ -77,12 +80,13 @@ const ProductsEditForm: React.FC = () => {
 
     const variants: VariantType[] =
       product.variants?.map((v) => ({
-        title: v.title ?? v.title ?? "",
+        title: v.title ?? "",
         quantity: v.variantsQuantity
           ? Number(v.variantsQuantity)
           : v.quantity
           ? Number(v.quantity)
           : 0,
+        image: v.image?.url ?? undefined,
       })) ?? [];
 
     setFormData({
@@ -97,41 +101,48 @@ const ProductsEditForm: React.FC = () => {
       variants,
     });
 
-    if (product.images?.length) {
-      setImagePreview(product.images[0].url);
-    }
+    setImagePreview(product.images?.[0]?.url ?? null);
+    setVariantPreviews(
+      variants.map((v) => (typeof v.image === "string" ? v.image : null))
+    );
   }, [product]);
 
-  // ✅ Input handler
+  // ✅ Input handlers
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const target = e.target as HTMLInputElement;
-    const { name, value, type } = target;
-    const checked = type === "checkbox" ? target.checked : undefined;
-
+    const { name, value, type, checked } = e.target as HTMLInputElement;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // ✅ Variant handler
+  const handleDescriptionChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, longDescription: value }));
+  };
+
+  // ✅ Variant handlers
   const handleVariantChange = (
     index: number,
     field: keyof VariantType,
-    value: string
+    value: string | File
   ) => {
     setFormData((prev) => {
-      const updatedVariants = [...prev.variants];
-      updatedVariants[index] = {
-        ...updatedVariants[index],
+      const updated = [...prev.variants];
+      updated[index] = {
+        ...updated[index],
         [field]: field === "quantity" ? Number(value) || 0 : value,
       };
-      return { ...prev, variants: updatedVariants };
+      return { ...prev, variants: updated };
     });
+
+    if (field === "image" && value instanceof File) {
+      const previews = [...variantPreviews];
+      previews[index] = URL.createObjectURL(value);
+      setVariantPreviews(previews);
+    }
   };
 
   const handleAddVariant = () => {
@@ -139,6 +150,7 @@ const ProductsEditForm: React.FC = () => {
       ...prev,
       variants: [...prev.variants, { title: "", quantity: 0 }],
     }));
+    setVariantPreviews((prev) => [...prev, null]);
   };
 
   const handleRemoveVariant = (index: number) => {
@@ -146,6 +158,7 @@ const ProductsEditForm: React.FC = () => {
       ...prev,
       variants: prev.variants.filter((_, i) => i !== index),
     }));
+    setVariantPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,10 +168,6 @@ const ProductsEditForm: React.FC = () => {
       setImagePreview(URL.createObjectURL(file));
       setErrors((prev) => ({ ...prev, image: "" }));
     }
-  };
-
-  const handleDescriptionChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, longDescription: value }));
   };
 
   // ✅ Validation
@@ -180,12 +189,13 @@ const ProductsEditForm: React.FC = () => {
     if (!product) return;
     const variants: VariantType[] =
       product.variants?.map((v) => ({
-        title: v.title ?? v.title ?? "",
+        title: v.title ?? "",
         quantity: v.variantsQuantity
           ? Number(v.variantsQuantity)
           : v.quantity
           ? Number(v.quantity)
           : 0,
+        image: v.image?.url ?? undefined,
       })) ?? [];
 
     setFormData({
@@ -199,6 +209,11 @@ const ProductsEditForm: React.FC = () => {
       featured: product.featured ?? [],
       variants,
     });
+
+    setImagePreview(product.images?.[0]?.url ?? null);
+    setVariantPreviews(
+      variants.map((v) => (typeof v.image === "string" ? v.image : null))
+    );
   };
 
   // ✅ Save form
@@ -209,32 +224,57 @@ const ProductsEditForm: React.FC = () => {
     try {
       const form = new FormData();
 
-      Object.entries(formData).forEach(([key, value]) => {
-        if (key === "variants" && Array.isArray(value)) {
-          (value as VariantType[]).forEach((v, index) => {
-            form.append(`variants[${index}][title]`, v.title);
-            form.append(`variants[${index}][quantity]`, v.quantity.toString());
-          });
-        } else if (Array.isArray(value)) {
-          value.forEach((v) => form.append(`${key}[]`, v.toString()));
-        } else if (value !== undefined && value !== null) {
-          form.append(key, value.toString());
+      // Append main product fields
+      form.append("title", formData.title);
+      form.append("shortDescription", formData.shortDescription);
+      form.append("longDescription", formData.longDescription);
+      form.append("price", formData.price);
+      form.append("category", formData.category);
+      form.append("quantity", formData.quantity);
+      form.append("inStock", String(formData.inStock));
+
+      formData.featured.forEach((f) => form.append("featured[]", f));
+
+      // Append main image
+      if (imageFile) {
+        form.append("image", imageFile);
+      }
+
+      // Prepare variants JSON and images
+      const variantsPayload = formData.variants.map((v, index) => {
+        // Append each variant image separately
+        if (v.image instanceof File) {
+          form.append(`variant_${index}`, v.image);
         }
+
+        // Return variant data for JSON body (exclude image file)
+        return {
+          title: v.title,
+          quantity: Number(v.quantity),
+          // Preserve existing image URL if not replaced
+          image:
+            typeof v.image === "string"
+              ? { url: v.image }
+              : v.image instanceof File
+              ? null // handled by file field
+              : null,
+        };
       });
 
-      if (imageFile) form.append("image", imageFile);
+      // Send variants as JSON string (without file content)
+      form.append("variants", JSON.stringify(variantsPayload));
 
       await updateSingleProduct(id as string, form);
-
-      toast.success("Product updated successfully!");
+      toast.success("✅ Product updated successfully!");
       router.push("/products");
     } catch (error) {
       console.error(error);
-      toast.error("Failed to update product");
+      toast.error("❌ Failed to update product");
     } finally {
       setLoading(false);
     }
   };
+
   if (isLoading) return <p className="p-6">Loading...</p>;
   if (isError)
     return <p className="p-6 text-red-500">Failed to load product</p>;
@@ -352,60 +392,118 @@ const ProductsEditForm: React.FC = () => {
               </div>
             </div>
 
-            {/* ✅ Variants Section */}
+            {/* ✅ Product Variants Section */}
             <div className="mt-10">
-              <div className="flex justify-between items-center mb-3">
+              <div className="flex flex-wrap justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold text-gray-800">
                   Product Variants
                 </h3>
                 <Button
                   type="button"
                   onClick={handleAddVariant}
-                  className="bg-[#0694A2] text-white hover:bg-[#057f89]"
+                  className="bg-[#0694A2] hover:bg-[#057f89] text-white flex items-center gap-1"
                 >
-                  <Plus className="w-4 h-4 mr-1" /> Add Variant
+                  <Plus className="w-4 h-4" /> Add Variant
                 </Button>
               </div>
 
-              {formData.variants.length === 0 && (
-                <p className="text-gray-500 text-sm">
-                  No variants added yet. Click “Add Variant”.
+              {formData.variants.length === 0 ? (
+                <p className="text-gray-500 text-sm italic">
+                  No variants added yet. Click <b>Add Variant</b> to create one.
                 </p>
-              )}
-
-              <div className="space-y-4 mt-3">
-                {formData.variants.map((variant, index) => (
-                  <div
-                    key={index}
-                    className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center border p-4 rounded-lg "
-                  >
-                    <input
-                      type="text"
-                      placeholder="Example: Red"
-                      value={variant.title}
-                      onChange={(e) =>
-                        handleVariantChange(index, "title", e.target.value)
-                      }
-                      className="px-3 py-2 border rounded-md"
-                    />
-                    <input
-                      type="number"
-                      placeholder="10"
-                      value={variant.quantity}
-                      onChange={(e) =>
-                        handleVariantChange(index, "quantity", e.target.value)
-                      }
-                      className="px-3 py-2 border rounded-md"
-                    />
-                    <button
-                      onClick={() => handleRemoveVariant(index)}
-                      className="text-red-500 hover:text-red-700 flex items-center gap-1 cursor-pointer"
+              ) : (
+                <div className="space-y-5">
+                  {formData.variants.map((variant, index) => (
+                    <div
+                      key={index}
+                      className="grid grid-cols-1 md:grid-cols-5 gap-4 border border-gray-200 p-4 rounded-xl shadow-sm bg-white transition hover:shadow-md"
                     >
-                      <Trash2 size={16} /> Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
+                      {/* Variant Title */}
+                      <div className="flex flex-col">
+                        <label className="text-sm font-medium text-gray-600 mb-1">
+                          Variant Title
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Example: Red"
+                          value={variant.title}
+                          onChange={(e) =>
+                            handleVariantChange(index, "title", e.target.value)
+                          }
+                          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0694A2]"
+                        />
+                      </div>
+
+                      {/* Quantity */}
+                      <div className="flex flex-col">
+                        <label className="text-sm font-medium text-gray-600 mb-1">
+                          Quantity
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="10"
+                          value={variant.quantity}
+                          onChange={(e) =>
+                            handleVariantChange(
+                              index,
+                              "quantity",
+                              e.target.value
+                            )
+                          }
+                          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0694A2]"
+                        />
+                      </div>
+
+                      {/* Variant Image */}
+                      <div className="flex flex-col items-center justify-center">
+                        <label className="text-sm font-medium text-gray-600 mb-2">
+                          Image
+                        </label>
+                        <label className="relative w-24 h-24 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                          {variantPreviews[index] ? (
+                            <Image
+                              src={variantPreviews[index] as string}
+                              alt="Variant"
+                              fill
+                              className="object-cover rounded-lg"
+                            />
+                          ) : (
+                            <div className="flex flex-col items-center text-gray-400">
+                              <Upload className="w-5 h-5 mb-1" />
+                              <span className="text-xs">Upload</span>
+                            </div>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) =>
+                              e.target.files &&
+                              handleVariantChange(
+                                index,
+                                "image",
+                                e.target.files[0]
+                              )
+                            }
+                          />
+                        </label>
+                      </div>
+
+                      {/* Remove Button */}
+                      <div className="flex items-end justify-center md:col-span-2">
+                        <button
+                          onClick={() => handleRemoveVariant(index)}
+                          type="button"
+                          className="flex items-center gap-1 text-red-500 hover:text-red-600 transition text-sm"
+                        >
+                          <Trash2 size={16} />
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
