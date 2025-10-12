@@ -1182,7 +1182,7 @@ export default function Abouts() {
                           ? field.value.filter((v) => typeof v !== "string")
                           : [],
                       }}
-                      limit={20}
+                      limit={500}
                       multiple
                       onDelete={handleGalleryImageDelete}
                       aboutId={aboutData?._id}

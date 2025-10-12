@@ -22,14 +22,21 @@ interface CourseFormData {
   duration: string;
   location: string;
   timeSlots: string;
-  classDates: string[];
+  schedule: Array<{
+    dates: Array<{
+      date: string;
+      location: string;
+      type: string;
+      // isActive: boolean;
+    }>;
+  }>;
   instructorAssignment: string;
   index: number;
   courseIncludes: string;
   formTitle: string[];
   minAge: number;
   maxAge: number;
-  addOnce: Array<{ title: string; price: string }>; // Added addOnce field
+  addOnce: Array<{ title: string; price: string }>;
 }
 
 interface CourseFormProps {
@@ -75,14 +82,14 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     duration: "",
     location: "",
     timeSlots: "",
-    classDates: [],
+    schedule: [],
     instructorAssignment: "Monthly",
     index: 1,
     courseIncludes: "",
     formTitle: [],
     minAge: 0,
     maxAge: 0,
-    addOnce: [], // Initialize addOnce array
+    addOnce: [],
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -94,16 +101,14 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     text: string;
   } | null>(null);
 
-  // Inside your component
-  const [classDates, setClassDates] = useState<string[]>([]);
-
-  // Update formData.classDates whenever classDates changes
-  useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      classDates: classDates,
-    }));
-  }, [classDates]);
+  const [classDates, setClassDates] = useState<
+    Array<{
+      date: string;
+      location: string;
+      type: string;
+      // isActive: boolean;
+    }>
+  >([]);
 
   const toBackendUTC = (date: Date, offsetHours: number = -6) => {
     const d = new Date(date);
@@ -111,11 +116,58 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     return d.toISOString();
   };
 
+  // Only load classDates from courseData on mount/edit mode
   useEffect(() => {
-    if (formData?.classDates?.length) {
-      setClassDates(formData.classDates);
+    if (mode === "edit" && courseData?.schedule) {
+      const loadedDates =
+        Array.isArray(courseData.schedule) && courseData.schedule.length > 0
+          ? courseData.schedule[0].dates.map((item: any) => ({
+              date: item.date || "",
+              location: item.location || "",
+              type: item.type || "pool",
+              // isActive: item.isActive !== undefined ? item.isActive : true,
+            }))
+          : [];
+      setClassDates(loadedDates);
     }
-  }, [formData]);
+  }, [mode, courseData]);
+
+  const handleAddClassDate = () => {
+    setClassDates((prev) => [
+      ...prev,
+      { date: "", location: "", type: "pool" },
+    ]);
+  };
+
+  const handleRemoveClassDate = (index: number) => {
+    setClassDates((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleClassDateChange = (index: number, date: Date | null) => {
+    if (!date) return;
+    const isoString = toBackendUTC(date, -6);
+    setClassDates((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, date: isoString } : item))
+    );
+  };
+
+  const handleClassLocationChange = (index: number, location: string) => {
+    setClassDates((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, location } : item))
+    );
+  };
+
+  const handleClassTypeChange = (index: number, type: string) => {
+    setClassDates((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, type } : item))
+    );
+  };
+
+  // const handleClassActiveChange = (index: number,) => {
+  //   setClassDates((prev) =>
+  //     prev.map((item, i) => (i === index ? { ...item,} : item))
+  //   );
+  // };
 
   const options = [
     { value: "Standards Form", label: "Standards Form" },
@@ -125,7 +177,10 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     { value: "Divers Medical", label: "Divers Medical" },
     { value: "Enriched Training", label: "Enriched Training" },
     { value: "Equipment Rental", label: "Equipment Rental" },
-    { value: "Enriched Air -Quick Review", label: "Enriched Air -Quick Review" },
+    {
+      value: "Enriched Air -Quick Review",
+      label: "Enriched Air -Quick Review",
+    },
     { value: "Resque Diver-Quick Review", label: "Resque Diver-Quick Review" },
   ];
 
@@ -160,13 +215,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
         duration: courseData.duration || "",
         location: courseData.location || "",
         timeSlots: courseData.timeSlots || "",
-        classDates: Array.isArray(courseData.classDates)
-          ? courseData.classDates.map((d: any) =>
-              typeof d === "string" ? d : d.date || d
-            )
-          : courseData.classDates
-          ? [courseData.classDates]
-          : [],
+        schedule: [],
         instructorAssignment: courseData.instructorAssignment || "Monthly",
         index: courseData.index || 1,
         courseIncludes: Array.isArray(courseData.courseIncludes)
@@ -179,7 +228,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
           : [],
         minAge: courseData.minAge ? Number(courseData.minAge) : 0,
         maxAge: courseData.maxAge ? Number(courseData.maxAge) : 0,
-        addOnce: courseData.addOnce || [], // Load addOnce from courseData
+        addOnce: courseData.addOnce || [],
       });
 
       if (courseData.image) {
@@ -290,7 +339,6 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     setIsSubmitting(true);
     setSubmitMessage(null);
 
-    // ✅ Validations
     if (!formData.courseTitle.trim()) {
       setSubmitMessage({ type: "error", text: "Course title is required" });
       setIsSubmitting(false);
@@ -316,19 +364,6 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
       setIsSubmitting(false);
       return;
     }
-    // if (formData.maxAge === 0) {
-    //   setSubmitMessage({ type: "error", text: "Maximum age is required" });
-    //   setIsSubmitting(false);
-    //   return;
-    // }
-    // if (formData.maxAge < formData.minAge) {
-    //   setSubmitMessage({
-    //     type: "error",
-    //     text: "Max age cannot be less than Min age",
-    //   });
-    //   setIsSubmitting(false);
-    //   return;
-    // }
     if (mode === "create" && !selectedFile) {
       setSubmitMessage({ type: "error", text: "Please upload a course image" });
       setIsSubmitting(false);
@@ -349,16 +384,28 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
       formDataToSend.append("location", formData.location);
       formDataToSend.append("timeSlots", formData.timeSlots);
 
-      classDates.forEach((date, i) => {
-        formDataToSend.append(`classDates[${i}]`, date);
-      });
+      // Append schedule in the correct backend format
+      if (classDates.length > 0) {
+        const scheduleData = {
+          dates: classDates
+            .filter((item) => item.date)
+            .map((item) => ({
+              date: item.date,
+              location: item.location || "",
+              type: item.type || "pool",
+              // isActive: item.isActive !== undefined ? item.isActive : true,
+            })),
+        };
+
+        // Send as JSON string for nested structure
+        formDataToSend.append("schedule", JSON.stringify([scheduleData]));
+      }
+
       formDataToSend.append(
         "instructorAssignment",
         formData.instructorAssignment
       );
       formDataToSend.append("index", formData.index.toString());
-
-      // ✅ Append minAge & maxAge
       formDataToSend.append("minAge", formData.minAge.toString());
       formDataToSend.append("maxAge", formData.maxAge.toString());
 
@@ -408,6 +455,8 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
             : await courseApi.createCourse(formDataToSend);
       }
 
+      console.log(formData)
+
       if (response.success) {
         setSubmitMessage({
           type: "success",
@@ -425,7 +474,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
             duration: "",
             location: "",
             timeSlots: "",
-            classDates: [],
+            schedule: [],
             instructorAssignment: "Monthly",
             index: 1,
             courseIncludes: "",
@@ -435,6 +484,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
             addOnce: [],
           });
           setSelectedFile(null);
+          setClassDates([]);
           if (previewUrl) URL.revokeObjectURL(previewUrl);
           setPreviewUrl(null);
           setExistingImageUrl(null);
@@ -466,16 +516,17 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
         duration: "",
         location: "",
         timeSlots: "",
-        classDates: [],
+        schedule: [],
         instructorAssignment: "Monthly",
         index: 1,
         courseIncludes: "",
         formTitle: [],
         minAge: 0,
         maxAge: 0,
-        addOnce: [], // Reset addOnce on cancel
+        addOnce: [],
       });
       setSelectedFile(null);
+      setClassDates([]);
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(null);
       setExistingImageUrl(null);
@@ -601,73 +652,120 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                 {/* Course Dates Row */}
                 <div className="grid grid-cols-1 gap-6">
                   <div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Date Picker */}
-                      <div className="flex gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Course Dates *
-                          </label>
-                          <DatePicker
-                            selected={null}
-                            onChange={(date: Date | null) => {
-                              if (!date) return;
-
-                              const isoString = toBackendUTC(date, -6);
-
-                              setClassDates((prev) =>
-                                prev.includes(isoString)
-                                  ? prev
-                                  : [...prev, isoString]
-                              );
-                            }}
-                            minDate={new Date()}
-                            inline
-                          />
-                        </div>
-                        {/* Selected Dates Preview */}
-                        <div>
-                          {classDates.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mt-6">
-                              {classDates.map((date) => (
-                                <div
-                                  key={date}
-                                  className="bg-teal-100 text-teal-800 px-4 py-2 rounded-lg shadow-sm flex items-center gap-2"
-                                >
-                                  {new Date(date).toLocaleDateString()}
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      setClassDates((prev) =>
-                                        prev.filter((d) => d !== date)
-                                      )
-                                    }
-                                    className="text-red-500 hover:text-red-700 font-semibold"
-                                  >
-                                    <X size={16} className="cursor-pointer" />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Location */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Location *
-                        </label>
-                        <input
-                          type="text"
-                          name="location"
-                          placeholder="locations"
-                          value={formData.location}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
-                        />
-                      </div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Course Schedule (Dates & Locations) *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleAddClassDate}
+                        className="inline-flex items-center justify-center w-8 h-8 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors cursor-pointer"
+                        title="Add new date"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
                     </div>
+
+                    {classDates.length === 0 ? (
+                      <p className="text-sm text-gray-500 italic">
+                        No class dates added yet. Click the + button to add a
+                        date.
+                      </p>
+                    ) : (
+                      <div className="space-y-4">
+                        {classDates.map((item, index) => (
+                          <div
+                            key={index}
+                            className="flex gap-3 items-start bg-gray-50 p-4 rounded-lg border border-gray-200"
+                          >
+                            <div className="flex-1 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-3">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  Select Date *
+                                </label>
+                                <DatePicker
+                                  selected={
+                                    item.date ? new Date(item.date) : null
+                                  }
+                                  onChange={(date) =>
+                                    handleClassDateChange(index, date)
+                                  }
+                                  minDate={new Date()}
+                                  dateFormat="dd/MM/yyyy"
+                                  placeholderText="Select a date"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  Location *
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Enter location"
+                                  value={item.location}
+                                  onChange={(e) =>
+                                    handleClassLocationChange(
+                                      index,
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  Type *
+                                </label>
+                                <select
+                                  value={item.type}
+                                  onChange={(e) =>
+                                    handleClassTypeChange(index, e.target.value)
+                                  }
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none bg-white"
+                                >
+                                  <option value="pool">Pool</option>
+                                  <option value="ocean">islands</option>
+                                  {/* <option value="classroom">Classroom</option>
+                                  <option value="other">Other</option> */}
+                                </select>
+                              </div>
+                              {/* <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  Status
+                                </label>
+                                <div className="flex items-center h-[42px]">
+                                  <label className="flex items-center cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={item.isActive}
+                                      onChange={(e) =>
+                                        handleClassActiveChange(
+                                          index,
+                                          e.target.checked
+                                        )
+                                      }
+                                      className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+                                    />
+                                    <span className="ml-2 text-sm text-gray-700">
+                                      Active
+                                    </span>
+                                  </label>
+                                </div>
+                              </div> */}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveClassDate(index)}
+                              className="text-red-500 hover:text-red-700 p-2 rounded-md hover:bg-red-50 transition-colors mt-5 "
+                              title="Remove date"
+                            >
+                              <X className="w-5 h-5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
