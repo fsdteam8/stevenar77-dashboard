@@ -23,7 +23,7 @@ interface CourseFormData {
   location: string;
   timeSlots: string;
   schedule: Array<{
-    dates: Array<{
+    sets: Array<{
       date: string;
       location: string;
       type: string;
@@ -101,14 +101,16 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     text: string;
   } | null>(null);
 
-  const [classDates, setClassDates] = useState<
+  const [scheduleSets, setScheduleSets] = useState<
     Array<{
-      date: string;
-      location: string;
-      type: string;
-      // isActive: boolean;
+      sets: Array<{
+        date: string;
+        location: string;
+        type: string;
+        // isActive: boolean;
+      }>;
     }>
-  >([]);
+  >([{ sets: [] }]);
 
   const toBackendUTC = (date: Date, offsetHours: number = -6) => {
     const d = new Date(date);
@@ -116,56 +118,138 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     return d.toISOString();
   };
 
-  // Only load classDates from courseData on mount/edit mode
+  // Only load scheduleSets from courseData on mount/edit mode
   useEffect(() => {
     if (mode === "edit" && courseData?.schedule) {
-      const loadedDates =
+      const loadedSets =
         Array.isArray(courseData.schedule) && courseData.schedule.length > 0
-          ? courseData.schedule[0].dates.map((item: any) => ({
-              date: item.date || "",
-              location: item.location || "",
-              type: item.type || "pool",
-              // isActive: item.isActive !== undefined ? item.isActive : true,
+          ? courseData.schedule.map((scheduleItem: any) => ({
+              sets: Array.isArray(scheduleItem.sets)
+                ? scheduleItem.sets.map((item: any) => ({
+                    date: item.date || "",
+                    location: item.location || "",
+                    type: item.type || "pool",
+                    // isActive: item.isActive !== undefined ? item.isActive : true,
+                  }))
+                : [],
             }))
-          : [];
-      setClassDates(loadedDates);
+          : [{ sets: [] }];
+      setScheduleSets(loadedSets);
     }
   }, [mode, courseData]);
 
-  const handleAddClassDate = () => {
-    setClassDates((prev) => [
-      ...prev,
-      { date: "", location: "", type: "pool" },
-    ]);
+  const handleAddScheduleSet = () => {
+    setScheduleSets((prev) => [...prev, { sets: [] }]);
   };
 
-  const handleRemoveClassDate = (index: number) => {
-    setClassDates((prev) => prev.filter((_, i) => i !== index));
+  const handleRemoveScheduleSet = (setIndex: number) => {
+    setScheduleSets((prev) => prev.filter((_, i) => i !== setIndex));
   };
 
-  const handleClassDateChange = (index: number, date: Date | null) => {
+  const handleAddClassDate = (setIndex: number) => {
+    setScheduleSets((prev) =>
+      prev.map((scheduleSet, i) =>
+        i === setIndex
+          ? {
+              ...scheduleSet,
+              sets: [
+                ...scheduleSet.sets,
+                { date: "", location: "", type: "pool", },
+              ],
+            }
+          : scheduleSet
+      )
+    );
+  };
+
+  const handleRemoveClassDate = (setIndex: number, dateIndex: number) => {
+    setScheduleSets((prev) =>
+      prev.map((scheduleSet, i) =>
+        i === setIndex
+          ? {
+              ...scheduleSet,
+              sets: scheduleSet.sets.filter((_, j) => j !== dateIndex),
+            }
+          : scheduleSet
+      )
+    );
+  };
+
+  const handleClassDateChange = (
+    setIndex: number,
+    dateIndex: number,
+    date: Date | null
+  ) => {
     if (!date) return;
     const isoString = toBackendUTC(date, -6);
-    setClassDates((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, date: isoString } : item))
+    setScheduleSets((prev) =>
+      prev.map((scheduleSet, i) =>
+        i === setIndex
+          ? {
+              ...scheduleSet,
+              sets: scheduleSet.sets.map((item, j) =>
+                j === dateIndex ? { ...item, date: isoString } : item
+              ),
+            }
+          : scheduleSet
+      )
     );
   };
 
-  const handleClassLocationChange = (index: number, location: string) => {
-    setClassDates((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, location } : item))
+  const handleClassLocationChange = (
+    setIndex: number,
+    dateIndex: number,
+    location: string
+  ) => {
+    setScheduleSets((prev) =>
+      prev.map((scheduleSet, i) =>
+        i === setIndex
+          ? {
+              ...scheduleSet,
+              sets: scheduleSet.sets.map((item, j) =>
+                j === dateIndex ? { ...item, location } : item
+              ),
+            }
+          : scheduleSet
+      )
     );
   };
 
-  const handleClassTypeChange = (index: number, type: string) => {
-    setClassDates((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, type } : item))
+  const handleClassTypeChange = (
+    setIndex: number,
+    dateIndex: number,
+    type: string
+  ) => {
+    setScheduleSets((prev) =>
+      prev.map((scheduleSet, i) =>
+        i === setIndex
+          ? {
+              ...scheduleSet,
+              sets: scheduleSet.sets.map((item, j) =>
+                j === dateIndex ? { ...item, type } : item
+              ),
+            }
+          : scheduleSet
+      )
     );
   };
 
-  // const handleClassActiveChange = (index: number,) => {
-  //   setClassDates((prev) =>
-  //     prev.map((item, i) => (i === index ? { ...item,} : item))
+  // const handleClassActiveChange = (
+  //   setIndex: number,
+  //   dateIndex: number,
+  //   isActive: boolean
+  // ) => {
+  //   setScheduleSets((prev) =>
+  //     prev.map((scheduleSet, i) =>
+  //       i === setIndex
+  //         ? {
+  //             ...scheduleSet,
+  //             sets: scheduleSet.sets.map((item, j) =>
+  //               j === dateIndex ? { ...item, isActive } : item
+  //             ),
+  //           }
+  //         : scheduleSet
+  //     )
   //   );
   // };
 
@@ -385,9 +469,9 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
       formDataToSend.append("timeSlots", formData.timeSlots);
 
       // Append schedule in the correct backend format
-      if (classDates.length > 0) {
-        const scheduleData = {
-          dates: classDates
+      if (scheduleSets.length > 0) {
+        const scheduleData = scheduleSets.map((scheduleSet) => ({
+          sets: scheduleSet.sets
             .filter((item) => item.date)
             .map((item) => ({
               date: item.date,
@@ -395,10 +479,10 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
               type: item.type || "pool",
               // isActive: item.isActive !== undefined ? item.isActive : true,
             })),
-        };
+        }));
 
         // Send as JSON string for nested structure
-        formDataToSend.append("schedule", JSON.stringify([scheduleData]));
+        formDataToSend.append("schedule", JSON.stringify(scheduleData));
       }
 
       formDataToSend.append(
@@ -484,7 +568,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
             addOnce: [],
           });
           setSelectedFile(null);
-          setClassDates([]);
+          setScheduleSets([{ sets: [] }]);
           if (previewUrl) URL.revokeObjectURL(previewUrl);
           setPreviewUrl(null);
           setExistingImageUrl(null);
@@ -526,7 +610,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
         addOnce: [],
       });
       setSelectedFile(null);
-      setClassDates([]);
+      setScheduleSets([{ sets: [] }]);
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(null);
       setExistingImageUrl(null);
@@ -652,116 +736,176 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                 {/* Course Dates Row */}
                 <div className="grid grid-cols-1 gap-6">
                   <div>
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center justify-between mb-4">
                       <label className="block text-sm font-medium text-gray-700">
                         Course Schedule (Dates & Locations) *
                       </label>
                       <button
                         type="button"
-                        onClick={handleAddClassDate}
-                        className="inline-flex items-center justify-center w-8 h-8 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors cursor-pointer"
-                        title="Add new date"
+                        onClick={handleAddScheduleSet}
+                        className="flex gap-2 px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors cursor-pointer text-sm font-medium"
                       >
-                        <Plus className="w-4 h-4" />
+                        Create New Date Schedule <Plus className="w-4 h-4" />
                       </button>
                     </div>
 
-                    {classDates.length === 0 ? (
+                    {scheduleSets.length === 0 ? (
                       <p className="text-sm text-gray-500 italic">
-                        No class dates added yet. Click the + button to add a
-                        date.
+                        No schedule sets added yet. Click &ldquo;Create New Set&quot; to
+                        add a set.
                       </p>
                     ) : (
-                      <div className="space-y-4">
-                        {classDates.map((item, index) => (
+                      <div className="space-y-6">
+                        {scheduleSets.map((scheduleSet, setIndex) => (
                           <div
-                            key={index}
-                            className="flex gap-3 items-start bg-gray-50 p-4 rounded-lg border border-gray-200"
+                            key={setIndex}
+                            className="border-2 border-gray-300 rounded-lg p-4 bg-white"
                           >
-                            <div className="flex-1 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-3">
-                              <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">
-                                  Select Date *
-                                </label>
-                                <DatePicker
-                                  selected={
-                                    item.date ? new Date(item.date) : null
+                            <div className="flex items-center justify-between mb-4">
+                              <h4 className="text-base font-semibold text-gray-800">
+                               Date Schedule  {setIndex + 1}
+                              </h4>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    handleAddClassDate(setIndex)
                                   }
-                                  onChange={(date) =>
-                                    handleClassDateChange(index, date)
-                                  }
-                                  minDate={new Date()}
-                                  dateFormat="dd/MM/yyyy"
-                                  placeholderText="Select a date"
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">
-                                  Location *
-                                </label>
-                                <input
-                                  type="text"
-                                  placeholder="Enter location"
-                                  value={item.location}
-                                  onChange={(e) =>
-                                    handleClassLocationChange(
-                                      index,
-                                      e.target.value
-                                    )
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">
-                                  Type *
-                                </label>
-                                <select
-                                  value={item.type}
-                                  onChange={(e) =>
-                                    handleClassTypeChange(index, e.target.value)
-                                  }
-                                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none bg-white"
+                                  className="inline-flex items-center justify-center w-8 h-8 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors cursor-pointer"
+                                  title="Add date to this set"
                                 >
-                                  <option value="pool">Pool</option>
-                                  <option value="ocean">islands</option>
-                                  {/* <option value="classroom">Classroom</option>
-                                  <option value="other">Other</option> */}
-                                </select>
+                                  <Plus className="w-4 h-4" />
+                                </button>
+                                {scheduleSets.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      handleRemoveScheduleSet(setIndex)
+                                    }
+                                    className="text-red-500 hover:text-red-700 p-2 rounded-md hover:bg-red-50 transition-colors cursor-pointer"
+                                    title="Remove this set"
+                                  >
+                                    <X className="w-5 h-5" />
+                                  </button>
+                                )}
                               </div>
-                              {/* <div>
-                                <label className="block text-xs font-medium text-gray-600 mb-1">
-                                  Status
-                                </label>
-                                <div className="flex items-center h-[42px]">
-                                  <label className="flex items-center cursor-pointer">
-                                    <input
-                                      type="checkbox"
-                                      checked={item.isActive}
-                                      onChange={(e) =>
-                                        handleClassActiveChange(
-                                          index,
-                                          e.target.checked
+                            </div>
+
+                            {scheduleSet.sets.length === 0 ? (
+                              <p className="text-sm text-gray-500 italic">
+                                No dates in this set. Click the + button to add
+                                a date.
+                              </p>
+                            ) : (
+                              <div className="space-y-4">
+                                {scheduleSet.sets.map((item, dateIndex) => (
+                                  <div
+                                    key={dateIndex}
+                                    className="flex gap-3 items-start bg-gray-50 p-4 rounded-lg border border-gray-200"
+                                  >
+                                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                                          Select Date *
+                                        </label>
+                                        <DatePicker
+                                          selected={
+                                            item.date
+                                              ? new Date(item.date)
+                                              : null
+                                          }
+                                          onChange={(date) =>
+                                            handleClassDateChange(
+                                              setIndex,
+                                              dateIndex,
+                                              date
+                                            )
+                                          }
+                                          minDate={new Date()}
+                                          dateFormat="dd/MM/yyyy"
+                                          placeholderText="Select a date"
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                                          Location *
+                                        </label>
+                                        <input
+                                          type="text"
+                                          placeholder="Enter location"
+                                          value={item.location}
+                                          onChange={(e) =>
+                                            handleClassLocationChange(
+                                              setIndex,
+                                              dateIndex,
+                                              e.target.value
+                                            )
+                                          }
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                                          Type *
+                                        </label>
+                                        <select
+                                          value={item.type}
+                                          onChange={(e) =>
+                                            handleClassTypeChange(
+                                              setIndex,
+                                              dateIndex,
+                                              e.target.value
+                                            )
+                                          }
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none bg-white"
+                                        >
+                                          <option value="pool">Pool</option>
+                                          <option value="islands">islands</option>
+                                        </select>
+                                      </div>
+                                      {/* <div>
+                                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                                          Status
+                                        </label>
+                                        <div className="flex items-center h-[42px]">
+                                          <label className="flex items-center cursor-pointer">
+                                            <input
+                                              type="checkbox"
+                                              checked={item.isActive}
+                                              onChange={(e) =>
+                                                handleClassActiveChange(
+                                                  setIndex,
+                                                  dateIndex,
+                                                  e.target.checked
+                                                )
+                                              }
+                                              className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+                                            />
+                                            <span className="ml-2 text-sm text-gray-700">
+                                              Active
+                                            </span>
+                                          </label>
+                                        </div>
+                                      </div> */}
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleRemoveClassDate(
+                                          setIndex,
+                                          dateIndex
                                         )
                                       }
-                                      className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
-                                    />
-                                    <span className="ml-2 text-sm text-gray-700">
-                                      Active
-                                    </span>
-                                  </label>
-                                </div>
-                              </div> */}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveClassDate(index)}
-                              className="text-red-500 hover:text-red-700 p-2 rounded-md hover:bg-red-50 transition-colors mt-5 "
-                              title="Remove date"
-                            >
-                              <X className="w-5 h-5" />
-                            </button>
+                                      className="text-red-500 hover:text-red-700 p-2 rounded-md hover:bg-red-50 transition-colors mt-5 cursor-pointer"
+                                      title="Remove date"
+                                    >
+                                      <X className="w-5 h-5" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
