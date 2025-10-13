@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useAllCourses } from "@/hooks/course/useCourses";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -23,12 +23,12 @@ interface ScheduleDate {
   isActive: boolean;
 }
 
-interface Schedule {
-  dates: ScheduleDate[];
+interface ScheduleSet {
+  sets: ScheduleDate[];
 }
 
 interface ExtendedCourse extends Course {
-  schedule?: Schedule[];
+  schedule?: ScheduleSet[];
 }
 
 // --- Single Course Update Hook ---
@@ -65,6 +65,7 @@ export default function ScheduleCalendar() {
   const [addingCourseId, setAddingCourseId] = React.useState<string | null>(null);
   const [location, setLocation] = React.useState("");
   const [type, setType] = React.useState("pool");
+  const [selectedSetIndex, setSelectedSetIndex] = React.useState<number | "new">("new");
 
   const { data, isLoading, isError, refetch } = useAllCourses();
   const singleUpdateCourseMutation = useSingleUpdateCourse();
@@ -100,8 +101,8 @@ export default function ScheduleCalendar() {
         // Check for new schedule structure
         if (Array.isArray(course.schedule)) {
           course.schedule.forEach((scheduleGroup) => {
-            if (Array.isArray(scheduleGroup.dates)) {
-              scheduleGroup.dates.forEach((dateObj) => {
+            if (Array.isArray(scheduleGroup.sets)) {
+              scheduleGroup.sets.forEach((dateObj) => {
                 if (dateObj.date && dateObj.isActive !== false) {
                   const key = dateObj.date.split("T")[0];
                   if (!map[key]) map[key] = [];
@@ -137,6 +138,7 @@ export default function ScheduleCalendar() {
     setAddingCourseId(null);
     setLocation("");
     setType("pool");
+    setSelectedSetIndex("new");
   };
 
   const generateCalendarDays = (month: Date) => {
@@ -204,14 +206,14 @@ export default function ScheduleCalendar() {
     }
 
     // Get existing schedule or initialize
-    const existingSchedule: Schedule[] = Array.isArray(course.schedule) 
+    const existingSchedule: ScheduleSet[] = Array.isArray(course.schedule) 
       ? course.schedule 
-      : [{ dates: [] }];
+      : [];
 
     // Check if date already exists
     const dateExists = existingSchedule.some((scheduleGroup) =>
-      Array.isArray(scheduleGroup.dates) &&
-      scheduleGroup.dates.some((d) => d.date?.split("T")[0] === selectedDate)
+      Array.isArray(scheduleGroup.sets) &&
+      scheduleGroup.sets.some((d) => d.date?.split("T")[0] === selectedDate)
     );
 
     if (dateExists) {
@@ -228,12 +230,17 @@ export default function ScheduleCalendar() {
     };
 
     // Add to existing schedule
-    const updatedSchedule: Schedule[] = [...existingSchedule];
-    if (updatedSchedule.length === 0) {
-      updatedSchedule.push({ dates: [newDateObj] });
-    } else {
-      updatedSchedule[0].dates = [...(updatedSchedule[0].dates || []), newDateObj];
-    }
+    const updatedSchedule: ScheduleSet[] = selectedSetIndex === "new"
+      ? [...existingSchedule, { sets: [newDateObj] }]
+      : existingSchedule.map((scheduleSet, idx) => {
+          if (idx === selectedSetIndex) {
+            return {
+              ...scheduleSet,
+              sets: [...(scheduleSet.sets || []), newDateObj]
+            };
+          }
+          return scheduleSet;
+        });
 
     const formData = new FormData();
     formData.append("schedule", JSON.stringify(updatedSchedule));
@@ -245,6 +252,7 @@ export default function ScheduleCalendar() {
       setAddingCourseId(null);
       setLocation("");
       setType("pool");
+      setSelectedSetIndex("new");
       refetch();
     } catch {
       toast.error("❌ Failed to add date.");
@@ -256,14 +264,14 @@ export default function ScheduleCalendar() {
   const handleRemoveDateFromCourse = async (course: ExtendedCourse) => { 
     if (!selectedDate) return;
 
-    const existingSchedule: Schedule[] = Array.isArray(course.schedule) 
+    const existingSchedule: ScheduleSet[] = Array.isArray(course.schedule) 
       ? course.schedule 
-      : [{ dates: [] }];
+      : [];
 
     // Check if date exists
     const dateExists = existingSchedule.some((scheduleGroup) =>
-      Array.isArray(scheduleGroup.dates) &&
-      scheduleGroup.dates.some((d) => d.date?.split("T")[0] === selectedDate)
+      Array.isArray(scheduleGroup.sets) &&
+      scheduleGroup.sets.some((d) => d.date?.split("T")[0] === selectedDate)
     );
 
     if (!dateExists) {
@@ -272,9 +280,9 @@ export default function ScheduleCalendar() {
     }
 
     // Remove the date from schedule
-    const updatedSchedule: Schedule[] = existingSchedule.map((scheduleGroup) => ({
+    const updatedSchedule: ScheduleSet[] = existingSchedule.map((scheduleGroup) => ({
       ...scheduleGroup,
-      dates: (scheduleGroup.dates || []).filter(
+      sets: (scheduleGroup.sets || []).filter(
         (d) => d.date?.split("T")[0] !== selectedDate
       ),
     }));
@@ -298,12 +306,14 @@ export default function ScheduleCalendar() {
     setAddingCourseId(courseId);
     setLocation("");
     setType("pool");
+    setSelectedSetIndex("new");
   };
 
   const handleCancelAdding = () => {
     setAddingCourseId(null);
     setLocation("");
     setType("pool");
+    setSelectedSetIndex("new");
   };
 
   return (
@@ -394,13 +404,13 @@ export default function ScheduleCalendar() {
           </DialogHeader>
           <div className="mt-4 grid gap-4 max-h-[500px] overflow-y-auto">
             {data?.data.map((course: ExtendedCourse, i: number) => {
-              const existingSchedule: Schedule[] = Array.isArray(course.schedule)
+              const existingSchedule: ScheduleSet[] = Array.isArray(course.schedule)
                 ? course.schedule
                 : [];
               
               const alreadyHas = existingSchedule.some((scheduleGroup) =>
-                Array.isArray(scheduleGroup.dates) &&
-                scheduleGroup.dates.some(
+                Array.isArray(scheduleGroup.sets) &&
+                scheduleGroup.sets.some(
                   (d) => d.date?.split("T")[0] === selectedDate
                 )
               );
@@ -434,6 +444,71 @@ export default function ScheduleCalendar() {
                   {/* Add Date Form */}
                   {isAddingThis && (
                     <div className="bg-gray-50 p-3 rounded-lg space-y-3">
+                      {/* Set Selection */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Choose Date Schedule
+                        </label>
+                        <div className="space-y-2">
+                          {existingSchedule.map((scheduleSet, setIdx) => {
+                            const setDates = scheduleSet.sets || [];
+                            const sampleDate = setDates[0];
+                            return (
+                              <label
+                                key={setIdx}
+                                className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition ${
+                                  selectedSetIndex === setIdx
+                                    ? "border-[#0694A2] bg-[#0694A2]/5"
+                                    : "border-gray-300 hover:border-[#0694A2]/50"
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name={`set-${course._id}`}
+                                  value={setIdx}
+                                  checked={selectedSetIndex === setIdx}
+                                  onChange={() => setSelectedSetIndex(setIdx)}
+                                  className="w-4 h-4 text-[#0694A2] focus:ring-[#0694A2]"
+                                />
+                                <div className="flex-1">
+                                  <div className="font-medium text-sm text-gray-800">
+                                    Date Schedule  {setIdx + 1}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {setDates.length} date{setDates.length !== 1 ? 's' : ''}
+                                    {sampleDate && ` • ${sampleDate.location} • ${sampleDate.type}`}
+                                  </div>
+                                </div>
+                              </label>
+                            );
+                          })}
+                          
+                          {/* Create New Set Option */}
+                          <label
+                            className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition ${
+                              selectedSetIndex === "new"
+                                ? "border-[#0694A2] bg-[#0694A2]/5"
+                                : "border-gray-300 hover:border-[#0694A2]/50"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name={`set-${course._id}`}
+                              value="new"
+                              checked={selectedSetIndex === "new"}
+                              onChange={() => setSelectedSetIndex("new")}
+                              className="w-4 h-4 text-[#0694A2] focus:ring-[#0694A2]"
+                            />
+                            <div className="flex items-center gap-2 flex-1">
+                              <Plus className="w-4 h-4 text-[#0694A2]" />
+                              <div className="font-medium text-sm text-gray-800">
+                                Create New Date Schedule 
+                              </div>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Location
