@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient,  } from "@tanstack/react-query";
-import { courseApi, getAllCourses, singleUpdateCourse } from "@/lib/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { courseApi, getAllCourses, singleUpdateCourse, updateReassignBooking } from "@/lib/api";
 
 export const COURSES_QUERY_KEY = "courses";
 
@@ -90,4 +90,28 @@ export function useSingleUpdateCourse() {
     },
   });
 }
- 
+
+// Reassign Booking Hook
+export function useReassignBooking() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      newScheduleId,
+    }: {
+      id: string;
+      newScheduleId: string;
+    }) => updateReassignBooking(id, newScheduleId),
+
+    onSuccess: (_, { id }) => {
+      // Invalidate booking-related data after success
+      queryClient.invalidateQueries({ queryKey: ["bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["bookings", id] });
+    },
+
+    onError: (error) => {
+      console.error("Failed to reassign booking:", error);
+    },
+  });
+}
