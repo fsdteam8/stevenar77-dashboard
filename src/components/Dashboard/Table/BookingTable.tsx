@@ -61,7 +61,7 @@ interface UserSession {
 
 interface CustomSession {
   user: UserSession;
-  accessToken?: string;  
+  accessToken?: string;
 }
 
 export type Booking = {
@@ -86,7 +86,7 @@ export type Booking = {
   fitnessLevel?: string;
   PhoneNumber?: string;
   gender?: string;
-  height?: number;
+  hight?: string | number;
   weight?: number;
   shoeSize?: number | string;
   lastPhysicalExamination?: string;
@@ -138,7 +138,7 @@ export type BookingAPIResponse = {
   medicalDocuments?: { _id: string; public_id: string; url: string }[];
   gender?: string;
   shoeSize?: number | string;
-  hight?: number;       
+  hight?: number;
   weight?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -171,11 +171,11 @@ const BookingTable: React.FC = () => {
   const [newCourseId, setNewCourseId] = useState<string>("");
   const [openSet, setOpenSet] = useState<number | null>(null);
   const { data, isLoading } = useSingleUpdateCourse(newCourseId);
-const { data: session } = useSession() as { data: CustomSession | null };
+  const { data: session } = useSession() as { data: CustomSession | null };
   // Reassign booking mutation
   const reassignBookingMutation = useReassignBooking();
 
- 
+  console.log(bookings);
 
   const course = data?.data;
 
@@ -241,7 +241,7 @@ const { data: session } = useSession() as { data: CustomSession | null };
               fitnessLevel: item.fitnessLevel || "",
               PhoneNumber: item.phoneNumber || "",
               gender: item.gender || "",
-              hight: item.hight || 0,
+              hight: item.hight || "",
               weight: item.weight || 0,
               shoeSize: item.shoeSize || "",
               lastPhysicalExamination: item.lastPhysicalExamination
@@ -332,8 +332,7 @@ const { data: session } = useSession() as { data: CustomSession | null };
     // Get userId and accessToken from session
     // const id = "68bf6876f02adb6fb1fef59b"
     // const userId = booking.customerId._id;
-  const accessToken = session?.accessToken || session?.user?.accessToken;
-
+    const accessToken = session?.accessToken || session?.user?.accessToken;
 
     console.log(userId);
     // Validation
@@ -424,7 +423,7 @@ const { data: session } = useSession() as { data: CustomSession | null };
                   fitnessLevel: item.fitnessLevel || "",
                   PhoneNumber: item.phoneNumber || "",
                   gender: item.gender || "",
-                  hight: item.hight || 0,
+                  hight: item.hight || " ",
                   weight: item.weight || 0,
                   shoeSize: item.shoeSize || "",
                   lastPhysicalExamination: item.lastPhysicalExamination
@@ -495,7 +494,7 @@ const { data: session } = useSession() as { data: CustomSession | null };
                 Status
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Date
+                Order Date
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Action
@@ -543,7 +542,7 @@ const { data: session } = useSession() as { data: CustomSession | null };
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600">
-                  {booking.date}
+                  {booking.createdAt}
                 </td>
 
                 <td className="px-6 py-4">
@@ -612,7 +611,7 @@ const { data: session } = useSession() as { data: CustomSession | null };
                                     {selectedBooking.price?.toLocaleString() ||
                                       "N/A"}
                                   </p>
-                                  <p>
+                                  {/* <p>
                                     <strong>Status:</strong>{" "}
                                     <span
                                       className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeStyle(
@@ -621,15 +620,15 @@ const { data: session } = useSession() as { data: CustomSession | null };
                                     >
                                       {selectedBooking.status || "N/A"}
                                     </span>
-                                  </p>
+                                  </p> */}
                                   <p>
                                     <strong>Date:</strong>{" "}
-                                    {selectedBooking.date || "N/A"}
+                                    {selectedBooking.createdAt || "N/A"}
                                   </p>
-                                  <p>
+                                  {/* <p>
                                     <strong>Location:</strong>{" "}
                                     {selectedBooking.location || "N/A"}
-                                  </p>
+                                  </p> */}
                                 </div>
                               </div>
 
@@ -698,8 +697,8 @@ const { data: session } = useSession() as { data: CustomSession | null };
                                     {selectedBooking.gender || "N/A"}
                                   </p>
                                   <p>
-                                    <strong>Height:</strong>{" "}
-                                    {selectedBooking.height || "N/A"}
+                                    <strong>Hight:</strong>{" "}
+                                    {selectedBooking.hight || "N/A"}
                                   </p>
                                   <p>
                                     <strong>Weight:</strong>{" "}
@@ -1098,42 +1097,78 @@ const { data: session } = useSession() as { data: CustomSession | null };
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between px-6 py-4">
+      <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 mt-4">
         <p className="text-sm text-gray-600">
           Showing {startIndex + 1} to{" "}
           {Math.min(startIndex + itemsPerPage, bookings.length)} of{" "}
           {bookings.length} results
         </p>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          {/* Previous */}
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-[#8E938F] rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             &lt;
           </button>
 
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
-            <button
-              key={num}
-              onClick={() => setCurrentPage(num)}
-              className={`px-3 py-1 rounded ${
-                currentPage === num
-                  ? "bg-[#0694A2] hover:bg-[#0694A2] text-white cursor-pointer"
-                  : "bg-gray-100 text-gray-700 border border-[#0694A2] cursor-pointer"
-              }`}
-            >
-              {num}
-            </button>
-          ))}
+          {/* Dynamic Page Numbers */}
+          {(() => {
+            const visiblePages: (number | string)[] = [];
 
+            // If total pages <= 6, show all pages directly
+            if (totalPages <= 6) {
+              for (let i = 1; i <= totalPages; i++) visiblePages.push(i);
+            } else {
+              // Always show first page
+              visiblePages.push(1);
+
+              // Show left ellipsis if currentPage > 3
+              if (currentPage > 3) visiblePages.push("...");
+
+              // Determine middle range
+              const start = Math.max(2, currentPage - 1);
+              const end = Math.min(totalPages - 1, currentPage + 1);
+
+              for (let i = start; i <= end; i++) visiblePages.push(i);
+
+              // Show right ellipsis if currentPage < totalPages - 2
+              if (currentPage < totalPages - 2) visiblePages.push("...");
+
+              // Always show last page
+              visiblePages.push(totalPages);
+            }
+
+            return visiblePages.map((num, idx) =>
+              num === "..." ? (
+                <span key={idx} className="px-2 text-gray-400 select-none">
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={num}
+                  onClick={() => setCurrentPage(num as number)}
+                  className={`px-3 py-1.5 text-sm rounded-md border transition ${
+                    currentPage === num
+                      ? "bg-[#0694A2] text-white border-[#0694A2] shadow-sm"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                  }`}
+                >
+                  {num}
+                </button>
+              )
+            );
+          })()}
+
+          {/* Next */}
           <button
             disabled={currentPage === totalPages}
             onClick={() =>
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
-            className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-[#8E938F] rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
             &gt;
           </button>

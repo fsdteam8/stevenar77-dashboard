@@ -70,7 +70,7 @@ export default function ScheduleCalendar() {
   const { data, isLoading, isError, refetch } = useAllCourses();
   const singleUpdateCourseMutation = useSingleUpdateCourse();
 
-  console.log(data);
+  // console.log(data);
 
   // Wrapper to use mutation as async/await
   const updateSingleCourseAsync = async (id: string, formData: FormData) => {
