@@ -620,7 +620,7 @@ export const singleUpdateCourse = async (
   courseData: FormData
 ) => {
   try {
-    const res = await api.put(`/class/update/${id}`, courseData, {
+    const res = await api.patch(`/class/update/${id}`, courseData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
