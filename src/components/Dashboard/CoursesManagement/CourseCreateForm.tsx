@@ -23,11 +23,13 @@ interface CourseFormData {
   location: string;
   timeSlots: string;
   schedule: Array<{
+    title: string;
+    description: string;
+    participents: number;
     sets: Array<{
       date: string;
       location: string;
       type: string;
-      // isActive: boolean;
     }>;
   }>;
   instructorAssignment: string;
@@ -103,14 +105,16 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
 
   const [scheduleSets, setScheduleSets] = useState<
     Array<{
+      title: string;
+      description: string;
+      participents: number;
       sets: Array<{
         date: string;
         location: string;
         type: string;
-        // isActive: boolean;
       }>;
     }>
-  >([{ sets: [] }]);
+  >([{ title: "", description: "", participents: 0, sets: [] }]);
 
   const toBackendUTC = (date: Date, offsetHours: number = -6) => {
     const d = new Date(date);
@@ -124,26 +128,44 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
       const loadedSets =
         Array.isArray(courseData.schedule) && courseData.schedule.length > 0
           ? courseData.schedule.map((scheduleItem: any) => ({
+              title: scheduleItem.title || "",
+              description: scheduleItem.description || "",
+              participents: scheduleItem.participents,
               sets: Array.isArray(scheduleItem.sets)
                 ? scheduleItem.sets.map((item: any) => ({
                     date: item.date || "",
                     location: item.location || "",
-                    type: item.type || "pool",
-                    // isActive: item.isActive !== undefined ? item.isActive : true,
+                    // type: item.type || "pool",
                   }))
                 : [],
             }))
-          : [{ sets: [] }];
+          : [{ title: "", description: "", participents: 0, sets: [] }];
       setScheduleSets(loadedSets);
     }
   }, [mode, courseData]);
 
+
   const handleAddScheduleSet = () => {
-    setScheduleSets((prev) => [...prev, { sets: [] }]);
+    setScheduleSets((prev) => [
+      ...prev,
+      { title: "", description: "", participents: 0, sets: [] },
+    ]);
   };
 
   const handleRemoveScheduleSet = (setIndex: number) => {
     setScheduleSets((prev) => prev.filter((_, i) => i !== setIndex));
+  };
+
+  const handleScheduleFieldChange = (
+    setIndex: number,
+    field: "title" | "description" | "participents",
+    value: string | number
+  ) => {
+    setScheduleSets((prev) =>
+      prev.map((scheduleSet, i) =>
+        i === setIndex ? { ...scheduleSet, [field]: value } : scheduleSet
+      )
+    );
   };
 
   const handleAddClassDate = (setIndex: number) => {
@@ -154,7 +176,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
               ...scheduleSet,
               sets: [
                 ...scheduleSet.sets,
-                { date: "", location: "", type: "pool", },
+                { date: "", location: "", type: "pool" },
               ],
             }
           : scheduleSet
@@ -215,29 +237,10 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     );
   };
 
-  const handleClassTypeChange = (
-    setIndex: number,
-    dateIndex: number,
-    type: string
-  ) => {
-    setScheduleSets((prev) =>
-      prev.map((scheduleSet, i) =>
-        i === setIndex
-          ? {
-              ...scheduleSet,
-              sets: scheduleSet.sets.map((item, j) =>
-                j === dateIndex ? { ...item, type } : item
-              ),
-            }
-          : scheduleSet
-      )
-    );
-  };
-
-  // const handleClassActiveChange = (
+  // const handleClassTypeChange = (
   //   setIndex: number,
   //   dateIndex: number,
-  //   isActive: boolean
+  //   type: string
   // ) => {
   //   setScheduleSets((prev) =>
   //     prev.map((scheduleSet, i) =>
@@ -245,7 +248,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
   //         ? {
   //             ...scheduleSet,
   //             sets: scheduleSet.sets.map((item, j) =>
-  //               j === dateIndex ? { ...item, isActive } : item
+  //               j === dateIndex ? { ...item, type } : item
   //             ),
   //           }
   //         : scheduleSet
@@ -261,11 +264,11 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     { value: "Divers Medical", label: "Divers Medical" },
     { value: "Enriched Training", label: "Enriched Training" },
     { value: "Equipment Rental", label: "Equipment Rental" },
-    {
-      value: "Enriched Air -Quick Review",
-      label: "Enriched Air -Quick Review",
-    },
-    { value: "Resque Diver-Quick Review", label: "Resque Diver-Quick Review" },
+    // {
+    //   value: "Enriched Air -Quick Review",
+    //   label: "Enriched Air -Quick Review",
+    // },
+    // { value: "Resque Diver-Quick Review", label: "Resque Diver-Quick Review" },
   ];
 
   const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -471,13 +474,15 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
       // Append schedule in the correct backend format
       if (scheduleSets.length > 0) {
         const scheduleData = scheduleSets.map((scheduleSet) => ({
+          title: scheduleSet.title || "",
+          description: scheduleSet.description || "",
+          participents: scheduleSet.participents || 0,
           sets: scheduleSet.sets
             .filter((item) => item.date)
             .map((item) => ({
               date: item.date,
               location: item.location || "",
               type: item.type || "pool",
-              // isActive: item.isActive !== undefined ? item.isActive : true,
             })),
         }));
 
@@ -539,7 +544,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
             : await courseApi.createCourse(formDataToSend);
       }
 
-      console.log(formData)
+      console.log(formData);
 
       if (response.success) {
         setSubmitMessage({
@@ -568,7 +573,9 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
             addOnce: [],
           });
           setSelectedFile(null);
-          setScheduleSets([{ sets: [] }]);
+          setScheduleSets([
+            { title: "", description: "", participents: 0, sets: [] },
+          ]);
           if (previewUrl) URL.revokeObjectURL(previewUrl);
           setPreviewUrl(null);
           setExistingImageUrl(null);
@@ -610,7 +617,9 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
         addOnce: [],
       });
       setSelectedFile(null);
-      setScheduleSets([{ sets: [] }]);
+      setScheduleSets([
+        { title: "", description: "", participents: 0, sets: [] },
+      ]);
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       setPreviewUrl(null);
       setExistingImageUrl(null);
@@ -665,6 +674,20 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
                     />
                   </div>
+                  {/* Location */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Course location *
+                    </label>
+                    <input
+                      type="text"
+                      name="location"
+                      placeholder="location"
+                      value={formData.location}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                    />
+                  </div>
                 </div>
 
                 {/* ✅ React Quill Editor for Description */}
@@ -686,7 +709,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Price *{" "}
                       <span className="text-xs text-gray-500">
-                        (new line-separated for multiple prices)
+                        {/* (new line-separated for multiple prices) */}
                       </span>
                     </label>
                     <input
@@ -751,8 +774,8 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
 
                     {scheduleSets.length === 0 ? (
                       <p className="text-sm text-gray-500 italic">
-                        No schedule sets added yet. Click &ldquo;Create New Set&quot; to
-                        add a set.
+                        No schedule sets added yet. Click &ldquo;Create New
+                        Set&quot; to add a set.
                       </p>
                     ) : (
                       <div className="space-y-6">
@@ -763,14 +786,12 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                           >
                             <div className="flex items-center justify-between mb-4">
                               <h4 className="text-base font-semibold text-gray-800">
-                               Date Schedule  {setIndex + 1}
+                                Date Schedule {setIndex + 1}
                               </h4>
                               <div className="flex items-center gap-2">
                                 <button
                                   type="button"
-                                  onClick={() =>
-                                    handleAddClassDate(setIndex)
-                                  }
+                                  onClick={() => handleAddClassDate(setIndex)}
                                   className="inline-flex items-center justify-center w-8 h-8 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors cursor-pointer"
                                   title="Add date to this set"
                                 >
@@ -791,6 +812,65 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                               </div>
                             </div>
 
+                            {/* Schedule Details Fields */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 bg-blue-100 p-4 rounded-lg border border-gray-200">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                  Schedule Title *
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Enter schedule title"
+                                  value={scheduleSet.title}
+                                  onChange={(e) =>
+                                    handleScheduleFieldChange(
+                                      setIndex,
+                                      "title",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full px-3 py-2 border border-primary rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                  Schedule Description
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="Enter description"
+                                  value={scheduleSet.description}
+                                  onChange={(e) =>
+                                    handleScheduleFieldChange(
+                                      setIndex,
+                                      "description",
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full px-3 py-2 border border-primary rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                  Total participents *
+                                </label>
+                                <input
+                                  type="number"
+                                  placeholder="Enter number"
+                                  value={scheduleSet.participents}
+                                  onChange={(e) =>
+                                    handleScheduleFieldChange(
+                                      setIndex,
+                                      "participents",
+                                      parseInt(e.target.value) || 0
+                                    )
+                                  }
+                                  min="0"
+                                  className="w-full px-3 py-2 border border-primary rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                                />
+                              </div>
+                            </div>
+
                             {scheduleSet.sets.length === 0 ? (
                               <p className="text-sm text-gray-500 italic">
                                 No dates in this set. Click the + button to add
@@ -803,7 +883,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                                     key={dateIndex}
                                     className="flex gap-3 items-start bg-gray-50 p-4 rounded-lg border border-gray-200"
                                   >
-                                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-2 gap-3">
                                       <div>
                                         <label className="block text-xs font-medium text-gray-600 mb-1">
                                           Select Date *
@@ -822,9 +902,9 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                                             )
                                           }
                                           minDate={new Date()}
-                                          dateFormat="dd/MM/yyyy"
+                                          dateFormat="MM/dd/yyyy"
                                           placeholderText="Select a date"
-                                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                                          className="w-[400px] px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
                                         />
                                       </div>
                                       <div>
@@ -845,7 +925,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
                                         />
                                       </div>
-                                      <div>
+                                      {/* <div>
                                         <label className="block text-xs font-medium text-gray-600 mb-1">
                                           Type *
                                         </label>
@@ -861,32 +941,10 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none bg-white"
                                         >
                                           <option value="pool">Pool</option>
-                                          <option value="islands">islands</option>
+                                          <option value="islands">
+                                            islands
+                                          </option>
                                         </select>
-                                      </div>
-                                      {/* <div>
-                                        <label className="block text-xs font-medium text-gray-600 mb-1">
-                                          Status
-                                        </label>
-                                        <div className="flex items-center h-[42px]">
-                                          <label className="flex items-center cursor-pointer">
-                                            <input
-                                              type="checkbox"
-                                              checked={item.isActive}
-                                              onChange={(e) =>
-                                                handleClassActiveChange(
-                                                  setIndex,
-                                                  dateIndex,
-                                                  e.target.checked
-                                                )
-                                              }
-                                              className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
-                                            />
-                                            <span className="ml-2 text-sm text-gray-700">
-                                              Active
-                                            </span>
-                                          </label>
-                                        </div>
                                       </div> */}
                                     </div>
                                     <button
@@ -1015,7 +1073,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                     <button
                       type="button"
                       onClick={handleAddItem}
-                      className="inline-flex items-center justify-center w-8 h-8 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors"
+                      className="inline-flex items-center justify-center w-8 h-8 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors cursor-pointer"
                       title="Add new item"
                     >
                       <Plus className="w-4 h-4" />
@@ -1069,7 +1127,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                           <button
                             type="button"
                             onClick={() => handleRemoveItem(index)}
-                            className="text-red-500 hover:text-red-700 p-2 rounded-md hover:bg-red-50 transition-colors"
+                            className="text-red-500 hover:text-red-700 p-2 rounded-md hover:bg-red-50 transition-colors cursor-pointer"
                             title="Remove item"
                           >
                             <X className="w-5 h-5" />
