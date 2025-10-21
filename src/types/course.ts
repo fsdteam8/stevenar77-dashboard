@@ -1,11 +1,12 @@
+import { ScheduleSet } from "@/components/Dashboard/Table/BookingTable";
+
 export interface ApiImage {
   public_id: string;
   url: string;
 }
 
 export interface ApiCourse {
-  //eslint-disable-next-line @typescript-eslint/no-explicit-any
-  classDates: any;
+  classDates: string[];
   _id: string;
   title: string;
   description: string;
@@ -30,7 +31,11 @@ export interface ApiCourse {
   updatedAt: string;
   isActive: boolean;
   index: number;
+
+  /** 👇 Add this */
+  schedule?: ScheduleSet[];
 }
+
 
 export interface ApiResponse<T> {
   success: boolean;
