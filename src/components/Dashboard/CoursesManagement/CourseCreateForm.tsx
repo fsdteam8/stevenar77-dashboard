@@ -144,7 +144,6 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     }
   }, [mode, courseData]);
 
-
   const handleAddScheduleSet = () => {
     setScheduleSets((prev) => [
       ...prev,
@@ -881,10 +880,11 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                                 {scheduleSet.sets.map((item, dateIndex) => (
                                   <div
                                     key={dateIndex}
-                                    className="flex gap-3 items-start bg-gray-50 p-4 rounded-lg border border-gray-200"
+                                    className="flex flex-col md:flex-row gap-3 items-start bg-gray-50 p-4 rounded-lg border border-gray-200"
                                   >
-                                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-2 gap-3">
-                                      <div>
+                                    <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 w-full">
+                                      {/* Date Picker */}
+                                      <div className="w-full">
                                         <label className="block text-xs font-medium text-gray-600 mb-1">
                                           Select Date *
                                         </label>
@@ -904,10 +904,12 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                                           minDate={new Date()}
                                           dateFormat="MM/dd/yyyy"
                                           placeholderText="Select a date"
-                                          className="w-[400px] px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none text-sm"
                                         />
                                       </div>
-                                      <div>
+
+                                      {/* Location Input */}
+                                      <div className="w-full">
                                         <label className="block text-xs font-medium text-gray-600 mb-1">
                                           Location *
                                         </label>
@@ -922,31 +924,12 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                                               e.target.value
                                             )
                                           }
-                                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none text-sm"
                                         />
                                       </div>
-                                      {/* <div>
-                                        <label className="block text-xs font-medium text-gray-600 mb-1">
-                                          Type *
-                                        </label>
-                                        <select
-                                          value={item.type}
-                                          onChange={(e) =>
-                                            handleClassTypeChange(
-                                              setIndex,
-                                              dateIndex,
-                                              e.target.value
-                                            )
-                                          }
-                                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none bg-white"
-                                        >
-                                          <option value="pool">Pool</option>
-                                          <option value="islands">
-                                            islands
-                                          </option>
-                                        </select>
-                                      </div> */}
                                     </div>
+
+                                    {/* Remove button */}
                                     <button
                                       type="button"
                                       onClick={() =>
@@ -955,7 +938,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                                           dateIndex
                                         )
                                       }
-                                      className="text-red-500 hover:text-red-700 p-2 rounded-md hover:bg-red-50 transition-colors mt-5 cursor-pointer"
+                                      className="text-red-500 hover:text-red-700 p-2 rounded-md hover:bg-red-50 transition-colors md:mt-5 self-end md:self-auto"
                                       title="Remove date"
                                     >
                                       <X className="w-5 h-5" />
