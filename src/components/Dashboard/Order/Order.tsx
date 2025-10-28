@@ -68,7 +68,6 @@ const OrdersTable = () => {
   //     }
   //   };
 
-
   if (isLoading)
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -207,33 +206,71 @@ const OrdersTable = () => {
           {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems}{" "}
           results
         </p>
+
         <div className="flex items-center gap-2">
+          {/* Previous */}
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-[#8E938F] rounded cursor-pointer"
+            className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-[#8E938F] rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             &lt;
           </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
-            <button
-              key={num}
-              onClick={() => setCurrentPage(num)}
-              className={`px-3 py-1 rounded ${
-                currentPage === num
-                  ? "bg-[#0694A2] text-white cursor-pointer"
-                  : "bg-gray-100 text-gray-700 border border-[#0694A2] cursor-pointer"
-              }`}
-            >
-              {num}
-            </button>
-          ))}
+
+          {/* Dynamic Pagination Numbers */}
+          {(() => {
+            const visiblePages: (number | string)[] = [];
+
+            // If total pages <= 6 → show all
+            if (totalPages <= 6) {
+              for (let i = 1; i <= totalPages; i++) visiblePages.push(i);
+            } else {
+              // Always show the first page
+              visiblePages.push(1);
+
+              // Show left ellipsis if currentPage > 3
+              if (currentPage > 3) visiblePages.push("...");
+
+              // Show middle pages
+              const start = Math.max(2, currentPage - 1);
+              const end = Math.min(totalPages - 1, currentPage + 1);
+              for (let i = start; i <= end; i++) visiblePages.push(i);
+
+              // Show right ellipsis if currentPage < totalPages - 2
+              if (currentPage < totalPages - 2) visiblePages.push("...");
+
+              // Always show the last page
+              visiblePages.push(totalPages);
+            }
+
+            return visiblePages.map((num, idx) =>
+              num === "..." ? (
+                <span key={idx} className="px-2 text-gray-400 select-none">
+                  ...
+                </span>
+              ) : (
+                <button
+                  key={num}
+                  onClick={() => setCurrentPage(num as number)}
+                  className={`px-3 py-1 rounded border ${
+                    currentPage === num
+                      ? "bg-[#0694A2] text-white border-[#0694A2]"
+                      : "bg-gray-100 text-gray-700 border border-[#0694A2] hover:bg-gray-200"
+                  } cursor-pointer`}
+                >
+                  {num}
+                </button>
+              )
+            );
+          })()}
+
+          {/* Next */}
           <button
             disabled={currentPage === totalPages}
             onClick={() =>
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
-            className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-[#8E938F] rounded cursor-pointer"
+            className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-[#8E938F] rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             &gt;
           </button>
@@ -246,7 +283,7 @@ const OrdersTable = () => {
         onOpenChange={() => setSelectedOrder(null)}
       >
         <DialogContent className="max-w-3xl p-6 rounded-2xl">
-          {selectedOrder && (
+          {selectedOrder && (  
             <div
               className="flex flex-col gap-8"
               style={{ maxHeight: "80vh", overflowY: "auto" }}

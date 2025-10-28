@@ -6,6 +6,7 @@ import type {
   // PaginationParams,
   // CourseFilters,
 } from "@/types/course";
+import { useQuery } from "@tanstack/react-query";
 
 import axios from "axios";
 
@@ -379,7 +380,7 @@ export const courseApi = {
     courseData: Partial<FormData>
   ): Promise<CourseApiResponse<ApiCourse>> => {
     try {
-      const res = await api.put(`/class/update/${id}`, courseData, {
+      const res = await api.patch(`/class/update/${id}`, courseData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -619,7 +620,7 @@ export const singleUpdateCourse = async (
   courseData: FormData
 ) => {
   try {
-    const res = await api.put(`/class/update/${id}`, courseData, {
+    const res = await api.patch(`/class/update/${id}`, courseData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -657,21 +658,29 @@ export async function updateSocial(id: string, data: Social) {
   }
 }
 
-export async function sentQuickReview(id: string, link: string) {
+// send quick review form link api
+export async function sentQuickReview(userId: string, link: string, token: string) {
   const data = {
-    userId: id,
+    userId: userId,
     formLink: link,
+    token: token
   };
+  
   try {
-    const res = await api.post(`class/bookings/send-form-link`, data);
-    // console.log("3", res.data);
+    const res = await api.post(`/class/bookings/send-form-link`, data, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      }
+    });
     return res.data;
   } catch (err) {
-    console.log("4", err);
-    if (err instanceof Error) throw new Error("Failed to update social data");
+    console.error("Error sending review:", err);
+    if (err instanceof Error) throw new Error(err.message || "Failed to send review form");
     throw err;
   }
 }
+
 
 // About Gallery Images Delete api
 export async function galleryImageDelete(aboutId: string, imageId: string) {
@@ -693,4 +702,30 @@ export async function allOrder(page = 1, limit = 10) {
     console.error("Error fetching orders:", err);
     throw new Error("Failed to fetch all orders with pagination");
   }
+}
+
+
+// hupdateReassignBooking API function 
+export async function updateReassignBooking(id: string, newScheduleId: string) {
+  try {
+    const res = await api.put(`/class/bookings/re-assign/${id}`, {
+      newScheduleId,
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Error updating booking re-assignment:", err);
+    if (err instanceof Error)
+      throw new Error("Failed to reassign booking schedule");
+    throw err;
+  }
+}
+
+
+// I couldn’t create this hook inside the courses.ts file, so I implemented it directly in api.ts instead. Sorry about that.
+export function useSingleUpdateCourse(id: string) {
+  return useQuery({
+    queryKey: ["singleCourse", id],
+    queryFn: () => courseApi.getCourse(id),
+    enabled: !!id,  
+  });
 }
