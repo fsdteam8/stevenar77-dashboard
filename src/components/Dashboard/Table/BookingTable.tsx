@@ -38,6 +38,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useReassignBooking } from "@/hooks/course/useCourses";
 import { useSession } from "next-auth/react";
+import Script from "next/script";
 
 export type Participant = {
   _id: string;
@@ -176,6 +177,7 @@ const BookingTable: React.FC = () => {
   const reassignBookingMutation = useReassignBooking();
 
   console.log(bookings);
+  console.log("bookings er data", selectedBooking?.dates);
 
   const course = data?.data;
 
@@ -593,127 +595,209 @@ const BookingTable: React.FC = () => {
                                   />
                                 </div>
 
-                                <div className="flex-1 space-y-2">
-                                  <p>
-                                    <strong>Invoice:</strong> #
-                                    {selectedBooking.invoice.slice(-4) || "N/A"}
-                                  </p>
-                                  <p>
-                                    <strong>Customer:</strong>{" "}
-                                    {selectedBooking.customerName || "N/A"}
-                                  </p>
-                                  <p>
-                                    <strong>Email:</strong>{" "}
-                                    {selectedBooking.customerEmail || "N/A"}
-                                  </p>
-                                  <p>
-                                    <strong>Price:</strong> $
-                                    {selectedBooking.price?.toLocaleString() ||
-                                      "N/A"}
-                                  </p>
-                                  {/* <p>
-                                    <strong>Status:</strong>{" "}
-                                    <span
-                                      className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeStyle(
-                                        selectedBooking.status
-                                      )}`}
-                                    >
-                                      {selectedBooking.status || "N/A"}
-                                    </span>
-                                  </p> */}
-                                  <p>
-                                    <strong>Date:</strong>{" "}
-                                    {selectedBooking.createdAt || "N/A"}
-                                  </p>
-                                  {/* <p>
-                                    <strong>Location:</strong>{" "}
-                                    {selectedBooking.location || "N/A"}
-                                  </p> */}
-                                </div>
-                              </div>
+                                <div className="flex-1">
+                                  <div className="p-6 bg-white rounded-2xl shadow-lg border border-gray-100 space-y-4">
+                                    {/* Info Grid */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
+                                      <p>
+                                        <strong className="text-gray-900">
+                                          Invoice:
+                                        </strong>{" "}
+                                        <span className="text-gray-600">
+                                          #
+                                          {selectedBooking.invoice?.slice(-4) ||
+                                            "N/A"}
+                                        </span>
+                                      </p>
+                                      <p>
+                                        <strong className="text-gray-900">
+                                          Customer:
+                                        </strong>{" "}
+                                        <span className="text-gray-600">
+                                          {selectedBooking.customerName ||
+                                            "N/A"}
+                                        </span>
+                                      </p>
+                                      <p className="sm:col-span-2">
+                                        <strong className="text-gray-900">
+                                          Email:
+                                        </strong>{" "}
+                                        <span className="text-gray-600">
+                                          {selectedBooking.customerEmail ||
+                                            "N/A"}
+                                        </span>
+                                      </p>
+                                      <p>
+                                        <strong className="text-gray-900">
+                                          Price:
+                                        </strong>{" "}
+                                        <span className="font-semibold text-[#0694a2]">
+                                          $
+                                          {selectedBooking.price?.toLocaleString() ||
+                                            "N/A"}
+                                        </span>
+                                      </p>
+                                    </div>
 
-                              <div className="bg-white rounded-xl shadow-md p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-4">
-                                  <p>
-                                    <strong>Class Description:</strong>{" "}
-                                    <span
-                                      dangerouslySetInnerHTML={{
-                                        __html:
-                                          selectedBooking?.description || "N/A",
-                                      }}
-                                    />
-                                  </p>
-                                  <p>
-                                    <strong>Duration:</strong>{" "}
-                                    {selectedBooking.duration || "N/A"}
-                                  </p>
+                                    {/* Date Box */}
+                                    <div className="mt-5 bg-gradient-to-br from-[#e6f9fa] to-[#f9fdfd] border border-[#0694a2]/20 rounded-xl p-4 shadow-inner">
+                                      <h3 className="text-base font-semibold text-[#0694a2] mb-3 flex items-center gap-2">
+                                        Course Date
+                                      </h3>
 
-                                  <div>
-                                    <p className="font-semibold">
-                                      Course Includes:
-                                    </p>
-                                    <ul className="list-disc list-inside ml-4">
-                                      {selectedBooking.courseIncludes
-                                        ?.length ? (
-                                        selectedBooking.courseIncludes.map(
-                                          (item, idx) => (
-                                            <li key={idx}>{item}</li>
-                                          )
-                                        )
+                                      {selectedBooking.dates &&
+                                      selectedBooking.dates.length > 0 ? (
+                                        <div className="flex flex-wrap gap-2">
+                                          {selectedBooking.dates.map(
+                                            (date, index) => (
+                                              <div
+                                                key={index}
+                                                className="px-3 py-1.5 bg-white border border-[#0694a2]/30 rounded-lg text-sm text-gray-700 shadow-sm"
+                                              >
+                                                {date}
+                                              </div>
+                                            )
+                                          )}
+                                        </div>
                                       ) : (
-                                        <li>N/A</li>
-                                      )}
-                                    </ul>
-                                  </div>
-
-                                  <div>
-                                    <p className="font-semibold">Documents:</p>
-                                    <div className="flex flex-col gap-1 ml-4">
-                                      {selectedBooking.medicalDocuments
-                                        ?.length ? (
-                                        selectedBooking.medicalDocuments.map(
-                                          (doc) => (
-                                            <a
-                                              key={doc._id}
-                                              href={doc.url}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="text-teal-600 underline hover:text-teal-800 transition-colors"
-                                            >
-                                              {doc.public_id}
-                                            </a>
-                                          )
-                                        )
-                                      ) : (
-                                        <span>N/A</span>
+                                        <p className="text-gray-400 italic">
+                                          N/A
+                                        </p>
                                       )}
                                     </div>
                                   </div>
                                 </div>
+                              </div>
 
-                                <div className="space-y-4">
-                                  <p>
-                                    <strong>Gender:</strong>{" "}
-                                    {selectedBooking.gender || "N/A"}
-                                  </p>
-                                  <p>
-                                    <strong>Hight:</strong>{" "}
-                                    {selectedBooking.hight || "N/A"}
-                                  </p>
-                                  <p>
-                                    <strong>Weight:</strong>{" "}
-                                    {selectedBooking.weight || "N/A"}
-                                  </p>
-                                  <p>
-                                    <strong>Shoe Size:</strong>{" "}
-                                    {selectedBooking.shoeSize || "N/A"}
-                                  </p>
-                                  <p>
-                                    <strong>Active:</strong>{" "}
-                                    {selectedBooking.isActive ? "Yes" : "No"}
-                                  </p>
+                              <div className="bg-white rounded-2xl shadow-lg p-6 grid grid-cols-1 md:grid-cols-2 gap-8 border border-gray-100">
+                                {/* Left Side */}
+                                <div className="space-y-5">
+                                  <h2 className="text-lg font-semibold text-[#0694a2] border-b pb-2">
+                                    Course Information
+                                  </h2>
+
+                                  <div className="space-y-3 text-sm text-gray-700">
+                                    <p>
+                                      <strong className="text-gray-900">
+                                        Class Description:
+                                      </strong>{" "}
+                                      <span
+                                        dangerouslySetInnerHTML={{
+                                          __html:
+                                            selectedBooking?.description ||
+                                            "N/A",
+                                        }}
+                                      />
+                                    </p>
+
+                                    <p>
+                                      <strong className="text-gray-900">
+                                        Duration:
+                                      </strong>{" "}
+                                      {selectedBooking.duration || "N/A"}
+                                    </p>
+
+                                    {/* Course Includes */}
+                                    <div>
+                                      <p className="font-semibold text-gray-900 mb-1">
+                                        Course Includes:
+                                      </p>
+                                      <ul className="list-disc list-inside ml-4 text-gray-700 space-y-0.5">
+                                        {selectedBooking.courseIncludes
+                                          ?.length ? (
+                                          selectedBooking.courseIncludes.map(
+                                            (item, idx) => (
+                                              <li key={idx}>{item}</li>
+                                            )
+                                          )
+                                        ) : (
+                                          <li>N/A</li>
+                                        )}
+                                      </ul>
+                                    </div>
+
+                                    {/* Documents */}
+                                    <div>
+                                      <p className="font-semibold text-gray-900 mb-1">
+                                        Documents:
+                                      </p>
+                                      <div className="flex flex-col gap-1 ml-4">
+                                        {selectedBooking.medicalDocuments
+                                          ?.length ? (
+                                          selectedBooking.medicalDocuments.map(
+                                            (doc) => (
+                                              <a
+                                                key={doc._id}
+                                                href={doc.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-[#0694a2] underline hover:text-[#047f8d] transition-colors"
+                                              >
+                                                {doc.public_id}
+                                              </a>
+                                            )
+                                          )
+                                        ) : (
+                                          <span className="text-gray-500">
+                                            N/A
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Right Side */}
+                                <div className="space-y-5">
+                                  <h2 className="text-lg font-semibold text-[#0694a2] border-b pb-2">
+                                    Personal Information
+                                  </h2>
+
+                                  <div className="space-y-3 text-sm text-gray-700">
+                                    <p>
+                                      <strong className="text-gray-900">
+                                        Gender:
+                                      </strong>{" "}
+                                      {selectedBooking.gender || "N/A"}
+                                    </p>
+                                    <p>
+                                      <strong className="text-gray-900">
+                                        Height:
+                                      </strong>{" "}
+                                      {selectedBooking.hight || "N/A"}
+                                    </p>
+                                    <p>
+                                      <strong className="text-gray-900">
+                                        Weight:
+                                      </strong>{" "}
+                                      {selectedBooking.weight || "N/A"}
+                                    </p>
+                                    <p>
+                                      <strong className="text-gray-900">
+                                        Shoe Size:
+                                      </strong>{" "}
+                                      {selectedBooking.shoeSize || "N/A"}
+                                    </p>
+                                    <p>
+                                      <strong className="text-gray-900">
+                                        Active:
+                                      </strong>{" "}
+                                      <span
+                                        className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                          selectedBooking.isActive
+                                            ? "bg-green-100 text-green-700"
+                                            : "bg-red-100 text-red-700"
+                                        }`}
+                                      >
+                                        {selectedBooking.isActive
+                                          ? "Yes"
+                                          : "No"}
+                                      </span>
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
+
                             </div>
                           )}
 
