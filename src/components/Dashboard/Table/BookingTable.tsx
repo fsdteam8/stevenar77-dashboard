@@ -974,7 +974,7 @@ const BookingTable: React.FC = () => {
                                                         }
                                                       </div>
                                                       <div className="text-xs text-gray-500 font-medium">
-                                                        Total Available Slots
+                                                        Total Available Participents
                                                       </div>
                                                     </div>
 
