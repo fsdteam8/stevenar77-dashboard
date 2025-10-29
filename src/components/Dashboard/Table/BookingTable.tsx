@@ -689,36 +689,35 @@ console.log("Single Booking Data:", singleBooking?.data);
                                 <h3 className="text-base font-semibold text-[#0694a2] mb-3 flex items-center gap-2">
                                   Course Date
                                 </h3>
-
                                 {scheduleDates && scheduleDates.length > 0 ? (
-  <div className="flex flex-wrap gap-2">
-    {scheduleDates.map((item, index) => (
-      <div
-        key={item._id || index}
-        className="px-3 py-1.5 bg-white border border-[#0694a2]/30 rounded-lg text-sm text-gray-700 shadow-sm"
-      >
-        <div className="font-medium">
-          {item.date
-            ? new Date(item.date).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })
-            : "N/A"}
-        </div>
-        {item.type && (
-          <div className="text-xs text-gray-500 mt-0.5">
-            {item.type}
-          </div>
-        )}
-      </div>
-    ))}
-  </div>
-) : (
-  <p className="text-gray-400 italic">
-    No dates available
-  </p>
-)}
+                                    <div className="flex flex-wrap gap-2">
+                                      {scheduleDates.map((item, index) => (
+                                        <div
+                                          key={item._id || index}
+                                          className="px-3 py-1.5 bg-white border border-[#0694a2]/30 rounded-lg text-sm text-gray-700 shadow-sm"
+                                        >
+                                          <div className="font-medium">
+                                            {item.date
+                                              ? new Date(item.date).toLocaleDateString("en-US", {
+                                                  year: "numeric",
+                                                  month: "short",
+                                                  day: "numeric",
+                                                })
+                                              : "N/A"}
+                                          </div>
+                                          {item.type && (
+                                            <div className="text-xs text-gray-500 mt-0.5">
+                                              {item.type}
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <p className="text-gray-400 italic">
+                                      No dates available
+                                    </p>
+                                  )}
                               </div>
                                   </div>
                                 </div>
