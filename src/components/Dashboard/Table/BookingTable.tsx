@@ -9,9 +9,11 @@ import {
   Calendar,
   MapPin,
   ChevronDown,
+  Trash,
 } from "lucide-react";
 import Image from "next/image";
 import {
+  deleteBooking,
   getAllBookings,
   sentQuickReview,
   useSingleUpdateCourse,
@@ -38,7 +40,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useReassignBooking } from "@/hooks/course/useCourses";
 import { useSession } from "next-auth/react";
-import Script from "next/script";
+import { useSingleBooking } from "@/hooks/useBooking";
 
 export type Participant = {
   _id: string;
@@ -149,8 +151,11 @@ export type BookingAPIResponse = {
 };
 
 export interface ScheduleDate {
+  _id?: string;
   date: string;
   location: string;
+  type?: string;
+  isActive?: boolean;
 }
 
 export interface ScheduleSet {
@@ -161,6 +166,7 @@ export interface ScheduleSet {
   totalParticipents?: number;
   sets: ScheduleDate[];
 }
+
 const itemsPerPage = 8;
 
 const BookingTable: React.FC = () => {
@@ -176,8 +182,28 @@ const BookingTable: React.FC = () => {
   // Reassign booking mutation
   const reassignBookingMutation = useReassignBooking();
 
-  console.log(bookings);
-  console.log("bookings er data", selectedBooking?.dates);
+const id = selectedBooking?.id;
+const { data: singleBooking } = useSingleBooking(id || "");
+const [scheduleDates, setScheduleDates] = useState<ScheduleDate[]>([]);
+
+useEffect(() => {
+  // Check if scheduleData.sets exists
+  if (singleBooking?.data?.scheduleData?.sets) {
+    setScheduleDates(singleBooking.data.scheduleData.sets);
+  } 
+  // Fallback to classDate if scheduleData doesn't exist
+  else if (singleBooking?.data?.classDate) {
+    const datesArray = singleBooking.data.classDate as string[];
+    const datesSet = new Set(datesArray);
+
+    setScheduleDates(
+      Array.from(datesSet).map((date) => ({ date, location: "TBD" }))
+    );
+  }
+}, [singleBooking]);
+
+console.log("Schedule Dates:", scheduleDates);
+console.log("Single Booking Data:", singleBooking?.data);
 
   const course = data?.data;
 
@@ -462,6 +488,22 @@ const BookingTable: React.FC = () => {
     );
   };
 
+  // This is Bk=ooking Delete Handler
+  const handleBookingDelete = async (id: string) => {
+    try {
+      if (!session?.accessToken) {
+        toast.error("User not authenticated!");
+        return;
+      }
+      // Call delete API
+      await deleteBooking(id, session.accessToken);
+      toast.success("Booking deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting booking:", error);
+      toast.error("Failed to delete booking. Please try again.");
+    }
+  };
+
   if (loading)
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -500,6 +542,9 @@ const BookingTable: React.FC = () => {
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Action
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Delete
               </th>
             </tr>
           </thead>
@@ -640,31 +685,40 @@ const BookingTable: React.FC = () => {
                                     </div>
 
                                     {/* Date Box */}
-                                    <div className="mt-5 bg-gradient-to-br from-[#e6f9fa] to-[#f9fdfd] border border-[#0694a2]/20 rounded-xl p-4 shadow-inner">
-                                      <h3 className="text-base font-semibold text-[#0694a2] mb-3 flex items-center gap-2">
-                                        Course Date
-                                      </h3>
-
-                                      {selectedBooking.dates &&
-                                      selectedBooking.dates.length > 0 ? (
-                                        <div className="flex flex-wrap gap-2">
-                                          {selectedBooking.dates.map(
-                                            (date, index) => (
-                                              <div
-                                                key={index}
-                                                className="px-3 py-1.5 bg-white border border-[#0694a2]/30 rounded-lg text-sm text-gray-700 shadow-sm"
-                                              >
-                                                {date}
-                                              </div>
-                                            )
+                              <div className="mt-5 bg-gradient-to-br from-[#e6f9fa] to-[#f9fdfd] border border-[#0694a2]/20 rounded-xl p-4 shadow-inner">
+                                <h3 className="text-base font-semibold text-[#0694a2] mb-3 flex items-center gap-2">
+                                  Course Date
+                                </h3>
+                                {scheduleDates && scheduleDates.length > 0 ? (
+                                    <div className="flex flex-wrap gap-2">
+                                      {scheduleDates.map((item, index) => (
+                                        <div
+                                          key={item._id || index}
+                                          className="px-3 py-1.5 bg-white border border-[#0694a2]/30 rounded-lg text-sm text-gray-700 shadow-sm"
+                                        >
+                                          <div className="font-medium">
+                                            {item.date
+                                              ? new Date(item.date).toLocaleDateString("en-US", {
+                                                  year: "numeric",
+                                                  month: "short",
+                                                  day: "numeric",
+                                                })
+                                              : "N/A"}
+                                          </div>
+                                          {item.type && (
+                                            <div className="text-xs text-gray-500 mt-0.5">
+                                              {item.type}
+                                            </div>
                                           )}
                                         </div>
-                                      ) : (
-                                        <p className="text-gray-400 italic">
-                                          N/A
-                                        </p>
-                                      )}
+                                      ))}
                                     </div>
+                                  ) : (
+                                    <p className="text-gray-400 italic">
+                                      No dates available
+                                    </p>
+                                  )}
+                              </div>
                                   </div>
                                 </div>
                               </div>
@@ -797,7 +851,6 @@ const BookingTable: React.FC = () => {
                                   </div>
                                 </div>
                               </div>
-
                             </div>
                           )}
 
@@ -974,7 +1027,8 @@ const BookingTable: React.FC = () => {
                                                         }
                                                       </div>
                                                       <div className="text-xs text-gray-500 font-medium">
-                                                        Total Available Participents
+                                                        Total Available
+                                                        Participents
                                                       </div>
                                                     </div>
 
@@ -1162,6 +1216,10 @@ const BookingTable: React.FC = () => {
                       </Dialog>
                     </DropdownMenuContent>
                   </DropdownMenu>
+                </td>
+
+                <td onClick={() => handleBookingDelete(booking.id)}>
+                  <Trash className="hover:text-red-500 hover:cursor-pointer" />
                 </td>
               </tr>
             ))}
