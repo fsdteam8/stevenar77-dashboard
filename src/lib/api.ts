@@ -659,28 +659,32 @@ export async function updateSocial(id: string, data: Social) {
 }
 
 // send quick review form link api
-export async function sentQuickReview(userId: string, link: string, token: string) {
+export async function sentQuickReview(
+  userId: string,
+  link: string,
+  token: string
+) {
   const data = {
     userId: userId,
     formLink: link,
-    token: token
+    token: token,
   };
-  
+
   try {
     const res = await api.post(`/class/bookings/send-form-link`, data, {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      }
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
     });
     return res.data;
   } catch (err) {
     console.error("Error sending review:", err);
-    if (err instanceof Error) throw new Error(err.message || "Failed to send review form");
+    if (err instanceof Error)
+      throw new Error(err.message || "Failed to send review form");
     throw err;
   }
 }
-
 
 // About Gallery Images Delete api
 export async function galleryImageDelete(aboutId: string, imageId: string) {
@@ -704,8 +708,7 @@ export async function allOrder(page = 1, limit = 10) {
   }
 }
 
-
-// hupdateReassignBooking API function 
+// hupdateReassignBooking API function
 export async function updateReassignBooking(id: string, newScheduleId: string) {
   try {
     const res = await api.put(`/class/bookings/re-assign/${id}`, {
@@ -720,12 +723,40 @@ export async function updateReassignBooking(id: string, newScheduleId: string) {
   }
 }
 
+// ✅ Corrected Delete Booking API function
+export async function deleteBooking(bookingId: string, token: string) {
+  try {
+    const res = await api.delete(`/class/bookings/${bookingId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Send token properly
+      },
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Error deleting booking:", err);
+    if (err instanceof Error) {
+      throw new Error("Failed to delete booking");
+    }
+    throw err;
+  }
+}
+
+// ✅ Custom hook or API function to fetch a single booking
+export const getSingleBooking = async (bookingId: string) => {
+  try {
+    const res = await api.get(`/class/bookings/${bookingId}`);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching single booking:", error);
+    throw new Error("Failed to fetch booking data");
+  }
+};
 
 // I couldn’t create this hook inside the courses.ts file, so I implemented it directly in api.ts instead. Sorry about that.
 export function useSingleUpdateCourse(id: string) {
   return useQuery({
     queryKey: ["singleCourse", id],
     queryFn: () => courseApi.getCourse(id),
-    enabled: !!id,  
+    enabled: !!id,
   });
 }
