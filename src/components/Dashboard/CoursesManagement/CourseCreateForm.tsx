@@ -851,7 +851,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
                               </div>
                               <div>
                                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                                  Total participents *
+                                  Total participants *
                                 </label>
                                 <input
                                   type="number"
