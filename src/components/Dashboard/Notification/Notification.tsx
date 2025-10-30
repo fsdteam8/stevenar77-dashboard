@@ -37,9 +37,7 @@ export default function Notification() {
       );
 
       if (res.ok) {
-        setNotifications((prev) =>
-          prev.map((n) => ({ ...n, isViewed: true }))
-        );
+        setNotifications((prev) => prev.map((n) => ({ ...n, isViewed: true })));
       } else {
         console.error("Failed to mark notifications as read");
       }
@@ -110,10 +108,28 @@ export default function Notification() {
 
       <div className="space-y-4">
         {notifications.length === 0 && (
-          <p className="text-gray-500">No notifications found</p>
+          <div className="flex flex-col items-center justify-center py-10 bg-gray-50 border border-dashed border-gray-300 rounded-xl">
+            <svg
+              className="w-12 h-12 text-gray-400 mb-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m4 0h-1v4h-1m-6 4h6m6-4v6H5v-6h16zM4 7h16M4 7V5a2 2 0 012-2h12a2 2 0 012 2v2"
+              />
+            </svg>
+            <p className="text-gray-500 text-sm sm:text-base">
+              No notifications found
+            </p>
+          </div>
         )}
 
-        {notifications.map((n) => (
+        {notifications.slice(0, 15).map((n) => (
           <div
             key={n._id}
             className={`p-4 rounded-xl border shadow-sm flex items-start gap-4 justify-between ${

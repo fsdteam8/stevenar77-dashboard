@@ -741,7 +741,7 @@ export async function deleteBooking(bookingId: string, token: string) {
   }
 }
 
-// ✅ Custom hook or API function to fetch a single booking
+// Custom hook or API function to fetch a single booking
 export const getSingleBooking = async (bookingId: string) => {
   try {
     const res = await api.get(`/class/bookings/${bookingId}`);
@@ -751,6 +751,37 @@ export const getSingleBooking = async (bookingId: string) => {
     throw new Error("Failed to fetch booking data");
   }
 };
+
+
+// Get reviews all with pagination and dynamic params
+export async function getAllReview(page = 1, limit = 10) {
+  try {
+    const res = await api.get(`/reviews/all?page=${page}&limit=${limit}`);
+    return res.data;
+  } catch (err) {
+    console.error("Error fetching reviewss:", err);
+    throw new Error("Failed to fetch all reviews with pagination");
+  }
+}
+
+
+// Corrected Delete Review API function
+export async function deleteReview(bookingId: string, token: string) {
+  try {
+    const res = await api.delete(`/reviews/${bookingId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,  
+      },
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Error deleting Review:", err);
+    if (err instanceof Error) {
+      throw new Error("Failed to delete Review");
+    }
+    throw err;
+  }
+}
 
 // I couldn’t create this hook inside the courses.ts file, so I implemented it directly in api.ts instead. Sorry about that.
 export function useSingleUpdateCourse(id: string) {

@@ -16,6 +16,7 @@ import {
   ExternalLink,
   ShoppingBag,
   ShoppingBasket,
+  SquareStar,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -45,6 +46,7 @@ const navigation = [
   { name: "Payments", href: "/payments", icon: CircleDollarSign },
   { name: "About Us", href: "/abouts", icon: BadgeInfo },
   { name: "Social", href: "/social", icon: ExternalLink },
+  { name: "Reviews", href: "/review", icon: SquareStar },
 
   // { name: "Shop", href: "/shop", icon: ShoppingCart },
 ];
