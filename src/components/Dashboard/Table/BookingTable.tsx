@@ -179,130 +179,129 @@ const BookingTable: React.FC = () => {
   const [openSet, setOpenSet] = useState<number | null>(null);
   const { data, isLoading } = useSingleUpdateCourse(newCourseId);
   const { data: session } = useSession() as { data: CustomSession | null };
+  
   // Reassign booking mutation
   const reassignBookingMutation = useReassignBooking();
 
-const id = selectedBooking?.id;
-const { data: singleBooking } = useSingleBooking(id || "");
-const [scheduleDates, setScheduleDates] = useState<ScheduleDate[]>([]);
+  const id = selectedBooking?.id;
+  const { data: singleBooking } = useSingleBooking(id || "");
+  const [scheduleDates, setScheduleDates] = useState<ScheduleDate[]>([]);
 
-useEffect(() => {
-  // Check if scheduleData.sets exists
-  if (singleBooking?.data?.scheduleData?.sets) {
-    setScheduleDates(singleBooking.data.scheduleData.sets);
-  } 
-  // Fallback to classDate if scheduleData doesn't exist
-  else if (singleBooking?.data?.classDate) {
-    const datesArray = singleBooking.data.classDate as string[];
-    const datesSet = new Set(datesArray);
+  useEffect(() => {
+    // Check if scheduleData.sets exists
+    if (singleBooking?.data?.scheduleData?.sets) {
+      setScheduleDates(singleBooking.data.scheduleData.sets);
+    } 
+    // Fallback to classDate if scheduleData doesn't exist
+    else if (singleBooking?.data?.classDate) {
+      const datesArray = singleBooking.data.classDate as string[];
+      const datesSet = new Set(datesArray);
 
-    setScheduleDates(
-      Array.from(datesSet).map((date) => ({ date, location: "TBD" }))
-    );
-  }
-}, [singleBooking]);
-
-console.log("Schedule Dates:", scheduleDates);
-console.log("Single Booking Data:", singleBooking?.data);
+      setScheduleDates(
+        Array.from(datesSet).map((date) => ({ date, location: "TBD" }))
+      );
+    }
+  }, [singleBooking]);
 
   const course = data?.data;
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      setLoading(true);
-      try {
-        const res = await getAllBookings();
+  // Extract booking fetching logic into a reusable function
+  const fetchBookings = async () => {
+    setLoading(true);
+    try {
+      const res = await getAllBookings();
 
-        if (res?.success) {
-          const mapped: Booking[] = (res.data as BookingAPIResponse[]).map(
-            (item, index) => ({
-              id: item._id || `temp-id-${index}`,
-              invoice: `#${item._id}`,
-              customerId:
-                typeof item.userId === "string"
-                  ? { _id: item.userId, email: "demo@example.com" }
-                  : {
-                      _id: item._id || `demo-id-${index}`,
-                      email: item?.email || "demo@example.com",
-                    },
-              customerName: item?.Username || "Demo User",
-              customerEmail: item?.email || "demo@example.com",
-              location: "Not Provided",
-              price: item.totalPrice || 0,
-              status:
-                item.status?.toLowerCase() === "paid"
-                  ? "Paid"
-                  : item.status?.toLowerCase() === "success"
-                  ? "Success"
-                  : "Pending",
-              date: item.classDate?.[0]
-                ? new Date(item.classDate[0]).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "2-digit",
-                    year: "numeric",
-                  })
-                : "N/A",
-              dates:
-                item.classDate?.map((date) =>
-                  new Date(date).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "2-digit",
-                    year: "numeric",
-                  })
-                ) || [],
-              avatar: item.classId?.image?.url || "/images/profile-mini.jpg",
-              classImage:
-                item.classId?.image?.url || "/images/default-class.jpg",
-              participants: item.participant
-                ? Array.from({ length: item.participant }).map((_, i) => ({
-                    _id: `${item._id}-${i}`,
-                    firstName: "Participant",
-                    lastName: `${i + 1}`,
-                    email: `participant${i + 1}@example.com`,
-                  }))
-                : [],
-              emergencyName: item.emergencyName || [],
-              emergencyPhoneNumber: item.emergencyPhoneNumber || [],
-              medicalDocuments: item.medicalDocuments || [],
-              courseIncludes: item.classId?.courseIncludes || [],
-              divingExperience: item.divingExperience || "",
-              fitnessLevel: item.fitnessLevel || "",
-              PhoneNumber: item.phoneNumber || "",
-              gender: item.gender || "",
-              hight: item.hight || "",
-              weight: item.weight || 0,
-              shoeSize: item.shoeSize || "",
-              lastPhysicalExamination: item.lastPhysicalExamination
-                ? new Date(item.lastPhysicalExamination).toLocaleDateString()
-                : "",
-              description: item.classId?.description || "",
-              duration: item.classId?.duration || "",
-              classId: item.classId?._id || null,
-              totalParticipates: item.classId?.totalParticipates || 0,
-              avgRating: item.classId?.avgRating || 0,
-              isActive: item.classId?.isActive ?? true,
-              createdAt: item.createdAt
-                ? new Date(item.createdAt).toLocaleDateString()
-                : "",
-              updatedAt: item.updatedAt
-                ? new Date(item.updatedAt).toLocaleDateString()
-                : "",
-              scheduleId: item.scheduleId || "",
-            })
-          );
+      if (res?.success) {
+        const mapped: Booking[] = (res.data as BookingAPIResponse[]).map(
+          (item, index) => ({
+            id: item._id || `temp-id-${index}`,
+            invoice: `#${item._id}`,
+            customerId:
+              typeof item.userId === "string"
+                ? { _id: item.userId, email: "demo@example.com" }
+                : {
+                    _id: item._id || `demo-id-${index}`,
+                    email: item?.email || "demo@example.com",
+                  },
+            customerName: item?.Username || "Demo User",
+            customerEmail: item?.email || "demo@example.com",
+            location: "Not Provided",
+            price: item.totalPrice || 0,
+            status:
+              item.status?.toLowerCase() === "paid"
+                ? "Paid"
+                : item.status?.toLowerCase() === "success"
+                ? "Success"
+                : "Pending",
+            date: item.classDate?.[0]
+              ? new Date(item.classDate[0]).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "2-digit",
+                  year: "numeric",
+                })
+              : "N/A",
+            dates:
+              item.classDate?.map((date) =>
+                new Date(date).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "2-digit",
+                  year: "numeric",
+                })
+              ) || [],
+            avatar: item.classId?.image?.url || "/images/profile-mini.jpg",
+            classImage:
+              item.classId?.image?.url || "/images/default-class.jpg",
+            participants: item.participant
+              ? Array.from({ length: item.participant }).map((_, i) => ({
+                  _id: `${item._id}-${i}`,
+                  firstName: "Participant",
+                  lastName: `${i + 1}`,
+                  email: `participant${i + 1}@example.com`,
+                }))
+              : [],
+            emergencyName: item.emergencyName || [],
+            emergencyPhoneNumber: item.emergencyPhoneNumber || [],
+            medicalDocuments: item.medicalDocuments || [],
+            courseIncludes: item.classId?.courseIncludes || [],
+            divingExperience: item.divingExperience || "",
+            fitnessLevel: item.fitnessLevel || "",
+            PhoneNumber: item.phoneNumber || "",
+            gender: item.gender || "",
+            hight: item.hight || "",
+            weight: item.weight || 0,
+            shoeSize: item.shoeSize || "",
+            lastPhysicalExamination: item.lastPhysicalExamination
+              ? new Date(item.lastPhysicalExamination).toLocaleDateString()
+              : "",
+            description: item.classId?.description || "",
+            duration: item.classId?.duration || "",
+            classId: item.classId?._id || null,
+            totalParticipates: item.classId?.totalParticipates || 0,
+            avgRating: item.classId?.avgRating || 0,
+            isActive: item.classId?.isActive ?? true,
+            createdAt: item.createdAt
+              ? new Date(item.createdAt).toLocaleDateString()
+              : "",
+            updatedAt: item.updatedAt
+              ? new Date(item.updatedAt).toLocaleDateString()
+              : "",
+            scheduleId: item.scheduleId || "",
+          })
+        );
 
-          setBookings(mapped);
-        } else {
-          setBookings([]);
-        }
-      } catch (error) {
-        console.error("Error fetching bookings:", error);
+        setBookings(mapped);
+      } else {
         setBookings([]);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+      setBookings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchBookings();
   }, []);
 
@@ -336,7 +335,6 @@ console.log("Single Booking Data:", singleBooking?.data);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = bookings.slice(startIndex, startIndex + itemsPerPage);
 
-  // UPDATE THIS MUTATION
   const handleQuickReviewMutation = useMutation({
     mutationFn: ({
       userId,
@@ -355,15 +353,9 @@ console.log("Single Booking Data:", singleBooking?.data);
     },
   });
 
-  // UPDATE THIS FUNCTION
   const handleQuickReview = (link: string, userId: string) => {
-    // Get userId and accessToken from session
-    // const id = "68bf6876f02adb6fb1fef59b"
-    // const userId = booking.customerId._id;
     const accessToken = session?.accessToken || session?.user?.accessToken;
 
-    console.log(userId);
-    // Validation
     if (!userId) {
       toast.error("User ID not found in session");
       return;
@@ -374,7 +366,6 @@ console.log("Single Booking Data:", singleBooking?.data);
       return;
     }
 
-    // Send the request
     handleQuickReviewMutation.mutate({ userId, link, token: accessToken });
   };
 
@@ -389,97 +380,7 @@ console.log("Single Booking Data:", singleBooking?.data);
       {
         onSuccess: () => {
           toast.success("Course successfully reassigned!");
-          // Refetch bookings to update the UI
-          const fetchBookings = async () => {
-            try {
-              const res = await getAllBookings();
-              if (res?.success) {
-                const mapped: Booking[] = (
-                  res.data as BookingAPIResponse[]
-                ).map((item, index) => ({
-                  id: item._id || `temp-id-${index}`,
-                  invoice: `#${item._id}`,
-                  customerId:
-                    typeof item.userId === "string"
-                      ? { _id: item.userId, email: "demo@example.com" }
-                      : {
-                          _id: item._id || `demo-id-${index}`,
-                          email: item?.email || "demo@example.com",
-                        },
-                  customerName: item?.Username || "Demo User",
-                  customerEmail: item?.email || "demo@example.com",
-                  location: "Not Provided",
-                  price: item.totalPrice || 0,
-                  status:
-                    item.status?.toLowerCase() === "paid"
-                      ? "Paid"
-                      : item.status?.toLowerCase() === "success"
-                      ? "Success"
-                      : "Pending",
-                  date: item.classDate?.[0]
-                    ? new Date(item.classDate[0]).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "2-digit",
-                        year: "numeric",
-                      })
-                    : "N/A",
-                  dates:
-                    item.classDate?.map((date) =>
-                      new Date(date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "2-digit",
-                        year: "numeric",
-                      })
-                    ) || [],
-                  avatar:
-                    item.classId?.image?.url || "/images/profile-mini.jpg",
-                  classImage:
-                    item.classId?.image?.url || "/images/default-class.jpg",
-                  participants: item.participant
-                    ? Array.from({ length: item.participant }).map((_, i) => ({
-                        _id: `${item._id}-${i}`,
-                        firstName: "Participant",
-                        lastName: `${i + 1}`,
-                        email: `participant${i + 1}@example.com`,
-                      }))
-                    : [],
-                  emergencyName: item.emergencyName || [],
-                  emergencyPhoneNumber: item.emergencyPhoneNumber || [],
-                  medicalDocuments: item.medicalDocuments || [],
-                  courseIncludes: item.classId?.courseIncludes || [],
-                  divingExperience: item.divingExperience || "",
-                  fitnessLevel: item.fitnessLevel || "",
-                  PhoneNumber: item.phoneNumber || "",
-                  gender: item.gender || "",
-                  hight: item.hight || " ",
-                  weight: item.weight || 0,
-                  shoeSize: item.shoeSize || "",
-                  lastPhysicalExamination: item.lastPhysicalExamination
-                    ? new Date(
-                        item.lastPhysicalExamination
-                      ).toLocaleDateString()
-                    : "",
-                  description: item.classId?.description || "",
-                  duration: item.classId?.duration || "",
-                  classId: item.classId?._id || null,
-                  totalParticipates: item.classId?.totalParticipates || 0,
-                  avgRating: item.classId?.avgRating || 0,
-                  isActive: item.classId?.isActive ?? true,
-                  createdAt: item.createdAt
-                    ? new Date(item.createdAt).toLocaleDateString()
-                    : "",
-                  updatedAt: item.updatedAt
-                    ? new Date(item.updatedAt).toLocaleDateString()
-                    : "",
-                  scheduleId: item.scheduleId || "",
-                }));
-                setBookings(mapped);
-              }
-            } catch (error) {
-              console.error("Error refetching bookings:", error);
-            }
-          };
-          fetchBookings();
+          fetchBookings(); // Refetch bookings after successful reassignment
         },
         onError: (error: any) => {
           toast.error(error?.message || "Failed to reassign course");
@@ -488,16 +389,26 @@ console.log("Single Booking Data:", singleBooking?.data);
     );
   };
 
-  // This is Bk=ooking Delete Handler
+  // Updated booking delete handler with auto-refresh
   const handleBookingDelete = async (id: string) => {
     try {
       if (!session?.accessToken) {
         toast.error("User not authenticated!");
         return;
       }
+      
       // Call delete API
       await deleteBooking(id, session.accessToken);
       toast.success("Booking deleted successfully!");
+      
+      // Refetch bookings to update the UI
+      await fetchBookings();
+      
+      // If current page becomes empty after deletion, go to previous page
+      const newTotalPages = Math.ceil((bookings.length - 1) / itemsPerPage);
+      if (currentPage > newTotalPages && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
     } catch (error) {
       console.error("Error deleting booking:", error);
       toast.error("Failed to delete booking. Please try again.");
@@ -543,7 +454,7 @@ console.log("Single Booking Data:", singleBooking?.data);
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Action
               </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+              <th className="px-6 py-3  text-sm font-medium text-gray-700 text-center">
                 Delete
               </th>
             </tr>
@@ -1218,8 +1129,8 @@ console.log("Single Booking Data:", singleBooking?.data);
                   </DropdownMenu>
                 </td>
 
-                <td onClick={() => handleBookingDelete(booking.id)}>
-                  <Trash className="hover:text-red-500 hover:cursor-pointer" />
+                <td onClick={() => handleBookingDelete(booking.id)} className="text-center flex justify-center items-center h-full px-6 py-4">
+                  <Trash className="hover:text-red-500 hover:cursor-pointer " />
                 </td>
               </tr>
             ))}
