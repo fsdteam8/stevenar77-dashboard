@@ -17,6 +17,7 @@ import {
   ShoppingBag,
   ShoppingBasket,
   SquareStar,
+  Users,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -45,6 +46,7 @@ const navigation = [
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Payments", href: "/payments", icon: CircleDollarSign },
   { name: "About Us", href: "/abouts", icon: BadgeInfo },
+  { name: "Users", href: "/users", icon: Users },
   { name: "Social", href: "/social", icon: ExternalLink },
   { name: "Reviews", href: "/review", icon: SquareStar },
 

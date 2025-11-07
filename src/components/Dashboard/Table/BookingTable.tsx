@@ -40,132 +40,15 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useReassignBooking } from "@/hooks/course/useCourses";
 import { useSession } from "next-auth/react";
-import { useSingleBooking } from "@/hooks/useBooking";
-
-export type Participant = {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-};
-
-export type MedicalDocument = {
-  _id: string;
-  public_id: string;
-  url: string;
-};
-
-interface UserSession {
-  id: string;
-  email: string;
-  role: string;
-  accessToken: string;
-}
-
-interface CustomSession {
-  user: UserSession;
-  accessToken?: string;
-}
-
-export type Booking = {
-  customerId: { _id?: string; email?: string };
-  id: string;
-  invoice: string;
-  customerName: string;
-  customerEmail: string;
-  location: string;
-  price: number;
-  status: "Paid" | "Cancelled" | "Pending" | "Success";
-  date?: string;
-  dates?: string[];
-  avatar: string;
-  classImage?: string;
-  participants?: Participant[];
-  emergencyName?: string[];
-  emergencyPhoneNumber?: string[];
-  medicalDocuments?: MedicalDocument[];
-  courseIncludes?: string[];
-  divingExperience?: string;
-  fitnessLevel?: string;
-  PhoneNumber?: string;
-  gender?: string;
-  hight?: string | number;
-  weight?: number;
-  shoeSize?: number | string;
-  lastPhysicalExamination?: string;
-  description?: string;
-  duration?: string;
-  classId?: string | null;
-  totalParticipates?: number;
-  avgRating?: number;
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-  medicalHistory?: string[];
-  activityLevelSpecificQuestions?: string[];
-  canSwim?: string;
-  scheduleId?: string;
-};
-
-export type BookingAPIResponse = {
-  _id: string;
-  userId?: { _id?: string; email?: string };
-  totalPrice?: number;
-  status?: "paid" | "success" | "cancelled" | string;
-  classDate?: string[];
-  classId?: {
-    _id?: string;
-    image?: { public_id?: string; url?: string };
-    classDates?: string[];
-    title?: string;
-    description?: string;
-    price?: number[];
-    courseIncludes?: string[];
-    duration?: string;
-    totalReviews?: number;
-    avgRating?: number;
-    participates?: number;
-    totalParticipates?: number;
-    isActive?: boolean;
-    createdAt?: string;
-    updatedAt?: string;
-    index?: number;
-  };
-  participant?: number;
-  emergencyPhoneNumber?: string[];
-  phoneNumber?: string;
-  divingExperience?: string;
-  lastPhysicalExamination?: string;
-  fitnessLevel?: string;
-  emergencyName?: string[];
-  medicalDocuments?: { _id: string; public_id: string; url: string }[];
-  gender?: string;
-  shoeSize?: number | string;
-  hight?: number;
-  weight?: number;
-  createdAt?: string;
-  updatedAt?: string;
-  scheduleId?: string;
-  email?: string;
-  Username?: string;
-};
-
-export interface ScheduleDate {
-  _id?: string;
-  date: string;
-  location: string;
-  type?: string;
-  isActive?: boolean;
-}
-
-export interface ScheduleSet {
-  _id: string;
-  title: string;
-  description: string;
-  participents: number;
-  totalParticipents?: number;
-  sets: ScheduleDate[];
-}
+import { useDeleteAllBookings, useSingleBooking } from "@/hooks/useBooking";
+import Pagination from "../Reusable/Pagination";
+import {
+  Booking,
+  BookingAPIResponse,
+  CustomSession,
+  ScheduleDate,
+  ScheduleSet,
+} from "@/types/BookingTableType";
 
 const itemsPerPage = 8;
 
@@ -177,21 +60,22 @@ const BookingTable: React.FC = () => {
   const [reassignBooking, setReassignBooking] = useState<Booking | null>(null);
   const [newCourseId, setNewCourseId] = useState<string>("");
   const [openSet, setOpenSet] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { data, isLoading } = useSingleUpdateCourse(newCourseId);
   const { data: session } = useSession() as { data: CustomSession | null };
-  
+
   // Reassign booking mutation
   const reassignBookingMutation = useReassignBooking();
 
   const id = selectedBooking?.id;
-  const { data: singleBooking } = useSingleBooking(id || "");
+  const { data: singleBooking, refetch } = useSingleBooking(id || "");
   const [scheduleDates, setScheduleDates] = useState<ScheduleDate[]>([]);
 
   useEffect(() => {
     // Check if scheduleData.sets exists
     if (singleBooking?.data?.scheduleData?.sets) {
       setScheduleDates(singleBooking.data.scheduleData.sets);
-    } 
+    }
     // Fallback to classDate if scheduleData doesn't exist
     else if (singleBooking?.data?.classDate) {
       const datesArray = singleBooking.data.classDate as string[];
@@ -249,8 +133,7 @@ const BookingTable: React.FC = () => {
                 })
               ) || [],
             avatar: item.classId?.image?.url || "/images/profile-mini.jpg",
-            classImage:
-              item.classId?.image?.url || "/images/default-class.jpg",
+            classImage: item.classId?.image?.url || "/images/default-class.jpg",
             participants: item.participant
               ? Array.from({ length: item.participant }).map((_, i) => ({
                   _id: `${item._id}-${i}`,
@@ -331,7 +214,42 @@ const BookingTable: React.FC = () => {
     setOpenSet(openSet === index ? null : index);
   };
 
-  const totalPages = Math.ceil(bookings.length / itemsPerPage);
+  // Checkbox handlers
+  const handleSelectAll = () => {
+    if (selectedIds.length === paginatedData.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginatedData.map((booking) => booking.id));
+    }
+  };
+
+  const handleSelectRow = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  //  All Booking Deleted Handler
+  const { mutate: deleteBookings } = useDeleteAllBookings();
+
+  const handleDeleteSelected =  () => {
+    if (selectedIds.length === 0) return;
+
+    deleteBookings(selectedIds, {
+      onSuccess: () => {
+        toast.success("Bookings deleted successfully!");
+        setSelectedIds([]);  
+        refetch();
+        fetchBookings();
+      },
+      onError: (error) => {
+        console.error("Failed to delete selected bookings:", error);
+        toast.error("Failed to delete bookings!");
+      },
+    });
+  };
+
+  // const totalPages = Math.ceil(bookings.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = bookings.slice(startIndex, startIndex + itemsPerPage);
 
@@ -396,14 +314,14 @@ const BookingTable: React.FC = () => {
         toast.error("User not authenticated!");
         return;
       }
-      
+
       // Call delete API
       await deleteBooking(id, session.accessToken);
       toast.success("Booking deleted successfully!");
-      
+
       // Refetch bookings to update the UI
       await fetchBookings();
-      
+
       // If current page becomes empty after deletion, go to previous page
       const newTotalPages = Math.ceil((bookings.length - 1) / itemsPerPage);
       if (currentPage > newTotalPages && currentPage > 1) {
@@ -432,15 +350,43 @@ const BookingTable: React.FC = () => {
       <div className="my-4 text-2xl font-semibold">
         <h1>This is Courses Booking History</h1>
       </div>
+
+      {/* Delete Selected Button */}
+      {selectedIds.length > 0 && (
+        <div className="mb-4 flex justify-end items-center gap-3">
+          <button
+            onClick={handleDeleteSelected}
+            className="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center gap-2 cursor-pointer"
+          >
+            <Trash className="w-4 h-4" />
+            Delete Bookings ({selectedIds.length})
+          </button>
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
+              <th className="px-6 py-3 text-left">
+                <input
+                  type="checkbox"
+                  checked={
+                    selectedIds.length === paginatedData.length &&
+                    paginatedData.length > 0
+                  }
+                  onChange={handleSelectAll}
+                  className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 cursor-pointer"
+                />
+              </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Invoice
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Customer
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                User Details
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Price
@@ -465,6 +411,14 @@ const BookingTable: React.FC = () => {
                 key={booking.id}
                 className="hover:bg-gray-50 transition-colors"
               >
+                <td className="px-6 py-4">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(booking.id)}
+                    onChange={() => handleSelectRow(booking.id)}
+                    className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 cursor-pointer"
+                  />
+                </td>
                 <td className="px-6 py-4 text-sm text-gray-600">
                   #{booking.invoice?.slice(-4)}
                 </td>
@@ -484,6 +438,30 @@ const BookingTable: React.FC = () => {
                       <div className="text-xs text-gray-500">
                         {booking.customerEmail}
                       </div>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-xs text-gray-600 space-y-1">
+                    <div>
+                      <span className="font-medium">Height:</span>{" "}
+                      {booking.hight || "N/A"}
+                    </div>
+                    <div>
+                      <span className="font-medium">Weight:</span>{" "}
+                      {booking.weight || "N/A"}
+                    </div>
+                    <div>
+                      <span className="font-medium">Shoe Size:</span>{" "}
+                      {booking.shoeSize || "N/A"}
+                    </div>
+                    <div>
+                      <span className="font-medium">Course Date:</span>{" "}
+                      {booking.date || "N/A"}
+                    </div>
+                    <div>
+                      <span className="font-medium">Course Date:</span>{" "}
+                      {booking.dates?.[1] || "N/A"}
                     </div>
                   </div>
                 </td>
@@ -596,40 +574,46 @@ const BookingTable: React.FC = () => {
                                     </div>
 
                                     {/* Date Box */}
-                              <div className="mt-5 bg-gradient-to-br from-[#e6f9fa] to-[#f9fdfd] border border-[#0694a2]/20 rounded-xl p-4 shadow-inner">
-                                <h3 className="text-base font-semibold text-[#0694a2] mb-3 flex items-center gap-2">
-                                  Course Date
-                                </h3>
-                                {scheduleDates && scheduleDates.length > 0 ? (
-                                    <div className="flex flex-wrap gap-2">
-                                      {scheduleDates.map((item, index) => (
-                                        <div
-                                          key={item._id || index}
-                                          className="px-3 py-1.5 bg-white border border-[#0694a2]/30 rounded-lg text-sm text-gray-700 shadow-sm"
-                                        >
-                                          <div className="font-medium">
-                                            {item.date
-                                              ? new Date(item.date).toLocaleDateString("en-US", {
-                                                  year: "numeric",
-                                                  month: "short",
-                                                  day: "numeric",
-                                                })
-                                              : "N/A"}
-                                          </div>
-                                          {item.type && (
-                                            <div className="text-xs text-gray-500 mt-0.5">
-                                              {item.type}
+                                    <div className="mt-5 bg-gradient-to-br from-[#e6f9fa] to-[#f9fdfd] border border-[#0694a2]/20 rounded-xl p-4 shadow-inner">
+                                      <h3 className="text-base font-semibold text-[#0694a2] mb-3 flex items-center gap-2">
+                                        Course Date
+                                      </h3>
+                                      {scheduleDates &&
+                                      scheduleDates.length > 0 ? (
+                                        <div className="flex flex-wrap gap-2">
+                                          {scheduleDates.map((item, index) => (
+                                            <div
+                                              key={item._id || index}
+                                              className="px-3 py-1.5 bg-white border border-[#0694a2]/30 rounded-lg text-sm text-gray-700 shadow-sm"
+                                            >
+                                              <div className="font-medium">
+                                                {item.date
+                                                  ? new Date(
+                                                      item.date
+                                                    ).toLocaleDateString(
+                                                      "en-US",
+                                                      {
+                                                        year: "numeric",
+                                                        month: "short",
+                                                        day: "numeric",
+                                                      }
+                                                    )
+                                                  : "N/A"}
+                                              </div>
+                                              {item.type && (
+                                                <div className="text-xs text-gray-500 mt-0.5">
+                                                  {item.type}
+                                                </div>
+                                              )}
                                             </div>
-                                          )}
+                                          ))}
                                         </div>
-                                      ))}
+                                      ) : (
+                                        <p className="text-gray-400 italic">
+                                          No dates available
+                                        </p>
+                                      )}
                                     </div>
-                                  ) : (
-                                    <p className="text-gray-400 italic">
-                                      No dates available
-                                    </p>
-                                  )}
-                              </div>
                                   </div>
                                 </div>
                               </div>
@@ -642,6 +626,7 @@ const BookingTable: React.FC = () => {
                                   </h2>
 
                                   <div className="space-y-3 text-sm text-gray-700">
+                                    <p>Title</p>
                                     <p>
                                       <strong className="text-gray-900">
                                         Class Description:
@@ -860,10 +845,6 @@ const BookingTable: React.FC = () => {
                                   <strong>Email:</strong>{" "}
                                   {reassignBooking.customerEmail}
                                 </p>
-                                {/* <p className="text-sm text-gray-600">
-                                  <strong>Current Schedule ID:</strong>{" "}
-                                  {reassignBooking.scheduleId || "Not assigned"}
-                                </p> */}
                               </div>
 
                               {/* Schedule Section */}
@@ -942,36 +923,6 @@ const BookingTable: React.FC = () => {
                                                         Participents
                                                       </div>
                                                     </div>
-
-                                                    {/* Participants */}
-                                                    {/* <div className="flex flex-col items-center px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-                                                      <div className="text-[18px] font-semibold text-blue-700">
-                                                        {scheduleSet.participents}
-                                                      </div>
-                                                      <div className="text-xs text-gray-500 font-medium">
-                                                        Participants
-                                                      </div>
-                                                    </div> */}
-
-                                                    {/* Total Participants */}
-                                                    {/* <div className="flex flex-col items-center px-4 py-2 bg-purple-50 border border-purple-200 rounded-lg">
-                                                      <div className="text-[18px] font-semibold text-purple-700">
-                                                        {scheduleSet.totalParticipents}
-                                                      </div>
-                                                      <div className="text-xs text-gray-500 font-medium">
-                                                        Total
-                                                      </div>
-                                                    </div> */}
-
-                                                    {/* Schedule ID */}
-                                                    {/* <div className="flex flex-col items-center px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg">
-                                                      <div className="text-[10px] font-mono text-gray-700 truncate max-w-full">
-                                                        {scheduleSet._id.slice(-8)}
-                                                      </div>
-                                                      <div className="text-xs text-gray-500 font-medium">
-                                                        ID
-                                                      </div>
-                                                    </div> */}
                                                   </div>
 
                                                   {/* Right Side: Booking Status */}
@@ -1129,7 +1080,10 @@ const BookingTable: React.FC = () => {
                   </DropdownMenu>
                 </td>
 
-                <td onClick={() => handleBookingDelete(booking.id)} className="text-center flex justify-center items-center h-full px-6 py-4">
+                <td
+                  onClick={() => handleBookingDelete(booking.id)}
+                  className="text-center flex justify-center items-center h-full px-6 py-4"
+                >
                   <Trash className="hover:text-red-500 hover:cursor-pointer " />
                 </td>
               </tr>
@@ -1138,7 +1092,7 @@ const BookingTable: React.FC = () => {
             {paginatedData.length === 0 && (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={9}
                   className="px-6 py-12 text-center text-gray-500"
                 >
                   No bookings found.
@@ -1150,82 +1104,13 @@ const BookingTable: React.FC = () => {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 mt-4">
-        <p className="text-sm text-gray-600">
-          Showing {startIndex + 1} to{" "}
-          {Math.min(startIndex + itemsPerPage, bookings.length)} of{" "}
-          {bookings.length} results
-        </p>
-
-        <div className="flex items-center gap-1">
-          {/* Previous */}
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
-          >
-            &lt;
-          </button>
-
-          {/* Dynamic Page Numbers */}
-          {(() => {
-            const visiblePages: (number | string)[] = [];
-
-            // If total pages <= 6, show all pages directly
-            if (totalPages <= 6) {
-              for (let i = 1; i <= totalPages; i++) visiblePages.push(i);
-            } else {
-              // Always show first page
-              visiblePages.push(1);
-
-              // Show left ellipsis if currentPage > 3
-              if (currentPage > 3) visiblePages.push("...");
-
-              // Determine middle range
-              const start = Math.max(2, currentPage - 1);
-              const end = Math.min(totalPages - 1, currentPage + 1);
-
-              for (let i = start; i <= end; i++) visiblePages.push(i);
-
-              // Show right ellipsis if currentPage < totalPages - 2
-              if (currentPage < totalPages - 2) visiblePages.push("...");
-
-              // Always show last page
-              visiblePages.push(totalPages);
-            }
-
-            return visiblePages.map((num, idx) =>
-              num === "..." ? (
-                <span key={idx} className="px-2 text-gray-400 select-none">
-                  ...
-                </span>
-              ) : (
-                <button
-                  key={num}
-                  onClick={() => setCurrentPage(num as number)}
-                  className={`px-3 py-1.5 text-sm rounded-md border transition ${
-                    currentPage === num
-                      ? "bg-[#0694A2] text-white border-[#0694A2] shadow-sm"
-                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                  }`}
-                >
-                  {num}
-                </button>
-              )
-            );
-          })()}
-
-          {/* Next */}
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded-md bg-white text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
-          >
-            &gt;
-          </button>
-        </div>
+      <div className="mx-auto">
+        <Pagination
+          currentPage={currentPage}
+          totalItems={bookings.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

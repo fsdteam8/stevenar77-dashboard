@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { AlertCircle, Eye, Loader2 } from "lucide-react";
+import { AlertCircle, Eye, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,8 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useOrders } from "@/hooks/useOrder";
+import { useDeleteAllOrders, useOrders } from "@/hooks/useOrder";
 import Image from "next/image";
+import { toast } from "sonner";
 
 export type Order = {
   _id: string;
@@ -31,6 +32,7 @@ export type Order = {
 const OrdersTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const itemsPerPage = 10;
 
   const {
@@ -45,28 +47,56 @@ const OrdersTable = () => {
 
   const handleView = (order: Order) => setSelectedOrder(order);
 
-  //   const handleDelete = async (order: Order) => {
-  //     try {
-  //       // await deleteOrder(order._id);
-  //       // toast.success("Order deleted successfully!");
-  //       // refetch();
-  //     } catch (error) {
-  //       console.error(error);
-  //     }
-  //   };
+  const handleDeleteSingle = (id: string) => {
+    deleteOrders([id], {
+      onSuccess: () => {
+        toast.success("Order deleted successfully!");
+        // Remove the deleted ID from selectedIds if it exists
+        setSelectedIds((prev) => prev.filter((item) => item !== id));
+      },
+      onError: (error) => {
+        toast.error("Failed to delete order");
+        console.error(error);
+      },
+    });
+  };
 
-  //   const getStatusColor = (status: string) => {
-  //     switch (status) {
-  //       case "pending":
-  //         return "bg-yellow-100 text-yellow-800";
-  //       case "completed":
-  //         return "bg-green-100 text-green-800";
-  //       case "cancelled":
-  //         return "bg-red-100 text-red-800";
-  //       default:
-  //         return "bg-gray-100 text-gray-800";
-  //     }
-  //   };
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedIds(orders.map((o) => o._id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const { mutate: deleteOrders } = useDeleteAllOrders();
+
+  const handleOrderDeleteSelected = () => {
+    if (selectedIds.length === 0) {
+      toast.error("No orders selected to delete");
+      return;
+    }
+
+    deleteOrders(selectedIds, {
+      onSuccess: () => {
+        toast.success("Selected orders deleted successfully!");
+        setSelectedIds([]);
+      },
+      onError: (error) => {
+        toast.error("Failed to delete orders");
+        console.error(error);
+      },
+    });
+  };
+
+  const isAllSelected =
+    orders.length > 0 && selectedIds.length === orders.length;
 
   if (isLoading)
     return (
@@ -75,7 +105,7 @@ const OrdersTable = () => {
           <Loader2 className="animate-spin text-blue-600 w-8 h-8" />
         </div>
         <p className="mt-4 text-gray-600 text-lg font-medium">
-          Loading bookings...
+          Loading Orders...
         </p>
       </div>
     );
@@ -94,20 +124,40 @@ const OrdersTable = () => {
 
   return (
     <div className="w-full bg-white p-6">
-      {/* Table Title */}
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">All Orders</h2>
+      {/* Title + Delete Selected Button */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold text-gray-800">All Orders</h2>
+        {selectedIds.length > 0 && (
+          <Button
+            onClick={handleOrderDeleteSelected}
+            className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete Orders ({selectedIds.length})
+          </Button>
+        )}
+      </div>
 
-      {/* Orders Table */}
+      {/* Table */}
       <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Placed At
+              <th className="px-6 py-3 text-left">
+                <input
+                  type="checkbox"
+                  checked={isAllSelected}
+                  onChange={handleSelectAll}
+                  className="h-4 w-4 accent-[#0694A2] cursor-pointer"
+                />
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Order ID
               </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Placed At
+              </th>
+
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Customer
               </th>
@@ -117,14 +167,12 @@ const OrdersTable = () => {
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Total
               </th>
-              {/* <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Status
-              </th> */}
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Action
               </th>
             </tr>
           </thead>
+
           <tbody className="bg-white divide-y divide-gray-100">
             {orders.length > 0 ? (
               orders.map((order) => (
@@ -132,13 +180,21 @@ const OrdersTable = () => {
                   key={order._id}
                   className="hover:bg-gray-50 transition-colors"
                 >
-                  {/* Placed At */}
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {new Date(order.createdAt).toLocaleString()}
+                  <td className="px-6 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(order._id)}
+                      onChange={() => handleSelectOne(order._id)}
+                      className="h-4 w-4 accent-[#0694A2] cursor-pointer"
+                    />
                   </td>
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     #{order._id.slice(-4)}
                   </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {new Date(order.createdAt).toLocaleString()}
+                  </td>
+
                   <td className="px-6 py-4 flex items-center gap-2 text-sm text-gray-600">
                     {order.userId.image?.url && (
                       <div className="w-8 h-8 rounded-full overflow-hidden">
@@ -151,6 +207,7 @@ const OrdersTable = () => {
                       </div>
                     )}
                     {order.userId.firstName} {order.userId.lastName}
+                    <div></div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {order.productId?.title || "N/A"}
@@ -158,15 +215,6 @@ const OrdersTable = () => {
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     ${order.totalPrice}
                   </td>
-                  {/* <td className="px-6 py-4">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                        order.status
-                      )}`}
-                    >
-                      {order.status}
-                    </span>
-                  </td> */}
                   <td className="px-6 py-4 flex gap-2">
                     <Button
                       onClick={() => handleView(order)}
@@ -175,20 +223,20 @@ const OrdersTable = () => {
                     >
                       <Eye className="w-4 h-4" />
                     </Button>
-                    {/* <Button
-                      onClick={() => handleDelete(order)}
+                    <Button
+                      onClick={() => handleDeleteSingle(order._id)}
                       className="p-1 text-red-600 hover:text-red-700 hover:bg-gray-200 bg-transparent rounded"
                       title="Delete order"
                     >
                       <Trash2 className="w-4 h-4" />
-                    </Button> */}
+                    </Button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="px-6 py-12 text-center text-gray-500"
                 >
                   No orders found.
@@ -208,38 +256,25 @@ const OrdersTable = () => {
         </p>
 
         <div className="flex items-center gap-2">
-          {/* Previous */}
           <button
             disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-[#8E938F] rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             &lt;
           </button>
 
-          {/* Dynamic Pagination Numbers */}
           {(() => {
             const visiblePages: (number | string)[] = [];
-
-            // If total pages <= 6 → show all
             if (totalPages <= 6) {
               for (let i = 1; i <= totalPages; i++) visiblePages.push(i);
             } else {
-              // Always show the first page
               visiblePages.push(1);
-
-              // Show left ellipsis if currentPage > 3
               if (currentPage > 3) visiblePages.push("...");
-
-              // Show middle pages
               const start = Math.max(2, currentPage - 1);
               const end = Math.min(totalPages - 1, currentPage + 1);
               for (let i = start; i <= end; i++) visiblePages.push(i);
-
-              // Show right ellipsis if currentPage < totalPages - 2
               if (currentPage < totalPages - 2) visiblePages.push("...");
-
-              // Always show the last page
               visiblePages.push(totalPages);
             }
 
@@ -264,12 +299,9 @@ const OrdersTable = () => {
             );
           })()}
 
-          {/* Next */}
           <button
             disabled={currentPage === totalPages}
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             className="px-3 py-1 bg-gray-100 text-gray-700 hover:bg-gray-200 border border-[#8E938F] rounded cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             &gt;
@@ -283,19 +315,18 @@ const OrdersTable = () => {
         onOpenChange={() => setSelectedOrder(null)}
       >
         <DialogContent className="max-w-3xl p-6 rounded-2xl">
-          {selectedOrder && (  
+          {selectedOrder && (
             <div
               className="flex flex-col gap-8"
               style={{ maxHeight: "80vh", overflowY: "auto" }}
             >
-              {/* Modal Header */}
               <DialogHeader>
                 <DialogTitle className="text-2xl font-bold mb-2">
                   Order Details
                 </DialogTitle>
               </DialogHeader>
 
-              {/* Customer Section */}
+              {/* Customer Info */}
               <section className="flex flex-col gap-2 p-4 border rounded-lg bg-gray-50">
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">
                   Customer Info
@@ -332,7 +363,7 @@ const OrdersTable = () => {
                 </div>
               </section>
 
-              {/* Product Section */}
+              {/* Product Info */}
               <section className="flex flex-col gap-2 p-4 border rounded-lg bg-gray-50">
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">
                   Product Info
@@ -365,18 +396,11 @@ const OrdersTable = () => {
                     <p className="text-gray-500">
                       Total Price: ${selectedOrder.totalPrice}
                     </p>
-                    {/* <span
-                      className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                        selectedOrder.status
-                      )}`}
-                    >
-                      {selectedOrder.status}
-                    </span> */}
                   </div>
                 </div>
               </section>
 
-              {/* Order Images Section */}
+              {/* Additional Images */}
               <section className="flex flex-col gap-2 p-4 border rounded-lg bg-gray-50">
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">
                   Additional Images
