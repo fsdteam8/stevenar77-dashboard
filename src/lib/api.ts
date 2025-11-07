@@ -752,7 +752,6 @@ export const getSingleBooking = async (bookingId: string) => {
   }
 };
 
-
 // Get reviews all with pagination and dynamic params
 export async function getAllReview(page = 1, limit = 10) {
   try {
@@ -764,13 +763,12 @@ export async function getAllReview(page = 1, limit = 10) {
   }
 }
 
-
 // Corrected Delete Review API function
 export async function deleteReview(bookingId: string, token: string) {
   try {
     const res = await api.delete(`/reviews/${bookingId}`, {
       headers: {
-        Authorization: `Bearer ${token}`,  
+        Authorization: `Bearer ${token}`,
       },
     });
     return res.data;
@@ -780,6 +778,36 @@ export async function deleteReview(bookingId: string, token: string) {
       throw new Error("Failed to delete Review");
     }
     throw err;
+  }
+}
+
+//  Delete All Bookings API function
+export async function deleteAllBookings(selectedIds: string[]) {
+  try {
+    const res = await api.delete(`/class/bookings/all-booking/deleted`, {
+      data: {
+        bookingIds: selectedIds, 
+      },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Error deleting bookings");
+    throw error;
+  }
+}
+
+//  Delete All Order API function
+export async function deleteAllOrders(selectedIds: string[]) {
+  try {
+    const res = await api.delete(`/order/deleted-order`, {
+      data: {
+        orderIds: selectedIds, 
+      },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Error deleting bookings");
+    throw error;
   }
 }
 

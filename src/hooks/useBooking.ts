@@ -1,12 +1,27 @@
-// hooks/useBookings.ts
-import { getSingleBooking } from "@/lib/api";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getSingleBooking, deleteAllBookings } from "@/lib/api";
 
-// ✅ Simple custom hook to fetch a single booking
+// ✅ Fetch a single booking
 export function useSingleBooking(id: string) {
   return useQuery({
     queryKey: ["Booking", id],
     queryFn: () => getSingleBooking(id),
-    enabled: !!id,  
+    enabled: !!id,
+  });
+}
+
+// ✅ Delete multiple bookings hook
+export function useDeleteAllBookings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (selectedIds: string[]) => deleteAllBookings(selectedIds),
+    onSuccess: () => {
+      // Cache refresh / refetch all bookings if needed
+      queryClient.invalidateQueries({ queryKey: ["Booking"] });
+    },
+    onError: (error) => {
+      console.error("❌ Failed to delete bookings:", error);
+    },
   });
 }
