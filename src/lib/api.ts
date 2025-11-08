@@ -819,3 +819,64 @@ export function useSingleUpdateCourse(id: string) {
     enabled: !!id,
   });
 }
+
+
+//user fetch all
+
+
+export async function fetchUsers() {
+  try {
+    const res = await api.get(`/user/all-users`);
+
+    console.log("Fetched users:", res.data);
+
+    // ✅ Return only the actual user array
+    return res.data.data || [];
+  } catch (err) {
+    if (err instanceof Error) throw new Error("Failed to fetch users");
+    throw err;
+  }
+}
+
+
+//user fetch single 
+
+export async function fetchsingleUser(id:string) {
+  try {
+    const res = await api.get(`/user/single-user/${id}`);
+
+    console.log("Fetched users:", res.data);
+
+    // ✅ Return only the actual user array
+    return res.data.data || [];
+  } catch (err) {
+    if (err instanceof Error) throw new Error("Failed to fetch users");
+    throw err;
+  }
+}
+
+//user delete single
+
+export async function deletesingelUser(id: string) {
+  try {
+    const res = await api.delete(`/user/delete-user/${id}`);
+    return res.data.data || [];
+  } catch (err) {
+    if (err instanceof Error) throw new Error("Failed to delete user");
+    throw err;
+  }
+}
+
+// User update single
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updatesingleUser(id: string, data: any) {
+  try {
+    const res = await api.put(`/user/profile/${id}`, data);
+    console.log("Updated user:", res.data);
+    return res.data.data || {};
+  } catch (err) {
+    if (err instanceof Error) throw new Error("Failed to update user");
+    throw err;
+  }
+}
