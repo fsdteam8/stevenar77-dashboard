@@ -1,4 +1,5 @@
-import { ScheduleSet } from "@/components/Dashboard/Table/BookingTable";
+// import type ScheduleSet from "@/components/Dashboard/Table/BookingTable";
+import { ScheduleSet } from "./BookingTableType";
 
 export interface ApiImage {
   public_id: string;
