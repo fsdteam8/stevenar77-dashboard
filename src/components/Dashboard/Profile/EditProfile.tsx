@@ -204,7 +204,7 @@ const EditProfile: React.FC = () => {
         </div> */}
 
         {/* Email */}
-        <div className="flex flex-col">
+        {/* <div className="flex flex-col">
           <label className="mb-1">Email</label>
           <input
             type="email"
@@ -213,7 +213,7 @@ const EditProfile: React.FC = () => {
             className="border px-3 py-2 rounded"
           />
           {errors.email && <span className="text-red-500">{errors.email}</span>}
-        </div>
+        </div> */}
 
         {/* Phone */}
         <div className="flex flex-col">
@@ -294,8 +294,8 @@ const EditProfile: React.FC = () => {
             <option value="">Select gender</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
-            <option value="Other">Other</option>
-            <option value="Prefer not to say">Prefer not to say</option>
+            {/* <option value="Other">Other</option>
+            <option value="Prefer not to say">Prefer not to say</option> */}
           </select>
         </div>
 
