@@ -824,19 +824,42 @@ export function useSingleUpdateCourse(id: string) {
 //user fetch all
 
 
-export async function fetchUsers() {
+export async function fetchUsers(page = 1, limit = 10) {
   try {
-    const res = await api.get(`/user/all-users`);
+    const res = await api.get(`/user/all-users?page=${page}&limit=${limit}`);
 
     console.log("Fetched users:", res.data);
 
-    // ✅ Return only the actual user array
-    return res.data.data || [];
+    // ✅ Expecting API shape:
+    // { data: [...], pagination: { page, limit, total, totalPages } }
+
+    return {
+      users: res.data.data || [],
+      pagination: res.data.pagination || {
+        page,
+        limit,
+        total: 0,
+        totalPages: 1,
+      },
+    };
   } catch (err) {
     if (err instanceof Error) throw new Error("Failed to fetch users");
     throw err;
   }
 }
+
+
+
+// // Get reviews all with pagination and dynamic params
+// export async function getAllReview(page = 1, limit = 10) {
+//   try {
+//     const res = await api.get(`/reviews/all?page=${page}&limit=${limit}`);
+//     return res.data;
+//   } catch (err) {
+//     console.error("Error fetching reviewss:", err);
+//     throw new Error("Failed to fetch all reviews with pagination");
+//   }
+// }
 
 
 //user fetch single 
