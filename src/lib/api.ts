@@ -880,3 +880,17 @@ export async function updatesingleUser(id: string, data: any) {
     throw err;
   }
 }
+
+
+
+//message delete conversation
+
+export async function deletesingelConv(id: string) {
+  try {
+    const res = await api.delete(`/conversation/${id}`);
+    return res.data.data || [];
+  } catch (err) {
+    if (err instanceof Error) throw new Error("Failed to delete user");
+    throw err;
+  }
+}
