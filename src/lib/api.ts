@@ -6,6 +6,7 @@ import type {
   // PaginationParams,
   // CourseFilters,
 } from "@/types/course";
+import { TemplateData, TemplateResponse } from "@/types/template";
 import { useQuery } from "@tanstack/react-query";
 
 import axios from "axios";
@@ -786,7 +787,7 @@ export async function deleteAllBookings(selectedIds: string[]) {
   try {
     const res = await api.delete(`/class/bookings/all-booking/deleted`, {
       data: {
-        bookingIds: selectedIds, 
+        bookingIds: selectedIds,
       },
     });
     return res.data;
@@ -801,7 +802,7 @@ export async function deleteAllOrders(selectedIds: string[]) {
   try {
     const res = await api.delete(`/order/deleted-order`, {
       data: {
-        orderIds: selectedIds, 
+        orderIds: selectedIds,
       },
     });
     return res.data;
@@ -810,6 +811,107 @@ export async function deleteAllOrders(selectedIds: string[]) {
     throw error;
   }
 }
+
+//  Add Template API
+export const addTemplate = async (
+  templateData: TemplateData
+): Promise<TemplateResponse> => {
+  try {
+    const res = await api.post<TemplateResponse>(
+      "/message-template",
+      templateData
+    );
+    return res.data;
+  } catch {
+    // console.error("❌ Failed to add template:", error);
+    throw new Error("Failed to add email template");
+  }
+};
+
+// Get All Template
+export const getAllTemplate = async (): Promise<TemplateResponse[]> => {
+  try {
+    const res = await api.get<{ data: TemplateResponse[] }>(
+      "/message-template"
+    );
+    return res.data.data || [];
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error("❌ Failed to fetch templates:", err.message);
+      throw new Error("Failed to fetch templates");
+    }
+    throw err;
+  }
+};
+
+// Get single Template
+export const getSingleTemplate = async (
+  id: string
+): Promise<TemplateResponse> => {
+  try {
+    const res = await api.get<TemplateResponse>(`/message-template/${id}`);
+    return res.data;
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error("❌ Failed to fetch template:", err.message);
+      throw new Error("Failed to fetch template");
+    }
+    throw err;
+  }
+};
+
+// Put Template API
+export const updateTemplate = async (
+  id: string,
+  templateData: TemplateData
+): Promise<TemplateResponse> => {
+  try {
+    const res = await api.put<TemplateResponse>(
+      `/message-template/${id}`,
+      templateData
+    );
+    return res.data;
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error("❌ Failed to update template:", err.message);
+      throw new Error("Failed to update template");
+    }
+    throw err;
+  }
+};
+
+// delete Template API
+export const deleteTemplate = async (id: string): Promise<void> => {
+  try {
+    await api.delete(`/message-template/${id}`);
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error("❌ Failed to delete template:", err.message);
+      throw new Error("Failed to delete template");
+    }
+    throw err;
+  }
+};
+
+//  tamplate single status update API
+export const singleTemplateStatusUpdate = async (
+  id: string,
+  status: "active" | "deactive"
+): Promise<TemplateResponse> => {
+  try {
+    const res = await api.patch<TemplateResponse>(
+      `/message-template/${id}/status`,
+      { status }
+    );
+    return res.data;
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error("❌ Failed to update template status:", err.message);
+      throw new Error("Failed to update template status");
+    }
+    throw err;
+  }
+};
 
 // I couldn’t create this hook inside the courses.ts file, so I implemented it directly in api.ts instead. Sorry about that.
 export function useSingleUpdateCourse(id: string) {
@@ -820,15 +922,13 @@ export function useSingleUpdateCourse(id: string) {
   });
 }
 
-
 //user fetch all
-
 
 export async function fetchUsers() {
   try {
     const res = await api.get(`/user/all-users`);
 
-    console.log("Fetched users:", res.data);
+    // console.log("Fetched users:", res.data);
 
     // ✅ Return only the actual user array
     return res.data.data || [];
@@ -838,14 +938,13 @@ export async function fetchUsers() {
   }
 }
 
+//user fetch single
 
-//user fetch single 
-
-export async function fetchsingleUser(id:string) {
+export async function fetchsingleUser(id: string) {
   try {
     const res = await api.get(`/user/single-user/${id}`);
 
-    console.log("Fetched users:", res.data);
+    // console.log("Fetched users:", res.data);
 
     // ✅ Return only the actual user array
     return res.data.data || [];
