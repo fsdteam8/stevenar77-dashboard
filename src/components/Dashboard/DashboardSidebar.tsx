@@ -17,6 +17,8 @@ import {
   ShoppingBag,
   ShoppingBasket,
   SquareStar,
+  Users,
+  Send,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -42,13 +44,13 @@ const navigation = [
   { name: "Bookings", href: "/bookings", icon: NotebookText },
   { name: "Orders", href: "/order", icon: ShoppingBag },
   { name: "Messaging", href: "/messaging", icon: MessageCircleMore },
+  { name: "Send Email", href: "/send-email", icon: Send },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "Payments", href: "/payments", icon: CircleDollarSign },
   { name: "About Us", href: "/abouts", icon: BadgeInfo },
+  { name: "Users", href: "/users", icon: Users },
   { name: "Social", href: "/social", icon: ExternalLink },
   { name: "Reviews", href: "/review", icon: SquareStar },
-
-  // { name: "Shop", href: "/shop", icon: ShoppingCart },
 ];
 
 export default function DashboardSidebar() {

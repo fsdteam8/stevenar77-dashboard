@@ -6,6 +6,7 @@ import type {
   // PaginationParams,
   // CourseFilters,
 } from "@/types/course";
+import { TemplateData, TemplateResponse } from "@/types/template";
 import { useQuery } from "@tanstack/react-query";
 
 import axios from "axios";
@@ -752,7 +753,6 @@ export const getSingleBooking = async (bookingId: string) => {
   }
 };
 
-
 // Get reviews all with pagination and dynamic params
 export async function getAllReview(page = 1, limit = 10) {
   try {
@@ -764,13 +764,12 @@ export async function getAllReview(page = 1, limit = 10) {
   }
 }
 
-
 // Corrected Delete Review API function
 export async function deleteReview(bookingId: string, token: string) {
   try {
     const res = await api.delete(`/reviews/${bookingId}`, {
       headers: {
-        Authorization: `Bearer ${token}`,  
+        Authorization: `Bearer ${token}`,
       },
     });
     return res.data;
@@ -783,6 +782,137 @@ export async function deleteReview(bookingId: string, token: string) {
   }
 }
 
+//  Delete All Bookings API function
+export async function deleteAllBookings(selectedIds: string[]) {
+  try {
+    const res = await api.delete(`/class/bookings/all-booking/deleted`, {
+      data: {
+        bookingIds: selectedIds,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Error deleting bookings");
+    throw error;
+  }
+}
+
+//  Delete All Order API function
+export async function deleteAllOrders(selectedIds: string[]) {
+  try {
+    const res = await api.delete(`/order/deleted-order`, {
+      data: {
+        orderIds: selectedIds,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Error deleting bookings");
+    throw error;
+  }
+}
+
+//  Add Template API
+export const addTemplate = async (
+  templateData: TemplateData
+): Promise<TemplateResponse> => {
+  try {
+    const res = await api.post<TemplateResponse>(
+      "/message-template",
+      templateData
+    );
+    return res.data;
+  } catch {
+    // console.error("❌ Failed to add template:", error);
+    throw new Error("Failed to add email template");
+  }
+};
+
+// Get All Template
+export const getAllTemplate = async (): Promise<TemplateResponse[]> => {
+  try {
+    const res = await api.get<{ data: TemplateResponse[] }>(
+      "/message-template"
+    );
+    return res.data.data || [];
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error("❌ Failed to fetch templates:", err.message);
+      throw new Error("Failed to fetch templates");
+    }
+    throw err;
+  }
+};
+
+// Get single Template
+export const getSingleTemplate = async (
+  id: string
+): Promise<TemplateResponse> => {
+  try {
+    const res = await api.get<TemplateResponse>(`/message-template/${id}`);
+    return res.data;
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      console.error("❌ Failed to fetch template:", err.message);
+      throw new Error("Failed to fetch template");
+    }
+    throw err;
+  }
+};
+
+// Put Template API
+export const updateTemplate = async (
+  id: string,
+  templateData: TemplateData
+): Promise<TemplateResponse> => {
+  try {
+    const res = await api.put<TemplateResponse>(
+      `/message-template/${id}`,
+      templateData
+    );
+    return res.data;
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error("❌ Failed to update template:", err.message);
+      throw new Error("Failed to update template");
+    }
+    throw err;
+  }
+};
+
+// delete Template API
+export const deleteTemplate = async (id: string): Promise<void> => {
+  try {
+    await api.delete(`/message-template/${id}`);
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error("❌ Failed to delete template:", err.message);
+      throw new Error("Failed to delete template");
+    }
+    throw err;
+  }
+};
+
+//  Single Template Status Update API
+export const singleTemplateStatusUpdate = async (
+  id: string,
+  status: "active" | "deactivate"
+): Promise<TemplateResponse> => {
+  try {
+    const res = await api.patch<TemplateResponse>(
+      `/message-template/${id}/status`,
+      { status }
+    );
+    return res.data;
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error("❌ Failed to update template status:", err.message);
+      throw new Error("Failed to update template status");
+    }
+    throw err;
+  }
+};
+
 // I couldn’t create this hook inside the courses.ts file, so I implemented it directly in api.ts instead. Sorry about that.
 export function useSingleUpdateCourse(id: string) {
   return useQuery({
@@ -790,4 +920,95 @@ export function useSingleUpdateCourse(id: string) {
     queryFn: () => courseApi.getCourse(id),
     enabled: !!id,
   });
+}
+
+// Dynamic user fetch
+export async function fetchUsers(
+  endpoint: string = "/user/all-users",
+  page: number = 1,
+  limit: number = 10
+) {
+  try {
+    const res = await api.get(`${endpoint}?page=${page}&limit=${limit}`);
+
+    return {
+      users: res.data.data || [],
+      pagination: res.data.pagination || {
+        page,
+        limit,
+        total: 0,
+        totalPages: 1,
+      },
+    };
+  } catch (err) {
+    if (err instanceof Error) throw new Error("Failed to fetch users");
+    throw err;
+  }
+}
+
+//user fetch single
+
+// // Get reviews all with pagination and dynamic params
+// export async function getAllReview(page = 1, limit = 10) {
+//   try {
+//     const res = await api.get(`/reviews/all?page=${page}&limit=${limit}`);
+//     return res.data;
+//   } catch (err) {
+//     console.error("Error fetching reviewss:", err);
+//     throw new Error("Failed to fetch all reviews with pagination");
+//   }
+// }
+
+//user fetch single
+
+export async function fetchsingleUser(id: string) {
+  try {
+    const res = await api.get(`/user/single-user/${id}`);
+
+    // console.log("Fetched users:", res.data);
+
+    // ✅ Return only the actual user array
+    return res.data.data || [];
+  } catch (err) {
+    if (err instanceof Error) throw new Error("Failed to fetch users");
+    throw err;
+  }
+}
+
+//user delete single
+
+export async function deletesingelUser(id: string) {
+  try {
+    const res = await api.delete(`/user/delete-user/${id}`);
+    return res.data.data || [];
+  } catch (err) {
+    if (err instanceof Error) throw new Error("Failed to delete user");
+    throw err;
+  }
+}
+
+// User update single
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updatesingleUser(id: string, data: any) {
+  try {
+    const res = await api.put(`/user/profile/${id}`, data);
+    console.log("Updated user:", res.data);
+    return res.data.data || {};
+  } catch (err) {
+    if (err instanceof Error) throw new Error("Failed to update user");
+    throw err;
+  }
+}
+
+//message delete conversation
+
+export async function deletesingelConv(id: string) {
+  try {
+    const res = await api.delete(`/conversation/${id}`);
+    return res.data.data || [];
+  } catch (err) {
+    if (err instanceof Error) throw new Error("Failed to delete user");
+    throw err;
+  }
 }

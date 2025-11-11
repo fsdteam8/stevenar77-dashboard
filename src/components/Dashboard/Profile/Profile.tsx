@@ -85,6 +85,7 @@ const Profile = () => {
                   "N/A"}
               </h2>
               <p>{user.email || "N/A"}</p>
+              <p>Users email</p>
             </div>
           </div>
           <div className="flex gap-3">
@@ -120,12 +121,12 @@ const Profile = () => {
                 </label>
                 <Input value={user.lastName || "N/A"} disabled />
               </div>
-              <div>
+              {/* <div>
                 <label className="text-sm font-medium text-gray-700 mb-1 block">
                   Email
                 </label>
                 <Input value={user.email || "N/A"} disabled />
-              </div>
+              </div> */}
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-1 block">
                   Phone Number

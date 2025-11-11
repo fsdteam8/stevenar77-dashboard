@@ -126,7 +126,7 @@ export default function DashboardHeader() {
         <div className="flex flex-col ">
           <h1 className="text-xl text-primary font-bold  ">My Dashboard</h1>
           <p className="!text-sm text-gray-400">
-            Welcome back! Here&apos;s what&apos;s happening with your Website
+            Welcome back! Here&apos;s what&apos;s happening with your website
             today.
           </p>
         </div>
