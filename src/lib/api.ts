@@ -893,15 +893,15 @@ export const deleteTemplate = async (id: string): Promise<void> => {
   }
 };
 
-//  tamplate single status update API
+//  Single Template Status Update API
 export const singleTemplateStatusUpdate = async (
   id: string,
-  status: "active" | "deactive"
+  status: "active" | "deactivate"
 ): Promise<TemplateResponse> => {
   try {
     const res = await api.patch<TemplateResponse>(
       `/message-template/${id}/status`,
-      { status }
+      { status }  
     );
     return res.data;
   } catch (err) {

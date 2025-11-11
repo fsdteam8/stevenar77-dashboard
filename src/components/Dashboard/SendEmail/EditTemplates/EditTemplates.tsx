@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,7 +9,6 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
-
 import {
   Form,
   FormControl,
@@ -26,12 +27,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
 import { useGetSingleTemplate, useUpdateTemplate } from "@/hooks/templates";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
 
+// ✅ Validation Schema
 const templateSchema = z.object({
   name: z.string().min(2, "Template name is required"),
   subject: z.string().min(2, "Subject is required"),
@@ -41,23 +42,34 @@ const templateSchema = z.object({
 
 type TemplateFormValues = z.infer<typeof templateSchema>;
 
+// ✅ Define TemplateData type with optional status
+interface TemplateData {
+  _id?: string;
+  tempName?: string;
+  emailSubject?: string;
+  type?: string;
+  messageBody?: string;
+  status?: string;  
+}
+
 export default function EditTemplates() {
   const router = useRouter();
-  const params = useParams();  
-  const templateId = params?.id;  
+  const params = useParams();
+  const templateId = params?.id as string;
 
-
+  const { mutate: updateTemplate, isPending } = useUpdateTemplate();
   const [showPreview, setShowPreview] = useState(false);
 
-  // Fetch the single template
-  const { data: template, isLoading, isError, error } =
-    useGetSingleTemplate(templateId || "");
-    console.log(template)
+  const {
+    data: response,
+    isLoading,
+    isError,
+    error,
+  } = useGetSingleTemplate(templateId);
 
-  // Update mutation
-  const { mutate: updateTemplate, isPending } = useUpdateTemplate();
+  const template: TemplateData | undefined = response?.data;
 
-  // Initialize form
+  // ✅ Initialize form
   const form = useForm<TemplateFormValues>({
     resolver: zodResolver(templateSchema),
     defaultValues: {
@@ -68,19 +80,24 @@ export default function EditTemplates() {
     },
   });
 
-  // Populate form once template is loaded
+  // ✅ Populate form once data is fetched
   useEffect(() => {
     if (template) {
+      const validTypes = ["courses", "product", "trips"] as const;
+      const safeType = validTypes.includes(template.type as any)
+        ? (template.type as "courses" | "product" | "trips")
+        : "courses";
+
       form.reset({
         name: template.tempName || "",
         subject: template.emailSubject || "",
-        type: template.type || "courses",
+        type: safeType,
         message: template.messageBody || "",
       });
     }
   }, [template, form]);
 
-  // Form submit handler
+  // ✅ Submit handler (update API)
   const onSubmit = (values: TemplateFormValues) => {
     if (!templateId) return;
 
@@ -88,8 +105,12 @@ export default function EditTemplates() {
       tempName: values.name,
       emailSubject: values.subject,
       type: values.type,
-      status: template?.status || "deactive",
       messageBody: values.message,
+      // ✅ Safe fallback for missing status
+      status:
+        template?.status && template.status.includes("deactivate")
+          ? "deactivate."
+          : template?.status || "deactivate.",
     };
 
     updateTemplate(
@@ -102,10 +123,18 @@ export default function EditTemplates() {
     );
   };
 
+  // ✅ Handle loading/error/invalid id
   if (!templateId)
     return <p className="p-8 text-red-500">Invalid template ID.</p>;
+
   if (isLoading)
-    return <p className="p-8 text-gray-700">Loading template...</p>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="animate-spin w-6 h-6 text-gray-600" />
+        <p className="ml-2 text-gray-700">Loading template...</p>
+      </div>
+    );
+
   if (isError)
     return (
       <p className="p-8 text-red-500">
@@ -113,16 +142,17 @@ export default function EditTemplates() {
       </p>
     );
 
+  // ✅ UI
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex flex-col gap-3">
         <Link
           href="/send-email"
-          className="inline-flex items-center  gap-2 text-blue-600 font-medium hover:text-blue-700 transition border border-blue-600 px-4 py-2 rounded-lg hover:bg-blue-100"
+          className="inline-flex items-center gap-2 text-teal-600 font-medium hover:text-teal-700 transition border border-teal-600 px-4 py-2 rounded-lg hover:bg-teal-100"
         >
           <ArrowLeft size={18} />
-          Back to Templates
+          <span>Back to Templates</span>
         </Link>
         <h1 className="text-3xl font-bold text-gray-900 text-center">
           Edit Email Template
@@ -177,7 +207,10 @@ export default function EditTemplates() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Type</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl className="w-full">
                           <SelectTrigger>
                             <SelectValue placeholder="Select type" />
@@ -220,7 +253,7 @@ export default function EditTemplates() {
                     type="button"
                     variant="outline"
                     onClick={() => setShowPreview(!showPreview)}
-                    className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                    className="border-teal-600 text-teal-600 hover:bg-teal-50 cursor-pointer"
                   >
                     {showPreview ? "Hide Preview" : "Preview"}
                   </Button>
@@ -228,7 +261,7 @@ export default function EditTemplates() {
                   <Button
                     type="submit"
                     disabled={isPending}
-                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2"
+                    className="bg-teal-600 hover:bg-teal-700 text-white rounded-lg flex items-center gap-2"
                   >
                     {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
                     {isPending ? "Updating..." : "Update Template"}

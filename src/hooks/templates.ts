@@ -10,7 +10,7 @@ import {
   singleTemplateStatusUpdate,
   updateTemplate,
 } from "@/lib/api";
-import { TemplateData, TemplateResponse } from "@/types/template";
+import { TemplateData, TemplateResponse, TemplateUpdateData } from "@/types/template";
 import { toast } from "sonner";
 
 // Add Template
@@ -21,7 +21,7 @@ export function useAddTemplate() {
     mutationFn: (templateData: TemplateData) => addTemplate(templateData),
 
     onSuccess: () => {
-      toast.success("✅ Template added successfully!");
+      toast.success(" Template added successfully!");
       queryClient.invalidateQueries({ queryKey: ["templates"] });
     },
 
@@ -41,17 +41,17 @@ export function useGetTemplates() {
   });
 }
 
-// ✅ Get Single Template
+// Get Single Template
 export function useGetSingleTemplate(id: string) {
   return useQuery<TemplateResponse, Error>({
     queryKey: ["template", id],
     queryFn: () => getSingleTemplate(id),
-    enabled: !!id, // only run if id exists
-    staleTime: 1000 * 60 * 5, // cache for 5 minutes
+    enabled: !!id,  
+    staleTime: 1000 * 60 * 5,  
   });
 }
 
-// ✅ Delete Template
+//  Delete Template
 export function useDeleteTemplate() {
   const queryClient = useQueryClient();
 
@@ -70,45 +70,39 @@ export function useDeleteTemplate() {
   });
 }
 
-// ✅ Update Template Status
+//  Update Template Status
 export function useUpdateTemplateStatus() {
   const queryClient = useQueryClient();
 
   return useMutation<
     TemplateResponse,
     Error,
-    { id: string; status: "active" | "deactive" }
+    { id: string; status: "active" | "deactivate" }
   >({
     mutationFn: ({ id, status }) => singleTemplateStatusUpdate(id, status),
 
-    onSuccess: (data) => {
-      toast.success(
-        `✅ Template "${
-          data.tempName || "Untitled"
-        }" status updated successfully!`
-      );
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["templates"] });
     },
 
     onError: (error: Error) => {
       console.error("❌ Failed to update template status:", error.message);
-      toast.error(`❌ Failed to update status: ${error.message}`);
     },
   });
 }
 
 
-// update single template hook
+//  ✅ Update Template Hook
 export function useUpdateTemplate() {
   const queryClient = useQueryClient();
 
-  return useMutation<TemplateResponse, Error, { id: string; data: TemplateData }>({
+  return useMutation<TemplateResponse, Error, { id: string; data: TemplateUpdateData }>({
     mutationFn: ({ id, data }) => updateTemplate(id, data),
 
     onSuccess: (data) => {
-      toast.success(`✅ Template "${data.tempName || "Untitled"}" updated successfully!`);
+      toast.success(`Template "${data.tempName || "Untitled"}" updated successfully!`);
       queryClient.invalidateQueries({ queryKey: ["templates"] });
-      queryClient.invalidateQueries({ queryKey: ["template", data._id] }); // refresh single template
+      queryClient.invalidateQueries({ queryKey: ["template", data._id] });
     },
 
     onError: (error: Error) => {

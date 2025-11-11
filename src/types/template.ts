@@ -2,14 +2,19 @@ export interface TemplateData {
   tempName: string;
   emailSubject: string;
   type: string;
+  messageBody: string;
+}
+
+export interface TemplateUpdateData {
+  tempName: string;
+  emailSubject: string;
+  type: "courses" | "product" | "trips";
   status: string;
   messageBody: string;
 }
 
 export interface TemplateResponse {
-
   _id: string;
-  id: string;
   tempName: string;
   emailSubject: string;
   type: string;
@@ -17,27 +22,12 @@ export interface TemplateResponse {
   messageBody: string;
   createdAt: string;
   updatedAt: string;
+  data: TemplateData;
 }
 
-
-
-// Template data type
-export interface TemplateData {
-  tempName: string;
-  emailSubject: string;
-  type: string;
-  status: string;
-  messageBody: string;
-}
-
-// Optional: API response type
-export interface TemplateResponse {
-  id: string;
-  tempName: string;
-  emailSubject: string;
-  type: string;
-  status: string;
-  messageBody: string;
-  createdAt: string;
-  updatedAt: string;
+export interface TemplateApiResponse {
+  success: boolean;
+  message: string;
+  statusCode: number;
+  data: TemplateResponse;
 }

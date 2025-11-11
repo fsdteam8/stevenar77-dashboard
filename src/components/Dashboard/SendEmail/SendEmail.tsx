@@ -19,7 +19,7 @@ export default function SendEmail() {
   const filteredTemplates =
     templates?.filter((t) => t.type === activeTab) || [];
 
-    // console.log(templates)
+  // console.log(templates)
 
   return (
     <div className="p-8 space-y-6">
@@ -54,7 +54,12 @@ export default function SendEmail() {
 
       {/* Tab Content */}
       <div className="mt-6 animate-fadeIn">
-        {isLoading && <p>Loading templates...</p>}
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-10 text-center">
+            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-3 text-sm text-gray-600">Loading templates...</p>
+          </div>
+        )}
         {isError && <p>Failed to load templates.</p>}
         {!isLoading && !isError && filteredTemplates.length === 0 && (
           <p>No templates found for {activeTab}.</p>

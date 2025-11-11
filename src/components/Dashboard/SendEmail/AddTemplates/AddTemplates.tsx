@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { ArrowLeft, Loader2 } from "lucide-react"; // 👈 Added Loader2 icon
+import { ArrowLeft, Loader2 } from "lucide-react"; 
 
 import {
   Form,
@@ -53,7 +53,7 @@ export default function AddTemplates() {
     },
   });
 
-  // ✅ Use mutation and track loading state
+  //  Use mutation and track loading state
   const { mutate: addTemplate, isPending } = useAddTemplate();
 
   const onSubmit = (values: TemplateFormValues) => {
@@ -61,14 +61,14 @@ export default function AddTemplates() {
       tempName: values.name,
       emailSubject: values.subject,
       type: values.type,
-      status: "active",
+      // status: "active",
       messageBody: values.message,
     };
 
-    // ✅ Run mutation
+    //  Run mutation
     addTemplate(payload, {
       onSuccess: () => {
-        // ✅ Reset form after successful submit
+        // Reset form after successful submit
         form.reset({
           name: "",
           subject: "",
@@ -76,7 +76,7 @@ export default function AddTemplates() {
           message: "",
         });
 
-        // ✅ Hide preview if it was open
+        // Hide preview if it was open
         setShowPreview(false);
       },
     });
