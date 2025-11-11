@@ -4,9 +4,9 @@ import React from 'react'
 export default function page() {
   return (
     <div>
-      <div className="mb-4 py-6">
-        <h2 className="text-2xl ">
-          User Management 
+      <div className="py-4">
+        <h2 className="text-2xl font-bold ">
+          Users Management 
         </h2>
       </div>
         <UsersTable />

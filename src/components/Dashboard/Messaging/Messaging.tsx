@@ -288,7 +288,7 @@ export default function AdminMessaging() {
                     <Trash2Icon />
                   </Button>
                 </div>
-                <span className="col-span-1 text-xs text-gray-400">
+                <span className="col-span-1 text-xs text-gray-400 ">
                   {formatTime(conv.updatedAt)}
                 </span>
               </div>

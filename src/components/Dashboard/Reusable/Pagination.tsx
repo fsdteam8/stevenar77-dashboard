@@ -17,7 +17,7 @@ export default function Pagination({
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
 
-  if (totalPages <= 1) return null; // if only 1 page, hide pagination
+  if (totalPages <= 1) return null;  
 
   return (
     <>

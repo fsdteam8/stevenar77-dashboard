@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useUser, useDeleteUser, useUpdateUser } from "@/hooks/useUser";
 import { User } from "@/types/user";
 import { fetchsingleUser } from "@/lib/api";
-import { Edit, Eye, Trash } from "lucide-react";
+import { Edit, Eye, Loader, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,6 +19,8 @@ import { Input } from "@/components/ui/input";
 export default function UsersTable() {
   const [page, setPage] = useState(1);
   const limit = 10;
+
+  // Fetch users using custom hook
   const { data, isLoading, isError } = useUser(page, limit);
 
   const users = data?.users || [];
@@ -26,6 +28,7 @@ export default function UsersTable() {
 
   const { mutate: deleteUser } = useDeleteUser();
   const { mutate: updateUser } = useUpdateUser();
+
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
@@ -44,6 +47,7 @@ export default function UsersTable() {
     ? users.filter((user: User) => user.role === "user")
     : [];
 
+  // View user
   const handleView = async (id: string) => {
     try {
       const user = await fetchsingleUser(id);
@@ -53,6 +57,7 @@ export default function UsersTable() {
     }
   };
 
+  // Edit user
   const handleEdit = async (id: string) => {
     try {
       const user = await fetchsingleUser(id);
@@ -93,7 +98,12 @@ export default function UsersTable() {
   };
 
   if (isLoading)
-    return <p className="text-center py-6 text-gray-600">Loading users...</p>;
+    return (
+      <div className="flex flex-col items-center justify-center py-6 space-y-2">
+        <Loader className="animate-spin text-blue-500 h-8 w-8" />
+        <p className="text-gray-600 text-center">Loading users...</p>
+      </div>
+    );
 
   if (isError)
     return (
@@ -108,7 +118,7 @@ export default function UsersTable() {
         <thead>
           <tr className="bg-gray-100 border-b border-gray-200">
             <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-              ID
+              SL No.
             </th>
             <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
               User Name
@@ -116,7 +126,6 @@ export default function UsersTable() {
             <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
               Email
             </th>
-            {/* <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">Role</th> */}
             <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
               Action
             </th>
@@ -131,8 +140,11 @@ export default function UsersTable() {
                 className="border-b hover:bg-gray-50 transition-colors"
               >
                 {/* SL No. (serial number) */}
-                <td className="px-6 py-3 text-sm text-gray-700">{index + 1}</td>
-                {/* <td className="px-6 py-3 text-sm text-gray-700">{user._id}</td> */}
+                {/* <td className="px-6 py-3 text-sm text-gray-700">{index + 1}</td> */}
+                <td className="px-6 py-3 text-sm text-gray-700">
+                  #{user._id.slice(-4)}
+                </td>
+
                 <td className="px-6 py-3 text-sm text-gray-700">
                   {user.firstName} {user.lastName}
                 </td>
@@ -391,16 +403,49 @@ export default function UsersTable() {
           <p className="text-sm text-gray-600">
             Page {pagination.page} of {pagination.totalPages}
           </p>
-          <div className="space-x-2">
+          <div className="flex space-x-2">
+            {/* Previous Button */}
             <Button
               disabled={page === 1}
               onClick={() => setPage((p) => Math.max(p - 1, 1))}
             >
               Previous
             </Button>
+
+            {/* Page Numbers */}
+            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(
+              (pageNumber) => {
+                if (
+                  pageNumber === 1 ||
+                  pageNumber === pagination.totalPages ||
+                  (pageNumber >= page - 1 && pageNumber <= page + 1)
+                ) {
+                  return (
+                    <Button
+                      key={pageNumber}
+                      className={`${
+                        pageNumber === page
+                          ? "bg-teal-600 text-white"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      }`}
+                      onClick={() => setPage(pageNumber)}
+                    >
+                      {pageNumber}
+                    </Button>
+                  );
+                } else if (pageNumber === page - 2 || pageNumber === page + 2) {
+                  return <span key={pageNumber}>...</span>;
+                }
+                return null;
+              }
+            )}
+
+            {/* Next Button */}
             <Button
               disabled={page === pagination.totalPages}
-              onClick={() => setPage((p) => p + 1)}
+              onClick={() =>
+                setPage((p) => Math.min(p + 1, pagination.totalPages))
+              }
             >
               Next
             </Button>
