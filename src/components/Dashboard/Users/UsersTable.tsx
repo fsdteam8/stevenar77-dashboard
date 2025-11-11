@@ -17,7 +17,13 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
 export default function UsersTable() {
-  const { data: users, isLoading, isError } = useUser();
+  const [page, setPage] = useState(1);
+  const limit = 10;
+  const { data, isLoading, isError } = useUser(page, limit);
+
+  const users = data?.users || [];
+  const pagination = data?.pagination;
+
   const { mutate: deleteUser } = useDeleteUser();
   const { mutate: updateUser } = useUpdateUser();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -165,6 +171,7 @@ export default function UsersTable() {
           )}
         </tbody>
       </table>
+
       {/* Edit User Dialog */}
       <Dialog open={!!userToEdit} onOpenChange={() => setUserToEdit(null)}>
         <DialogContent className="max-w-lg p-6 max-h-[90vh] overflow-y-auto">
@@ -378,6 +385,28 @@ export default function UsersTable() {
           )}
         </DialogContent>
       </Dialog>
+
+      {pagination && (
+        <div className="flex justify-between items-center py-4 px-6">
+          <p className="text-sm text-gray-600">
+            Page {pagination.page} of {pagination.totalPages}
+          </p>
+          <div className="space-x-2">
+            <Button
+              disabled={page === 1}
+              onClick={() => setPage((p) => Math.max(p - 1, 1))}
+            >
+              Previous
+            </Button>
+            <Button
+              disabled={page === pagination.totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

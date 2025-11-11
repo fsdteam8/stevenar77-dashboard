@@ -7,11 +7,12 @@ import { deletesingelUser, fetchsingleUser, fetchUsers, updatesingleUser } from 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-// Fetch all users
-export function useUser() {
+// Fetch all users with pagination
+export function useUser(page: number, limit: number) {
   return useQuery({
-    queryKey: ["users"],
-    queryFn: () => fetchUsers(),
+    queryKey: ["users", page, limit],
+    queryFn: () => fetchUsers(page, limit),
+    // keepPreviousData: true, // ✅ avoids flicker between pages
   });
 }
 

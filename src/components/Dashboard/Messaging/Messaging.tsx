@@ -2,7 +2,7 @@
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import io, { Socket } from "socket.io-client";
-import { Lock, MessageCircle, Send } from "lucide-react";
+import { Lock, MessageCircle, Send, Trash, Trash2Icon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -13,6 +13,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Checkbox } from "@radix-ui/react-checkbox";
+import { useDeleteConvo } from "@/hooks/useConvo";
 
 interface Message {
   _id?: string;
@@ -53,6 +55,14 @@ export default function AdminMessaging() {
   const { data: session, status } = useSession();
   const ADMIN_ID = session?.user?.id as string | undefined;
   const router = useRouter();
+
+  const { mutate: deleteConvo, isPending } = useDeleteConvo();
+
+  const handleDelete = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation(); // prevent openConversation() trigger
+    deleteConvo(id);
+   
+  };
 
   // Auto scroll
   useEffect(() => {
@@ -263,9 +273,20 @@ export default function AdminMessaging() {
                   >
                     {user?.email}
                   </p>
+                  {/* <p>{conv._id}</p> */}
                   <p className="text-xs text-gray-500 truncate">
                     {conv.lastMessage || "No messages"}
                   </p>
+                </div>
+                <div className="col-span-1 ">
+                  <Button
+                    onClick={(e) => handleDelete(e, conv._id)}
+                    disabled={isPending}
+                    className="text-gray-700 cursor-pointer bg-transparent hover:bg-red-300 hover:text-red-700 text-sm"
+                    title="Delete conversation"
+                  >
+                    <Trash2Icon />
+                  </Button>
                 </div>
                 <span className="col-span-1 text-xs text-gray-400">
                   {formatTime(conv.updatedAt)}
