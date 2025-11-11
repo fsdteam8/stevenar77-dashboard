@@ -2,7 +2,7 @@
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import io, { Socket } from "socket.io-client";
-import { Lock, MessageCircle, Send } from "lucide-react";
+import { Lock, MessageCircle, Send, Trash, Trash2Icon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -13,6 +13,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Checkbox } from "@radix-ui/react-checkbox";
+import { useDeleteConvo } from "@/hooks/useConvo";
 
 interface Message {
   _id?: string;
@@ -27,6 +29,7 @@ interface Participant {
   firstName?: string;
   lastName?: string;
   email?: string;
+  avatar?: string;
 }
 
 interface Conversation {
@@ -52,6 +55,14 @@ export default function AdminMessaging() {
   const { data: session, status } = useSession();
   const ADMIN_ID = session?.user?.id as string | undefined;
   const router = useRouter();
+
+  const { mutate: deleteConvo, isPending } = useDeleteConvo();
+
+  const handleDelete = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation(); // prevent openConversation() trigger
+    deleteConvo(id);
+   
+  };
 
   // Auto scroll
   useEffect(() => {
@@ -214,6 +225,14 @@ export default function AdminMessaging() {
           {conversations.map((conv) => {
             const user = conv.participants.find((p) => p._id !== ADMIN_ID);
             const active = currentConversation?._id === conv._id;
+
+            // Get the first two letters of the first name and last name for fallback
+            const userInitials =
+              user?.firstName && user?.lastName
+                ? user.firstName[0]?.toUpperCase() +
+                  user.lastName[0]?.toUpperCase()
+                : user?.firstName?.[0]?.toUpperCase();
+
             return (
               <div
                 key={conv._id}
@@ -223,13 +242,21 @@ export default function AdminMessaging() {
                 }`}
               >
                 <div className="col-span-1 overflow-hidden">
-                  <Image
-                    src={"/images/profile-mini.jpg"}
-                    alt="User Avatar"
-                    width={40}
-                    height={40}
-                    className="object-cover w-full aspect-square rounded-full"
-                  />
+                  {user?.avatar ? (
+                    // If there's an avatar image, show it
+                    <Image
+                      src={user.avatar} // Ensure user.avatar is a valid URL
+                      alt="User Avatar"
+                      width={40}
+                      height={40}
+                      className="object-cover w-full aspect-square rounded-full"
+                    />
+                  ) : (
+                    // If no avatar image, show the initials
+                    <div className="flex justify-center items-center w-full h-full bg-gray-300 text-white font-bold text-lg rounded-full">
+                      {userInitials}
+                    </div>
+                  )}
                 </div>
                 <div className="col-span-5 flex-1">
                   <p
@@ -246,11 +273,22 @@ export default function AdminMessaging() {
                   >
                     {user?.email}
                   </p>
+                  {/* <p>{conv._id}</p> */}
                   <p className="text-xs text-gray-500 truncate">
                     {conv.lastMessage || "No messages"}
                   </p>
                 </div>
-                <span className="col-span-1 text-xs text-gray-400">
+                <div className="col-span-1 ">
+                  <Button
+                    onClick={(e) => handleDelete(e, conv._id)}
+                    disabled={isPending}
+                    className="text-gray-700 cursor-pointer bg-transparent hover:bg-red-300 hover:text-red-700 text-sm"
+                    title="Delete conversation"
+                  >
+                    <Trash2Icon />
+                  </Button>
+                </div>
+                <span className="col-span-1 text-xs text-gray-400 ">
                   {formatTime(conv.updatedAt)}
                 </span>
               </div>
@@ -264,32 +302,45 @@ export default function AdminMessaging() {
         {/* Chat header */}
         <div className="flex items-center gap-3 p-3 border-b bg-white">
           {currentConversation ? (
-            <>
-              <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden">
-                <Image
-                  src={"/images/profile-mini.jpg"}
-                  alt="User Avatar"
-                  width={40}
-                  height={40}
-                  className="object-cover w-10 h-10 rounded-full"
-                />
-              </div>
-              <div>
-                <p className="font-semibold truncate max-w-[calc(100%-3rem)] gap-2">
-                  {currentConversation.participants
-                    .filter((p) => p._id !== ADMIN_ID)
-                    .map((p) => `${p.firstName} ${p.lastName}`)
-                    .join(", ")}
-                </p>
+            (() => {
+              // Find the user for the current conversation
+              const user = currentConversation.participants.find(
+                (p) => p._id !== ADMIN_ID
+              );
 
-                <p className="font-semibold text-sm  max-w-[calc(100%-3rem)]">
-                  {currentConversation.participants
-                    .filter((p) => p._id !== ADMIN_ID)
-                    .map((p) => p.email)
-                    .join(", ")}
-                </p>
-              </div>
-            </>
+              // Calculate user initials
+              const userInitials =
+                user?.firstName && user?.lastName
+                  ? user.firstName[0]?.toUpperCase() +
+                    user.lastName[0]?.toUpperCase()
+                  : user?.firstName?.[0]?.toUpperCase();
+
+              return (
+                <>
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden">
+                    {/* Display initials instead of image */}
+                    <div className="flex items-center justify-center w-full h-full bg-gray-300 text-white font-bold text-lg rounded-full">
+                      {userInitials}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold truncate max-w-[calc(100%-3rem)] gap-2">
+                      {currentConversation.participants
+                        .filter((p) => p._id !== ADMIN_ID)
+                        .map((p) => `${p.firstName} ${p.lastName}`)
+                        .join(", ")}
+                    </p>
+
+                    <p className="font-semibold text-sm max-w-[calc(100%-3rem)]">
+                      {currentConversation.participants
+                        .filter((p) => p._id !== ADMIN_ID)
+                        .map((p) => p.email)
+                        .join(", ")}
+                    </p>
+                  </div>
+                </>
+              );
+            })()
           ) : (
             <p className="text-gray-500">Choose a chat to view messages</p>
           )}
@@ -299,7 +350,7 @@ export default function AdminMessaging() {
         <div className="flex-1 p-4 overflow-y-auto bg-white">
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center">
-              <div className="h-full flex items-center justify-center  ">
+              <div className="h-full flex items-center justify-center">
                 <div className="bg-white shadow-lg rounded-2xl p-10 flex flex-col items-center justify-center space-y-4 max-w-sm text-center">
                   <div className="w-16 h-16 flex items-center justify-center rounded-full bg-cyan-100 animate-pulse">
                     <MessageCircle className="w-8 h-8 text-cyan-600" />
@@ -316,8 +367,12 @@ export default function AdminMessaging() {
             </div>
           ) : (
             messages.map((m, i) => {
+              // Safely check if m.sender is an object and has _id
               const senderId =
-                typeof m.sender === "object" ? m.sender._id : m.sender;
+                m.sender && typeof m.sender === "object" && m.sender._id
+                  ? m.sender._id // If m.sender is an object with _id
+                  : m.sender; // If m.sender is a string or number (id only)
+
               const isAdmin = senderId === ADMIN_ID;
 
               return (

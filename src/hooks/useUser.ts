@@ -3,17 +3,27 @@
 "use client";
 
 import { User } from "@/components/Dashboard/Table/PaymentsTrip";
-import { deletesingelUser, fetchsingleUser, fetchUsers, updatesingleUser } from "@/lib/api";
+import {
+  deletesingelUser,
+  fetchsingleUser,
+  fetchUsers,
+  updatesingleUser,
+} from "@/lib/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-// Fetch all users
-export function useUser() {
+// Custom hook to fetch users with pagination
+export function useUser(
+  page: number,
+  limit: number,
+  endpoint: string = "/user/all-users"
+) {
   return useQuery({
-    queryKey: ["users"],
-    queryFn: () => fetchUsers(),
+    queryKey: ["users", endpoint, page, limit],
+    queryFn: () => fetchUsers(endpoint, page, limit),
   });
 }
+
 
 // Fetch single user
 export function useSingleUser(id: string) {
@@ -45,7 +55,7 @@ export function useUpdateUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<User> }) => 
+    mutationFn: ({ id, data }: { id: string; data: Partial<User> }) =>
       updatesingleUser(id, data),
     onSuccess: () => {
       toast.success("User updated successfully");
