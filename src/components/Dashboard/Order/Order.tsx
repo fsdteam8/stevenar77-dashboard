@@ -196,7 +196,7 @@ const OrdersTable = () => {
                   </td>
 
                   <td className="px-6 py-4 flex items-center gap-2 text-sm text-gray-600">
-                    {order.userId.image?.url && (
+                    {order.userId?.image?.url && (
                       <div className="w-8 h-8 rounded-full overflow-hidden">
                         <Image
                           src={order.userId.image.url}
@@ -206,7 +206,7 @@ const OrdersTable = () => {
                         />
                       </div>
                     )}
-                    {order.userId.firstName} {order.userId.lastName}
+                    {order.userId?.firstName} {order.userId?.lastName}
                     <div></div>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
@@ -333,10 +333,10 @@ const OrdersTable = () => {
                 </h3>
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
-                    {selectedOrder.userId.image?.url ? (
+                    {selectedOrder.userId?.image?.url ? (
                       <Image
-                        src={selectedOrder.userId.image.url}
-                        alt={selectedOrder.userId.firstName}
+                        src={selectedOrder.userId?.image?.url}
+                        alt={selectedOrder.userId?.firstName}
                         width={64}
                         height={64}
                       />
@@ -346,18 +346,18 @@ const OrdersTable = () => {
                   </div>
                   <div>
                     <p className="text-lg font-medium">
-                      {selectedOrder.userId.firstName}{" "}
-                      {selectedOrder.userId.lastName}
+                      {selectedOrder.userId?.firstName}{" "}
+                      {selectedOrder.userId?.lastName}
                     </p>
                     <p className="text-gray-500">
-                      {selectedOrder.userId.email}
+                      {selectedOrder.userId?.email}
                     </p>
                     <p className="text-sm text-gray-400">
-                      Order ID: #{selectedOrder._id.slice(-4)}
+                      Order ID: #{selectedOrder?._id.slice(-4)}
                     </p>
                     <p className="text-sm text-gray-400">
                       Placed at:{" "}
-                      {new Date(selectedOrder.createdAt).toLocaleString()}
+                      {new Date(selectedOrder?.createdAt).toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -372,8 +372,8 @@ const OrdersTable = () => {
                   <div className="w-20 h-20 rounded overflow-hidden bg-gray-200 flex items-center justify-center">
                     {selectedOrder.productId?.images?.[0]?.url ? (
                       <Image
-                        src={selectedOrder.productId.images[0].url}
-                        alt={selectedOrder.productId.title}
+                        src={selectedOrder.productId?.images[0].url}
+                        alt={selectedOrder.productId?.title}
                         width={80}
                         height={80}
                       />
@@ -388,13 +388,13 @@ const OrdersTable = () => {
                       {selectedOrder.productId?.title || "N/A"}
                     </p>
                     <p className="text-gray-500">
-                      Color: {selectedOrder.color || "N/A"}
+                      Color: {selectedOrder?.color || "N/A"}
                     </p>
                     <p className="text-gray-500">
-                      Quantity: {selectedOrder.quantity}
+                      Quantity: {selectedOrder?.quantity}
                     </p>
                     <p className="text-gray-500">
-                      Total Price: ${selectedOrder.totalPrice}
+                      Total Price: ${selectedOrder?.totalPrice}
                     </p>
                   </div>
                 </div>
