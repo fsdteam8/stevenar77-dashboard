@@ -74,7 +74,7 @@ export default function Dashboard() {
         </div>
         <div className="table-data space-y-8">
           {/* Recent Trips data table */}
-          <h2 className="text-xl text-[#343A40] mx-auto">Recants Trips</h2>
+          <h2 className="text-xl text-[#343A40] mx-auto">Recent Trips</h2>
           <RecentTripTable />
         </div>
       </div>

@@ -348,7 +348,7 @@ const BookingTable: React.FC = () => {
   return (
     <div className="w-full">
       <div className="my-4 text-2xl font-semibold">
-        <h1>This is Courses Booking History</h1>
+        <h1>Course Booking History</h1>
       </div>
 
       {/* Delete Selected Button */}
