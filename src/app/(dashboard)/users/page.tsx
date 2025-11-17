@@ -6,7 +6,7 @@ export default function page() {
     <div>
       <div className="py-4">
         <h2 className="text-2xl font-bold ">
-          Users Management 
+          Divers Management 
         </h2>
       </div>
         <UsersTable />
