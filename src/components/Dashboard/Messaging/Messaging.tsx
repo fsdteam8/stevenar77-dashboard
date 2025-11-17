@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Checkbox } from "@radix-ui/react-checkbox";
+// import { Checkbox } from "@radix-ui/react-checkbox";
 import { useDeleteConvo } from "@/hooks/useConvo";
 
 interface Message {

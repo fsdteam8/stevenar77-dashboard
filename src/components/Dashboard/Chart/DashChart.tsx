@@ -77,7 +77,7 @@ const DashChart: React.FC = () => {
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold text-gray-700">Total Revenue</h2>
-          <span className="text-gray-400 cursor-pointer">ℹ️</span>
+          {/* <span className="text-gray-400 cursor-pointer">ℹ️</span> */}
         </div>
         {/* <button className="flex items-center gap-2 text-sm text-gray-600 border rounded-md px-3 py-1">
           {new Date().toLocaleString("default", { month: "long" })},{" "}
