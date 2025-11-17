@@ -155,7 +155,8 @@ const OrdersTable = () => {
                 Order ID
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                Placed At
+                {/* Placed At */}
+                Date & Time
               </th>
 
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
