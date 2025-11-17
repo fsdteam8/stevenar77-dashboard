@@ -6,12 +6,7 @@ import { User } from "@/types/user";
 import { fetchsingleUser } from "@/lib/api";
 import { Edit, Eye, Loader, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import Image from "next/image";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -25,7 +20,6 @@ export default function UsersTable() {
 
   const users = data?.users || [];
   const pagination = data?.pagination;
-
   const { mutate: deleteUser } = useDeleteUser();
   const { mutate: updateUser } = useUpdateUser();
 
@@ -301,6 +295,7 @@ export default function UsersTable() {
           </form>
         </DialogContent>
       </Dialog>
+     
       {/* Delete Confirmation Dialog */}
       <Dialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
         <DialogContent className="max-w-sm p-6">
@@ -452,6 +447,7 @@ export default function UsersTable() {
           </div>
         </div>
       )}
+
     </div>
   );
 }
