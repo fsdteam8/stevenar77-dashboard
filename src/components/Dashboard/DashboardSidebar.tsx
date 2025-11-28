@@ -19,6 +19,7 @@ import {
   SquareStar,
   Users,
   Send,
+  TicketCheck,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -42,6 +43,7 @@ const navigation = [
   { name: "Trips", href: "/trips", icon: Ship },
   { name: "Products", href: "/products", icon: ShoppingBasket },
   { name: "Bookings", href: "/bookings", icon: NotebookText },
+  { name: "Booked Trips", href: "/tripbooking", icon: TicketCheck },
   { name: "Orders", href: "/order", icon: ShoppingBag },
   { name: "Messaging", href: "/messaging", icon: MessageCircleMore },
   { name: "Email", href: "/send-email", icon: Send },
