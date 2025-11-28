@@ -1,73 +1,10 @@
 "use client";
-// import React from "react";
+import React, { useState, useMemo } from "react";
+import { Trash2, MoreHorizontal } from "lucide-react";
 
-
-import * as React from "react";
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  SortingState,
-  useReactTable,
-  VisibilityState,
-} from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react";
-
+// shadcn/ui components
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-
-const data: Payment[] = [
-  {
-    id: "m5gr84i9",
-    amount: 316,
-    status: "success",
-    email: "ken99@example.com",
-  },
-  {
-    id: "3u1reuv4",
-    amount: 242,
-    status: "success",
-    email: "Abe45@example.com",
-  },
-  {
-    id: "derv1ws0",
-    amount: 837,
-    status: "processing",
-    email: "Monserrat44@example.com",
-  },
-  {
-    id: "5kma53ae",
-    amount: 874,
-    status: "success",
-    email: "Silas22@example.com",
-  },
-  {
-    id: "bhqecj4p",
-    amount: 721,
-    status: "failed",
-    email: "carmella@example.com",
-  },
-];
 
 export type Payment = {
   id: string;
@@ -76,203 +13,172 @@ export type Payment = {
   email: string;
 };
 
-export const columns: ColumnDef<Payment>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("status")}</div>
-    ),
-  },
-  {
-    accessorKey: "email",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Email
-          <ArrowUpDown />
-        </Button>
-      );
-    },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
-  },
-  {
-    accessorKey: "amount",
-    header: () => <div className="text-right">Amount</div>,
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"));
-
-      // Format the amount as a dollar amount
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount);
-
-      return <div className="text-right font-medium">{formatted}</div>;
-    },
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      const payment = row.original;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
-              Copy payment ID
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
+const initialData: Payment[] = [
+  { id: "m5gr84i9", amount: 316, status: "success", email: "ken99@example.com" },
+  { id: "3u1reuv4", amount: 242, status: "success", email: "Abe45@example.com" },
+  { id: "derv1ws0", amount: 837, status: "processing", email: "mon@example.com" },
+  { id: "5kma53ae", amount: 874, status: "success", email: "silas@example.com" },
+  { id: "bhqecj4p", amount: 721, status: "failed", email: "carmella@example.com" },
+  { id: "xk3nd7f2", amount: 450, status: "pending", email: "john@example.com" },
+  { id: "9pl2mx8w", amount: 623, status: "success", email: "sarah@example.com" },
 ];
 
-const TripBookingTable = () => {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
+const ITEMS_PER_PAGE = 5;
 
-  const table = useReactTable({
-    data,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
-  });
+const TripBookingTable = () => {
+  const [items, setItems] = useState<Payment[]>(initialData);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
+
+  const paginatedItems = useMemo(() => {
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    return items.slice(start, start + ITEMS_PER_PAGE);
+  }, [page, items]);
+
+  const isAllSelected =
+    paginatedItems.length > 0 &&
+    paginatedItems.every((item) => selected.includes(item.id));
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      const visibleIds = paginatedItems.map((i) => i.id);
+      setSelected((prev) => prev.filter((id) => !visibleIds.includes(id)));
+    } else {
+      const visibleIds = paginatedItems.map((i) => i.id);
+      setSelected((prev) => [...new Set([...prev, ...visibleIds])]);
+    }
+  };
+
+  const handleDelete = () => {
+    setItems((prev) => prev.filter((item) => !selected.includes(item.id)));
+    setSelected([]);
+
+    // Adjust page if current page becomes empty
+    const newTotalPages = Math.ceil(
+      items.filter((item) => !selected.includes(item.id)).length / ITEMS_PER_PAGE
+    );
+    if (page > newTotalPages && newTotalPages > 0) {
+      setPage(newTotalPages);
+    }
+  };
 
   return (
-    <div className="w-full">
-      <div className="flex items-center py-4">
-        
+    <div className="w-full p-6">
+      <h2 className="text-2xl font-bold mb-4">Trip Booking Table</h2>
+
+      {/* Bulk Actions */}
+      <div className="flex items-center justify-between py-3">
+        <p className="text-sm text-gray-600">
+          {selected.length} selected
+        </p>
+
+        {selected.length > 0 && (
+          <Button
+            onClick={handleDelete}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Delete Selected ({selected.length})
+          </Button>
+        )}
       </div>
-      <div className="overflow-hidden rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
+
+      {/* Table */}
+      <div className="overflow-hidden rounded-lg border border-gray-200">
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="px-4 py-3 text-left">
+                <div
+                  className="inline-flex items-center justify-center p-2 -ml-2 rounded-md hover:bg-gray-100 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleSelectAll();
+                  }}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
+                  <Checkbox
+                    checked={isAllSelected}
+                    className="pointer-events-none"
+                  />
+                </div>
+              </th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Email</th>
+              <th className="px-4 py-3 text-right text-sm font-medium text-gray-700">Amount</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody className="bg-white divide-y divide-gray-200">
+            {paginatedItems.length > 0 ? (
+              paginatedItems.map((item) => (
+                <tr key={item.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    <div
+                      className="inline-flex items-center justify-center p-2 -ml-2 rounded-md hover:bg-gray-100 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelect(item.id);
+                      }}
+                    >
+                      <Checkbox
+                        checked={selected.includes(item.id)}
+                        className="pointer-events-none"
+                      />
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="capitalize text-sm">{item.status}</div>
+                  </td>
+                  <td className="px-4 py-3 text-sm">{item.email}</td>
+                  <td className="px-4 py-3 text-right text-sm font-medium">${item.amount}</td>
+                  <td className="px-4 py-3">
+                    <Button variant="ghost" size="sm">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </td>
+                </tr>
               ))
             ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
                   No results.
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             )}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="text-muted-foreground flex-1 text-sm">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
+
+      {/* Pagination */}
+      <div className="flex justify-between items-center mt-4">
+        <button
+          disabled={page === 1}
+          onClick={() => setPage(page - 1)}
+          className="px-4 py-2 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+        >
+          Prev
+        </button>
+
+        <span className="text-sm text-gray-600">
+          Page {page} of {totalPages || 1}
+        </span>
+
+        <button
+          disabled={page === totalPages || totalPages === 0}
+          onClick={() => setPage(page + 1)}
+          className="px-4 py-2 border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+        >
+          Next
+        </button>
       </div>
     </div>
   );
