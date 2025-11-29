@@ -1012,3 +1012,12 @@ export async function deletesingelConv(id: string) {
     throw err;
   }
 }
+
+
+// All Paid Get trips with pagination
+export async function getAllPaidTrips({ page = 1, limit = 10 }) {
+  const res = await api.get(`/trip/all/trips/booking`, {
+    params: { page, limit },
+  });
+  return res.data;
+}
