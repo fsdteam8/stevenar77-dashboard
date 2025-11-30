@@ -66,7 +66,7 @@ const PaymentsTrip: React.FC = () => {
         tripTitle: p.trip.title,
         totalPrice: p.totalPrice,
         status: p.status,
-        images: p.trip.images?.[0]?.url || "/placeholder.png",
+        images: p.trip.images?.[0]?.url || "/images/TripsCard.png",
         location: p.trip.location || "N/A",
         user: p.user,
         participants: p.participants || [],
@@ -121,7 +121,7 @@ const PaymentsTrip: React.FC = () => {
                   <td className="flex gap-2 items-center px-6 py-4 text-md text-gray-900">
                     <Image
                       src={payment.images}
-                      alt={payment.tripTitle}
+                      alt={payment?.tripTitle}
                       width={70}
                       height={50}
                       className="rounded object-cover"
@@ -171,25 +171,25 @@ const PaymentsTrip: React.FC = () => {
                           </div>
                           <div className="space-y-3 text-sm text-gray-700">
                             <p>
-                              <strong>Invoice:</strong> #{payment.id.slice(-4)}
+                              <strong>Invoice:</strong> #{payment?.id.slice(-4)}
                             </p>
                             <p>
-                              <strong>Trip:</strong> {payment.tripTitle}
+                              <strong>Trip:</strong> {payment?.tripTitle}
                             </p>
                             <p>
-                              <strong>Location:</strong> {payment.location}
+                              <strong>Location:</strong> {payment?.location}
                             </p>
                             <p>
-                              <strong>Price:</strong> ${payment.totalPrice}
+                              <strong>Price:</strong> ${payment?.totalPrice}
                             </p>
                             <p>
                               <strong>Status:</strong>{" "}
                               <span
                                 className={`px-3 py-1 rounded-full text-xs font-semibold ${getPaymentStatusBadgeStyle(
-                                  payment.status
+                                  payment?.status
                                 )}`}
                               >
-                                {payment.status.toUpperCase()}
+                                {payment?.status.toUpperCase()}
                               </span>
                             </p>
                           </div>
@@ -202,11 +202,11 @@ const PaymentsTrip: React.FC = () => {
                           </h3>
                           <div className="text-sm text-gray-600 space-y-1">
                             <p>
-                              <strong>Email:</strong> {payment.user.email}
+                              <strong>Email:</strong> {payment?.user?.email}
                             </p>
                             <p>
-                              <strong>Name:</strong> {payment.user.firstName}{" "}
-                              {payment.user.lastName}
+                              <strong>Name:</strong> {payment?.user?.firstName}{" "}
+                              {payment?.user?.lastName}
                             </p>
                           </div>
                         </div>
@@ -216,11 +216,11 @@ const PaymentsTrip: React.FC = () => {
                           <h3 className="text-lg font-semibold text-gray-800 mb-2">
                             Participants
                           </h3>
-                          {payment.participants.length > 0 ? (
+                          {payment?.participants?.length > 0 ? (
                             <ul className="list-disc ml-6 text-sm text-gray-600 space-y-1">
-                              {payment.participants.map((pt) => (
-                                <li key={pt._id}>
-                                  {pt.firstName} {pt.lastName} ({pt.email})
+                              {payment?.participants.map((pt) => (
+                                <li key={pt?._id}>
+                                  {pt?.firstName} {pt?.lastName} ({pt?.email})
                                 </li>
                               ))}
                             </ul>
