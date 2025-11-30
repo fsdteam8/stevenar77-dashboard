@@ -67,6 +67,7 @@ export type Booking = {
   activityLevelSpecificQuestions?: string[];
   canSwim?: string;
   scheduleId?: string;
+  age?: number | string;
 };
 
 // ─── Booking API Response Type ───────────────────────────────────
@@ -111,6 +112,7 @@ export type BookingAPIResponse = {
   scheduleId?: string;
   email?: string;
   Username?: string;
+  age?: number | string;
 };
 
 // ─── Schedule Types ──────────────────────────────────────────────

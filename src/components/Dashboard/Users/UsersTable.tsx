@@ -6,7 +6,12 @@ import { User } from "@/types/user";
 import { fetchsingleUser } from "@/lib/api";
 import { Edit, Eye, Loader, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Image from "next/image";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -295,7 +300,7 @@ export default function UsersTable() {
           </form>
         </DialogContent>
       </Dialog>
-     
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={!!userToDelete} onOpenChange={() => setUserToDelete(null)}>
         <DialogContent className="max-w-sm p-6">
@@ -332,13 +337,91 @@ export default function UsersTable() {
                   User Details
                 </DialogTitle>
               </DialogHeader>
+
+              <div className="mt-4 space-y-3 text-gray-700 flex flex-col items-center">
+                {/* ---- IMAGE WITH ROUNDED SHAPE + INITIALS FALLBACK ---- */}
+                {selectedUser.image?.url ? (
+                  <Image
+                    src={selectedUser.image.url}
+                    alt="user image"
+                    width={80}
+                    height={80}
+                    className="rounded-lg object-cover border border-gray-200"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-lg bg-gray-400 flex items-center justify-center text-2xl font-bold text-white">
+                    {`${selectedUser.firstName?.[0] ?? ""}${
+                      selectedUser.lastName?.[0] ?? ""
+                    }`.toUpperCase()}
+                  </div>
+                )}
+
+                {/* ---- USER DETAILS ---- */}
+                <div className="mt-4 space-y-2 text-gray-700 text-sm w-full">
+                  <p>
+                    <span className="font-medium">Name:</span>{" "}
+                    {selectedUser.firstName} {selectedUser.lastName}
+                  </p>
+
+                  <p>
+                    <span className="font-medium">Email:</span>{" "}
+                    {selectedUser.email}
+                  </p>
+
+                  <p>
+                    <span className="font-medium">Phone:</span>{" "}
+                    {selectedUser.phone || "N/A"}
+                  </p>
+
+                  <p>
+                    <span className="font-medium">Verified:</span>{" "}
+                    {selectedUser.isVerified ? "✅ Yes" : "❌ No"}
+                  </p>
+
+                  <p>
+                    <span className="font-medium">Date of Birth:</span>{" "}
+                    {selectedUser.dateOfBirth
+                      ? new Date(selectedUser.dateOfBirth).toLocaleDateString()
+                      : "Not Provided"}
+                  </p>
+
+                  <p>
+                    <span className="font-medium">Location:</span>{" "}
+                    {selectedUser.location || "Unknown"}
+                  </p>
+
+                  <p>
+                    <span className="font-medium">Street:</span>{" "}
+                    {selectedUser.street || "Unknown"}
+                  </p>
+
+                  <p>
+                    <span className="font-medium">Postal Code:</span>{" "}
+                    {selectedUser.postalCode || "N/A"}
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
+        <DialogContent className="max-w-md p-6">
+          {selectedUser && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-lg font-semibold text-center">
+                  User Details
+                </DialogTitle>
+              </DialogHeader>
               <div className="mt-4 space-y-3 text-gray-700 flex flex-col items-center">
                 {selectedUser.image?.url ? (
                   <Image
                     src={selectedUser.image.url}
                     alt="user image"
-                    width={90}
-                    height={90}
+                    width={40}
+                    height={40}
                     className="rounded-full object-cover border border-gray-200"
                   />
                 ) : (
@@ -350,7 +433,7 @@ export default function UsersTable() {
                 )}
 
                 <div className="mt-4 space-y-2 text-gray-700 text-sm w-full">
-                  {/* <p><span className="font-medium">User ID:</span> {selectedUser._id}</p> */}
+                  <p><span className="font-medium">User ID:</span> {selectedUser._id}</p> 
                   <p>
                     <span className="font-medium">Name:</span>{" "}
                     {selectedUser.firstName} {selectedUser.lastName}
@@ -363,7 +446,7 @@ export default function UsersTable() {
                     <span className="font-medium">Phone:</span>{" "}
                     {selectedUser.phone || "N/A"}
                   </p>
-                  {/* <p><span className="font-medium">Role:</span> {selectedUser.role || "N/A"}</p> */}
+                  {/* <p><span className="font-medium">Role:</span> {selectedUser.role || "N/A"}</p> 
                   <p>
                     <span className="font-medium">Verified:</span>{" "}
                     {selectedUser.isVerified ? "✅ Yes" : "❌ No"}
@@ -391,7 +474,7 @@ export default function UsersTable() {
             </>
           )}
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
 
       {pagination && (
         <div className="flex justify-between items-center py-4 px-6">
@@ -447,7 +530,6 @@ export default function UsersTable() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

@@ -169,6 +169,7 @@ const BookingTable: React.FC = () => {
               ? new Date(item.updatedAt).toLocaleDateString()
               : "",
             scheduleId: item.scheduleId || "",
+            age: item.age,
           })
         );
 
@@ -183,8 +184,6 @@ const BookingTable: React.FC = () => {
       setLoading(false);
     }
   };
-
-
 
   useEffect(() => {
     fetchBookings();
@@ -234,13 +233,13 @@ const BookingTable: React.FC = () => {
   //  All Booking Deleted Handler
   const { mutate: deleteBookings } = useDeleteAllBookings();
 
-  const handleDeleteSelected =  () => {
+  const handleDeleteSelected = () => {
     if (selectedIds.length === 0) return;
 
     deleteBookings(selectedIds, {
       onSuccess: () => {
         toast.success("Bookings deleted successfully!");
-        setSelectedIds([]);  
+        setSelectedIds([]);
         refetch();
         fetchBookings();
       },
@@ -426,7 +425,6 @@ const BookingTable: React.FC = () => {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-
                     <Image
                       src={booking.avatar}
                       alt={booking.customerName}
@@ -457,6 +455,10 @@ const BookingTable: React.FC = () => {
                     <div>
                       <span className="font-medium">Shoe Size:</span>{" "}
                       {booking.shoeSize || "N/A"}
+                    </div>
+                    <div>
+                      <span className="font-medium">Age:</span>{" "}
+                      {booking.age || "N/A"}
                     </div>
                     <div>
                       <span className="font-medium">Course Date:</span>{" "}
