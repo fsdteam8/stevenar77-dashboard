@@ -12,6 +12,7 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog"; // shadcn/ui dialog
+import { format } from "path";
 
 // Types
 export type Participant = {
@@ -57,6 +58,7 @@ export type TripPayment = {
 
 const PaymentsTrip: React.FC = () => {
   const [payments, setPayments] = useState<TripPayment[]>([]);
+  console.log( " payments console ",payments);
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -67,7 +69,7 @@ const PaymentsTrip: React.FC = () => {
         totalPrice: p.totalPrice,
         status: p.status,
         images: p.trip.images?.[0]?.url || "/images/TripsCard.png",
-        location: p.trip.location || "N/A",
+        location: p.trip?.location || "N/A",
         user: p.user,
         participants: p.participants || [],
         details: p,
@@ -76,6 +78,8 @@ const PaymentsTrip: React.FC = () => {
     };
     fetchPayments();
   }, []);
+
+  
 
   const getPaymentStatusBadgeStyle = (status: TripPayment["status"]) =>
     status === "paid"
