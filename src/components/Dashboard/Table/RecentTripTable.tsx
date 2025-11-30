@@ -43,6 +43,10 @@ const RecentTripTable: React.FC = () => {
   if (isLoading) return <p>Loading trips...</p>;
   if (isError) return <p>Error fetching trips.</p>;
 
+  {
+    console.log("IMAGE URL:", selectedTrip?.images?.[0]?.url);
+  }
+
   return (
     <div className="w-full bg-white">
       <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
@@ -50,17 +54,23 @@ const RecentTripTable: React.FC = () => {
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Image
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Title
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Location
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Price
+              </th>
+              {/* <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Start Date
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 End Date
-              </th>
+              </th> */}
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Action
               </th>
@@ -69,6 +79,21 @@ const RecentTripTable: React.FC = () => {
           <tbody className="bg-white divide-y divide-gray-100">
             {displayedTrips.map((trip) => (
               <tr key={trip._id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-6 py-4">
+                  {trip.images?.length ? (
+                    <Image
+                      src={trip.images[0].url}
+                      alt={trip.title}
+                      width={48}
+                      height={48}
+                      className="w-12 h-12 object-cover rounded-md"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-gray-200 flex items-center justify-center text-xs text-gray-500 rounded-md">
+                      No Img
+                    </div>
+                  )}
+                </td>
                 <td className="px-6 py-4 text-sm text-gray-900">
                   {trip.title}
                 </td>
@@ -76,11 +101,14 @@ const RecentTripTable: React.FC = () => {
                   {trip.location}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600">
+                  {trip.price}
+                </td>
+                {/* <td className="px-6 py-4 text-sm text-gray-600">
                   {new Date(trip.startDate).toDateString()}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600">
                   {new Date(trip.endDate).toDateString()}
-                </td>
+                </td> */}
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-2">
                     <Button
@@ -114,18 +142,20 @@ const RecentTripTable: React.FC = () => {
           {selectedTrip && (
             <div className="flex flex-col">
               <div className="w-full h-64 relative">
-                {selectedTrip.images?.length ? (
-                  <Image
-                    src={selectedTrip.images[0].url}
-                    alt={selectedTrip.title}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                    No Image
-                  </div>
-                )}
+                <div className="w-full h-64 relative">
+                  {selectedTrip.images?.length ? (
+                    <Image
+                      src={selectedTrip.images[0].url}
+                      alt={selectedTrip.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      No Image
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="p-6">
                 <DialogHeader>
