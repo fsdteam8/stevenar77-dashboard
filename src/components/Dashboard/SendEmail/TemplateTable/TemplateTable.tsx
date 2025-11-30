@@ -39,7 +39,9 @@ export default function TemplateTable({ templates }: Props) {
         onSuccess: () => {
           setLoadingId(null);
           toast.success(
-            `Template "${tpl.tempName}" ${newStatus === "active" ? "activated" : "deactivated"} successfully!`
+            `Template "${tpl.tempName}" ${
+              newStatus === "active" ? "activated" : "deactivated"
+            } successfully!`
           );
         },
         onError: (error) => {
@@ -171,8 +173,9 @@ export default function TemplateTable({ templates }: Props) {
       </table>
 
       <div className="text-gray-500 text-sm text-center mt-6 p-4">
-        💡 You can have only <strong>one active template</strong> at a time. The
-        active one will automatically be used for sending emails.
+        Only <strong> active template </strong> will automatically be used for
+        sending emails.
+        {/* course/trip/product */}
       </div>
 
       {/* Professional Email Preview Modal */}
