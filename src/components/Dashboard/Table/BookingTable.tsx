@@ -184,6 +184,8 @@ const BookingTable: React.FC = () => {
     }
   };
 
+
+
   useEffect(() => {
     fetchBookings();
   }, []);
@@ -424,6 +426,7 @@ const BookingTable: React.FC = () => {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
+
                     <Image
                       src={booking.avatar}
                       alt={booking.customerName}

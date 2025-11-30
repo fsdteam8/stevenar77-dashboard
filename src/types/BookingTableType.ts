@@ -6,6 +6,7 @@ export type Participant = {
   firstName: string;
   lastName: string;
   email: string;
+  mobile?: string;
 };
 
 export type MedicalDocument = {
@@ -128,4 +129,15 @@ export interface ScheduleSet {
   participents: number;
   totalParticipents?: number;
   sets: ScheduleDate[];
+}
+
+// ─── Trip Booking Type ───────────────────────────────────────────
+export interface TripBooking {
+  _id: string;
+  participants: Participant[];
+  status: string;
+  mobile?: string;
+  totalPrice: number;
+  createdAt?: string;
+  updatedAt?: string;
 }

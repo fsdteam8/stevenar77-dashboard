@@ -189,8 +189,8 @@ export default function ProductCreateForm() {
         if (v.image instanceof File) {
           formData.append(`variant_${i}`, v.image);
         }
-        const {...rest } = v;
-        return { ...rest, quantity: Number(rest.quantity) };  
+        const { ...rest } = v;
+        return { ...rest, quantity: Number(rest.quantity) };
       }) || [];
 
     formData.append("variants", JSON.stringify(variantsData));
