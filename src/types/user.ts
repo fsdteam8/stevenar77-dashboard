@@ -21,6 +21,11 @@ export interface User {
   postalCode?: string;
   street?: string;
 
+  age?: string;
+  weight?: string;
+  hight?: string;
+  shoeSize?: string;
+
   createdAt?: string;
   updatedAt?: string;
 }
