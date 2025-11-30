@@ -735,6 +735,13 @@ const BookingTable: React.FC = () => {
                                     </p>
                                     <p>
                                       <strong className="text-gray-900">
+                                        Age:
+                                      </strong>{" "}
+                                      {selectedBooking.age || "N/A"}
+                                    </p>
+                                    {/* booking.age */}
+                                    <p>
+                                      <strong className="text-gray-900">
                                         Active:
                                       </strong>{" "}
                                       <span
