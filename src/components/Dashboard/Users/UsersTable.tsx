@@ -40,6 +40,10 @@ export default function UsersTable() {
     location: "",
     street: "",
     postalCode: "",
+    age: "",
+    weight: "",
+    hight: "",
+    shoeSize: "",
   });
 
   const filteredUsers = Array.isArray(users)
@@ -72,6 +76,10 @@ export default function UsersTable() {
         location: user.location || "",
         street: user.street || "",
         postalCode: user.postalCode || "",
+        age: user.age || "",
+        weight: user.weight || "",
+        hight: user.hight || "",
+        shoeSize: user.shoeSize || "",
       });
     } catch (err) {
       console.error("Failed to fetch user for editing:", err);
@@ -193,8 +201,8 @@ export default function UsersTable() {
           </DialogHeader>
 
           <form onSubmit={handleUpdateSubmit} className="mt-4 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
+            <div className="grid grid-cols-2 space-y-4 gap-4">
+              <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
                 <Input
                   id="firstName"
@@ -205,7 +213,7 @@ export default function UsersTable() {
                   required
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="lastName">Last Name</Label>
                 <Input
                   id="lastName"
@@ -218,7 +226,7 @@ export default function UsersTable() {
               </div>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -231,7 +239,7 @@ export default function UsersTable() {
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="phone">Phone</Label>
               <Input
                 id="phone"
@@ -242,7 +250,7 @@ export default function UsersTable() {
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="dateOfBirth">Date of Birth</Label>
               <Input
                 id="dateOfBirth"
@@ -254,7 +262,7 @@ export default function UsersTable() {
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="location">Location</Label>
               <Input
                 id="location"
@@ -265,7 +273,7 @@ export default function UsersTable() {
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="street">Street</Label>
               <Input
                 id="street"
@@ -276,13 +284,53 @@ export default function UsersTable() {
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="postalCode">Postal Code</Label>
               <Input
                 id="postalCode"
                 value={editForm.postalCode}
                 onChange={(e) =>
                   setEditForm({ ...editForm, postalCode: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="age">Age</Label>
+              <Input
+                id="age"
+                value={editForm.age}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, age: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="weight">Weight</Label>
+              <Input
+                id="weight"
+                value={editForm.weight}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, weight: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="hight">Height</Label>
+              <Input
+                id="hight"
+                value={editForm.hight}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, hight: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="shoeSize">Shoe Size</Label>
+              <Input
+                id="shoeSize"
+                value={editForm.shoeSize}
+                onChange={(e) =>
+                  setEditForm({ ...editForm, shoeSize: e.target.value })
                 }
               />
             </div>
@@ -373,10 +421,10 @@ export default function UsersTable() {
                     {selectedUser.phone || "N/A"}
                   </p>
 
-                  <p>
+                  {/* <p>
                     <span className="font-medium">Verified:</span>{" "}
                     {selectedUser.isVerified ? "✅ Yes" : "❌ No"}
-                  </p>
+                  </p> */}
 
                   <p>
                     <span className="font-medium">Date of Birth:</span>{" "}
@@ -387,17 +435,33 @@ export default function UsersTable() {
 
                   <p>
                     <span className="font-medium">Location:</span>{" "}
-                    {selectedUser.location || "Unknown"}
+                    {selectedUser.location || "Not Provided Location"}
                   </p>
 
                   <p>
                     <span className="font-medium">Street:</span>{" "}
-                    {selectedUser.street || "Unknown"}
+                    {selectedUser.street || "Not Provided Street"}
                   </p>
 
                   <p>
                     <span className="font-medium">Postal Code:</span>{" "}
-                    {selectedUser.postalCode || "N/A"}
+                    {selectedUser.postalCode || "Not Provided Postal Code"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Age:</span>{" "}
+                    {selectedUser.age || "Not Provided Age"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Weight:</span>{" "}
+                    {selectedUser.weight || "Not Provided Weight"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Height:</span>{" "}
+                    {selectedUser.hight || "Not Provided Height"}
+                  </p>
+                  <p>
+                    <span className="font-medium">Shoe Size:</span>{" "}
+                    {selectedUser.shoeSize || "Not Provided Shoe Size"}
                   </p>
                 </div>
               </div>
