@@ -88,6 +88,7 @@ const BookingTable: React.FC = () => {
   }, [singleBooking]);
 
   const course = data?.data;
+
   // Extract booking fetching logic into a reusable function
   const fetchBookings = async () => {
     setLoading(true);
@@ -157,7 +158,7 @@ const BookingTable: React.FC = () => {
               : "",
             description: item.classId?.description || "",
             duration: item.classId?.duration || "",
-            classId: item.classId?._id || null,
+            classId: item.classId || null,
             totalParticipates: item.classId?.totalParticipates || 0,
             avgRating: item.classId?.avgRating || 0,
             isActive: item.classId?.isActive ?? true,
@@ -434,8 +435,8 @@ const BookingTable: React.FC = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="flex justify-center items-center w-10 h-10 bg-gray-300 text-white font-bold text-lg rounded-full">
-                          {initials}
-                        </div>
+                        {initials}
+                      </div>
                       {/* {booking.avatar ? (
                         <Image
                           src={booking.avatar}
@@ -653,7 +654,22 @@ const BookingTable: React.FC = () => {
                                     </h2>
 
                                     <div className="space-y-3 text-sm text-gray-700">
-                                      <p>Title</p>
+                                      <p>
+                                        {/* <strong className="text-gray-900">
+                                          Title
+                                        </strong> 
+                                        :{" "}*/}
+                                        {selectedBooking &&
+                                        typeof selectedBooking.classId ===
+                                          "object" &&
+                                        selectedBooking.classId?.title ? (
+                                          <span className="font-semibold text-xl ">
+                                            {selectedBooking.classId.title}
+                                          </span>
+                                        ) : (
+                                          <span>No class title available</span>
+                                        )}
+                                      </p>
                                       <p>
                                         <strong className="text-gray-900">
                                           Class Description:
@@ -847,7 +863,11 @@ const BookingTable: React.FC = () => {
                               onSelect={(e) => e.preventDefault()}
                               onClick={() => {
                                 setReassignBooking(booking);
-                                setNewCourseId(booking.classId || "");
+                                setNewCourseId(
+                                  typeof booking.classId === "string"
+                                    ? booking.classId
+                                    : booking.classId?._id || ""
+                                );
                                 setOpenSet(null);
                               }}
                               className="cursor-pointer"

@@ -180,11 +180,11 @@ const PaymentsClass = () => {
                             {payment.details.activityLevelSpecificQuestions?.length && (
                               <p><strong>Activity Approval:</strong> {payment.details.activityLevelSpecificQuestions.join("; ")}</p>
                             )}
-                            {payment.details.medicalDocuments && (
+                            {/* {payment.details.medicalDocuments && (
                               <p><strong>Medical Docs:</strong>{" "}
                                 <a href={payment.details.medicalDocuments} target="_blank" className="text-blue-600 hover:underline">View</a>
                               </p>
-                            )}
+                            )} */}
                           </div>
                         </div>
 

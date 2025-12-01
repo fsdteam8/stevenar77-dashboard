@@ -111,9 +111,9 @@ const TripBookingTable = () => {
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                 Name
               </th>
-              {/* <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                 Trips Name
-              </th> */}
+              </th>
               {/*<th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                 Mobile
               </th> */}
@@ -171,9 +171,11 @@ const TripBookingTable = () => {
                         {participant.mobile}
                       </p>
                     </td>
-                    {/* <td className="px-4 py-3 text-sm">
-                      <p className="mb-2 text-sm font-semibold ">{item._id}</p>
-                    </td> */}
+                    <td className="px-4 py-3 text-sm">
+                      <p className="mb-2 text-sm font-semibold ">
+                        {item?.trip?.title}
+                      </p>
+                    </td>
                     <td className="px-4 py-3 text-right text-sm font-medium">
                       ${item.totalPrice}
                     </td>

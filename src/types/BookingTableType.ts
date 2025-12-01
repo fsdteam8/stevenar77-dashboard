@@ -57,7 +57,24 @@ export type Booking = {
   lastPhysicalExamination?: string;
   description?: string;
   duration?: string;
-  classId?: string | null;
+  classId?:{
+        _id?: string;
+        title?: string;
+        description?: string;
+        price?: number[];
+        courseIncludes?: string[];
+        duration?: string;
+        image?: { public_id?: string; url?: string };
+        schedule?: ScheduleSet[];
+        totalReviews?: number;
+        avgRating?: number;
+        participates?: number;
+        totalParticipates?: number;
+        isActive?: boolean;
+        classDates?: string[];
+        location?: string;
+      }
+    | null;
   totalParticipates?: number;
   avgRating?: number;
   isActive?: boolean;
@@ -133,13 +150,41 @@ export interface ScheduleSet {
   sets: ScheduleDate[];
 }
 
+// ─── Trip Types ──────────────────────────────────────────────────
+export interface TripImage {
+  public_id: string;
+  url: string;
+  _id: string;
+}
+
+export interface Trip {
+  _id: string;
+  title: string;
+  description: string;
+  price: number;
+  maximumCapacity: number;
+  location: string;
+  startDate: string;
+  endDate: string;
+  index: number;
+  images: TripImage[];
+  createdAt: string;
+  updatedAt: string;
+  __v?: number;
+}
+
 // ─── Trip Booking Type ───────────────────────────────────────────
 export interface TripBooking {
   _id: string;
+  trip: Trip;
+  user: string;
   participants: Participant[];
+  totalParticipants: number;
+  totalPrice: number;
   status: string;
   mobile?: string;
-  totalPrice: number;
   createdAt?: string;
   updatedAt?: string;
+  stripePaymentIntentId?: string;
+  __v?: number;
 }
