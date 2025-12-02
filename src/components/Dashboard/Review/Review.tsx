@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Trash } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 // Types
 interface User {
@@ -33,6 +34,7 @@ interface ReviewItem {
   _id: string;
   userId: User;
   classId: Class;
+  purchaseDate: string;
   comment: string;
   star: number;
   createdAt: string;
@@ -104,6 +106,7 @@ export default function Review() {
             <TableHead>User</TableHead>
             <TableHead>Class Title</TableHead>
             <TableHead>Review Comment</TableHead>
+            <TableHead>Course Purchased Dates</TableHead>
             <TableHead>Star</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
@@ -129,10 +132,17 @@ export default function Review() {
                   </span>
                 </div>
               </TableCell>
-
               <TableCell>{review?.classId?.title}</TableCell>
               <TableCell className="max-w-xs truncate">
                 {review?.comment}
+              </TableCell>
+              <TableCell>
+                {(() => {
+                  const date = new Date(review?.purchaseDate);
+                  return isNaN(date.getTime())
+                    ? "—"
+                    : format(date, "MMMM yyyy");
+                })()}
               </TableCell>
               <TableCell>{review?.star} ⭐</TableCell>
               <TableCell>
@@ -141,7 +151,7 @@ export default function Review() {
                   size="sm"
                   onClick={() => handleDelete(review)}
                   className="flex items-center gap-1 cursor-pointer"
-                //   disabled={deleteMutation?.isLoading}
+                  //   disabled={deleteMutation?.isLoading}
                 >
                   <Trash className="w-4 h-4" /> Delete
                 </Button>
