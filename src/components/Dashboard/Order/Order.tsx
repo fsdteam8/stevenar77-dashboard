@@ -12,7 +12,21 @@ import { useDeleteAllOrders, useOrders } from "@/hooks/useOrder";
 import Image from "next/image";
 import { toast } from "sonner";
 
+export type CartItem = {
+  item: {
+    title: string;
+    price: number;
+    image?: string;
+  };
+  quantity: number;
+  color?: string;
+  images?: { public_id: string; url: string }[];
+  type?: string;
+  _id?: string;
+};
+
 export type Order = {
+  cartsIds: CartItem[];
   _id: string;
   status: string;
   totalPrice: number;
@@ -42,6 +56,7 @@ const OrdersTable = () => {
   } = useOrders(currentPage, itemsPerPage);
 
   const orders: Order[] = ordersResponse?.data || [];
+  console.log(ordersResponse);
   const totalItems = ordersResponse?.meta?.total || 0;
   const totalPages = ordersResponse?.meta?.totalPage || 1;
 
@@ -154,16 +169,19 @@ const OrdersTable = () => {
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Order ID
               </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-                {/* Placed At */}
-                Date & Time
-              </th>
+              {/* <th className="px-6 py-3 text-left text-sm font-medium text-gray-700"> */}
+              {/* Placed At */}
+              {/* Date & Time  */}
+              {/* </th> */}
 
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Customer
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Product
+              </th>
+              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+                Quantity
               </th>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Total
@@ -192,11 +210,106 @@ const OrdersTable = () => {
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     #{order._id.slice(-4)}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {new Date(order.createdAt).toLocaleString()}
+                  <td className="px-6 py-4 flex items-center gap-2 text-sm text-gray-600">
+                    {order.userId?.image?.url && (
+                      <div className="w-8 h-8 rounded-full overflow-hidden">
+                        <Image
+                          src={order.userId.image.url}
+                          alt={order.userId.firstName}
+                          width={32}
+                          height={32}
+                        />
+                      </div>
+                    )}
+                    {order.userId?.firstName} {order.userId?.lastName}
+                  </td>
+                  {/* Display the first cart item in the "Product" column */}
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {order.cartsIds.length > 0 ? (
+                      <div>
+                        <p>{order.cartsIds[0]?.item?.title || "N/A"}</p>
+                        {/* <p>Quantity: {order.cartsIds[0]?.quantity || 1}</p> */}
+                      </div>
+                    ) : (
+                      "N/A"
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-center text-gray-600">
+                    {order.cartsIds.length > 0 ? (
+                      <div>
+                        {/* <p>{order.cartsIds[0]?.item?.title || "N/A"}</p> */}
+                        <p> {order.cartsIds[0]?.quantity || 1}</p>
+                      </div>
+                    ) : (
+                      "N/A"
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    $
+                    {order.cartsIds.reduce(
+                      (
+                        total: number,
+                        cart: { item: { price: number }; quantity: number }
+                      ) =>
+                        total +
+                        (cart?.item?.price || 0) * (cart?.quantity || 0), // Default to 0 if price or quantity is undefined/null
+                      0
+                    )}
                   </td>
 
-                  <td className="px-6 py-4 flex items-center gap-2 text-sm text-gray-600">
+                  <td className="px-6 py-4 flex gap-2">
+                    <Button
+                      onClick={() => handleView(order)}
+                      className="p-1 text-teal-600 hover:text-teal-700 hover:bg-gray-200 bg-transparent rounded"
+                      title="View order"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      onClick={() => handleDeleteSingle(order._id)}
+                      className="p-1 text-red-600 hover:text-red-700 hover:bg-gray-200 bg-transparent rounded"
+                      title="Delete order"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="px-6 py-12 text-center text-gray-500"
+                >
+                  No orders found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+
+          {/* <tbody className="bg-white divide-y divide-gray-100">
+            {orders.length > 0 ? (
+              orders.map((order) => (
+                <tr
+                  key={order._id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
+                  <td className="px-6 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(order._id)}
+                      onChange={() => handleSelectOne(order._id)}
+                      className="h-4 w-4 accent-[#0694A2] cursor-pointer"
+                    />
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    #{order._id.slice(-4)}
+                  </td> */}
+          {/* <td className="px-6 py-4 text-sm text-gray-500">
+                    {new Date(order.createdAt).toLocaleString()}
+                  </td> */}
+
+          {/* <td className="px-6 py-4 flex items-center gap-2 text-sm text-gray-600">
                     {order.userId?.image?.url && (
                       <div className="w-8 h-8 rounded-full overflow-hidden">
                         <Image
@@ -244,7 +357,7 @@ const OrdersTable = () => {
                 </td>
               </tr>
             )}
-          </tbody>
+          </tbody> */}
         </table>
       </div>
 
@@ -311,6 +424,7 @@ const OrdersTable = () => {
       </div>
 
       {/* Modal */}
+
       <Dialog
         open={!!selectedOrder}
         onOpenChange={() => setSelectedOrder(null)}
@@ -329,6 +443,226 @@ const OrdersTable = () => {
 
               {/* Customer Info */}
               <section className="flex flex-col gap-2 p-4 border rounded-lg bg-gray-50">
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                  Customer Info
+                </h3>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+                    {selectedOrder.userId?.image?.url ? (
+                      <Image
+                        src={selectedOrder.userId.image.url}
+                        alt={selectedOrder.userId?.firstName || "Customer"}
+                        width={64}
+                        height={64}
+                      />
+                    ) : (
+                      <span className="text-gray-500 text-sm">No Image</span>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-lg font-medium">
+                      {selectedOrder.userId?.firstName ?? ""}{" "}
+                      {selectedOrder.userId?.lastName ?? ""}
+                    </p>
+                    <p className="text-gray-500">
+                      {selectedOrder.userId?.email ?? "-"}
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      Order ID: #{selectedOrder?._id?.slice(-4) ?? "-"}
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      Placed at:{" "}
+                      {selectedOrder?.createdAt
+                        ? new Date(selectedOrder.createdAt).toLocaleString()
+                        : "-"}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              {/* Product Info (only products expected) */}
+              <section className="flex flex-col gap-2 p-4 border rounded-lg bg-gray-50">
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                  Product Info
+                </h3>
+
+                {/* Filter to only product-type carts (defensive) */}
+                {selectedOrder.cartsIds
+                  ?.filter((ci) => ci.type === "product")
+                  .map((cartItem, index) => {
+                    const item = cartItem.item ?? {};
+                    // prefer item.image (string), fallback to first entry from cartItem.images
+                    const primaryImage =
+                      typeof item.image === "string"
+                        ? item.image
+                        : null ||
+                          (Array.isArray(cartItem.images) &&
+                          cartItem.images.length > 0
+                            ? // images array may be strings or objects { url, public_id }
+                              typeof cartItem.images[0] === "string"
+                              ? cartItem.images[0]
+                              : (cartItem.images[0] as any)?.url ?? null
+                            : null);
+
+                    const quantity = Number(cartItem.quantity ?? 1);
+                    const price = Number(item.price ?? 0);
+                    const total = price * Math.max(1, quantity);
+
+                    return (
+                      <div
+                        key={cartItem._id ?? index}
+                        className="flex items-center gap-4 py-2 border-b last:border-b-0"
+                      >
+                        <div className="w-20 h-20 rounded overflow-hidden bg-gray-200 flex items-center justify-center shrink-0">
+                          {primaryImage ? (
+                            <Image
+                              src={primaryImage}
+                              alt={item.title ?? "Product"}
+                              width={80}
+                              height={80}
+                            />
+                          ) : (
+                            <span className="text-gray-500 text-xs text-center">
+                              No Image
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex-1">
+                          <p className="text-lg font-medium">
+                            {item.title ?? "Untitled product"}
+                          </p>
+
+                          {cartItem?.color ? (
+                            <p className="text-gray-500">
+                              Color: {cartItem.color}
+                            </p>
+                          ) : null}
+
+                          <p className="text-gray-500">Quantity: {quantity}</p>
+                          <p className="text-gray-500">
+                            Unit Price: ${price.toLocaleString()}
+                          </p>
+                          <p className="text-gray-700 font-medium">
+                            Total: ${total.toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                {/* If there were no product items */}
+                {(!selectedOrder.cartsIds ||
+                  selectedOrder.cartsIds.filter((ci) => ci.type === "product")
+                    .length === 0) && (
+                  <p className="text-gray-500">
+                    No product items in this order.
+                  </p>
+                )}
+              </section>
+
+              {/* Additional Images (supports strings OR objects) */}
+              <section className="flex flex-col gap-2 p-4 border rounded-lg bg-gray-50">
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                  Additional Images
+                </h3>
+
+                {selectedOrder.cartsIds?.length > 0 ? (
+                  selectedOrder.cartsIds.map((cartItem, idx) => {
+                    const images = Array.isArray(cartItem.images)
+                      ? cartItem.images
+                      : [];
+                    if (images.length === 0)
+                      return (
+                        <div key={cartItem._id ?? idx} className="pb-2">
+                          <p className="text-gray-500">
+                            No additional images provided.
+                          </p>
+                        </div>
+                      );
+
+                    return (
+                      <div
+                        key={cartItem._id ?? idx}
+                        className="flex flex-col gap-4"
+                      >
+                        {images.map((img: any, i: number) => {
+                          const src =
+                            typeof img === "string" ? img : img?.url ?? null;
+                          const key =
+                            typeof img === "string"
+                              ? img
+                              : img?.public_id ?? `${idx}-${i}`;
+                          if (!src) return null;
+                          return (
+                            <div
+                              key={key}
+                              className="w-full rounded overflow-hidden bg-gray-200 flex items-center justify-center"
+                            >
+                              <Image
+                                src={src}
+                                alt={`Order image ${i + 1}`}
+                                width={800}
+                                height={600}
+                                className="object-contain w-full h-auto"
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="text-gray-500">
+                    No additional images provided.
+                  </p>
+                )}
+              </section>
+
+              {/* Order Summary (grand total for products) */}
+              <section className="flex flex-col gap-2 p-4 border rounded-lg bg-gray-50">
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                  Order Summary
+                </h3>
+                <div className="flex justify-between text-gray-600">
+                  <span>Items total</span>
+                  <span>
+                    $
+                    {(selectedOrder.cartsIds ?? [])
+                      .filter((ci) => ci.type === "product")
+                      .reduce((sum, ci) => {
+                        const q = Number(ci.quantity ?? 1);
+                        const p = Number(ci.item?.price ?? 0);
+                        return sum + p * Math.max(1, q);
+                      }, 0)
+                      .toLocaleString()}
+                  </span>
+                </div>
+              </section>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* <Dialog
+        open={!!selectedOrder}
+        onOpenChange={() => setSelectedOrder(null)}
+      >
+        <DialogContent className="max-w-3xl p-6 rounded-2xl">
+          {selectedOrder && (
+            <div
+              className="flex flex-col gap-8"
+              style={{ maxHeight: "80vh", overflowY: "auto" }}
+            >
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold mb-2">
+                  Order Details
+                </DialogTitle>
+              </DialogHeader> */}
+
+      {/* Customer Info */}
+      {/* <section className="flex flex-col gap-2 p-4 border rounded-lg bg-gray-50">
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">
                   Customer Info
                 </h3>
@@ -362,10 +696,10 @@ const OrdersTable = () => {
                     </p>
                   </div>
                 </div>
-              </section>
+              </section> */}
 
-              {/* Product Info */}
-              <section className="flex flex-col gap-2 p-4 border rounded-lg bg-gray-50">
+      {/* Product Info */}
+      {/* <section className="flex flex-col gap-2 p-4 border rounded-lg bg-gray-50">
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">
                   Product Info
                 </h3>
@@ -399,10 +733,10 @@ const OrdersTable = () => {
                     </p>
                   </div>
                 </div>
-              </section>
+              </section> */}
 
-              {/* Additional Images */}
-              <section className="flex flex-col gap-2 p-4 border rounded-lg bg-gray-50">
+      {/* Additional Images */}
+      {/* <section className="flex flex-col gap-2 p-4 border rounded-lg bg-gray-50">
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">
                   Additional Images
                 </h3>
@@ -430,9 +764,9 @@ const OrdersTable = () => {
                 )}
               </section>
             </div>
-          )}
+          )} 
         </DialogContent>
-      </Dialog>
+      </Dialog>*/}
     </div>
   );
 };
