@@ -488,6 +488,7 @@ const OrdersTable = () => {
                 </h3>
 
                 {/* Filter to only product-type carts (defensive) */}
+                {/* eslint-disable-next-line */}
                 {selectedOrder.cartsIds
                   ?.filter((ci) => ci.type === "product")
                   .map((cartItem, index) => {
@@ -496,14 +497,14 @@ const OrdersTable = () => {
                     const primaryImage =
                       typeof item.image === "string"
                         ? item.image
-                        : null ||
-                          (Array.isArray(cartItem.images) &&
+                        : Array.isArray(cartItem.images) &&
                           cartItem.images.length > 0
-                            ? // images array may be strings or objects { url, public_id }
-                              typeof cartItem.images[0] === "string"
-                              ? cartItem.images[0]
-                              : (cartItem.images[0] as any)?.url ?? null
-                            : null);
+                        ? // images array may be strings or objects { url, public_id }
+                          typeof cartItem.images[0] === "string"
+                          ? cartItem.images[0]
+                          : //eslint-disable-next-line
+                            (cartItem.images[0] as any)?.url ?? null
+                        : null;
 
                     const quantity = Number(cartItem.quantity ?? 1);
                     const price = Number(item.price ?? 0);
@@ -587,6 +588,7 @@ const OrdersTable = () => {
                         key={cartItem._id ?? idx}
                         className="flex flex-col gap-4"
                       >
+                        {/* eslint-disable-next-line */}
                         {images.map((img: any, i: number) => {
                           const src =
                             typeof img === "string" ? img : img?.url ?? null;
