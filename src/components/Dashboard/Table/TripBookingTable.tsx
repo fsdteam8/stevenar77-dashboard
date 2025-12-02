@@ -105,9 +105,9 @@ const TripBookingTable = () => {
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                 ID No
               </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
+              {/* <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                 Date
-              </th>
+              </th> */}
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                 Name
               </th>
@@ -149,14 +149,14 @@ const TripBookingTable = () => {
                     <td className="px-4 py-3 text-sm">
                       <p>ID-#{item._id.slice(-4)}</p>
                     </td>
-                    <td className="px-4 py-3 text-sm">
+                    {/* <td className="px-4 py-3 text-sm"> */}
                       {/* created_at date */}
-                      <p>
+                      {/* <p>
                         {item.createdAt
                           ? new Date(item.createdAt).toLocaleDateString()
                           : "N/A"}
-                      </p>
-                    </td>
+                      </p> */}
+                    {/* </td> */}
                     <td className="px-4 py-3 text-sm">
                       <p className="mb-2 text-sm font-semibold ">
                         <span className="mr-2"> Name: </span>{" "}
