@@ -235,7 +235,7 @@ export const deleteProduct = async (
     console.error("Failed to delete product:", error);
     throw error;
   }
-};
+};             
 
 // Single create Product
 export const createProduct = async (productData: FormData) => {
