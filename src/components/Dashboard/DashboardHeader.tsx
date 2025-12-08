@@ -71,7 +71,7 @@ export default function DashboardHeader() {
   }, [session]);
 
   // Count of unseen notifications
-  const unseenCount = notifications.filter((n) => n.isViewed === false).length;
+  const unseenCount = notifications?.filter((n) => n?.isViewed === false).length;
 
   // console.log(unseenCount)
 
