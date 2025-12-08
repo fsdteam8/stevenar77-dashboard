@@ -3,8 +3,8 @@ import "../globals.css";
 import Image from "next/image";
 
 export const metadata: Metadata = {
-  title: "Scuba Stevener | Dive Into Adventure",
-  description: "From beginner to pro, we guide your underwater adventure.",
+  title: "Dashboard Template ",
+  description: "A modern dashboard template built with Next.js and Tailwind CSS.",
 };
 
 export default function RootLayout({
