@@ -11,7 +11,7 @@ export function useDeleteConvo() {
   return useMutation({
     mutationFn: (id: string) => deletesingelConv(id),
     onSuccess: () => {
-      toast.success("User deleted successfully");
+      toast.success("Conversation deleted successfully");
       queryClient.invalidateQueries({ queryKey: ["convos"] }); // Refetch users
     },
     onError: () => {
