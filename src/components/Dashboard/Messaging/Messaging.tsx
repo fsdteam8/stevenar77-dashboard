@@ -1,8 +1,9 @@
+/* eslint-disable prefer-const */
 "use client";
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import io, { Socket } from "socket.io-client";
-import { Lock, MessageCircle, Send, Trash, Trash2Icon } from "lucide-react";
+import { Lock, MessageCircle, Send, Trash2Icon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -13,8 +14,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-// import { Checkbox } from "@radix-ui/react-checkbox";
 import { useDeleteConvo } from "@/hooks/useConvo";
+
+// ------------------ AUTO REPLY MESSAGES ------------------
+const AUTO_MESSAGES = [
+  "If you don't get a response in the next 2 minutes that means we are currently diving. Please leave your cell phone and email so we can get back to you when we surface.",
+  "Thank you for your message, as long as you sent us your cell phone and email we will be able to get back to you when we surface.",
+];
 
 interface Message {
   _id?: string;
@@ -55,21 +61,19 @@ export default function AdminMessaging() {
   const { data: session, status } = useSession();
   const ADMIN_ID = session?.user?.id as string | undefined;
   const router = useRouter();
-
   const { mutate: deleteConvo, isPending } = useDeleteConvo();
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation(); // prevent openConversation() trigger
+    e.stopPropagation();
     deleteConvo(id);
-   
   };
 
-  // Auto scroll
+  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Socket setup
+  // ------------------ SOCKET SETUP ------------------
   useEffect(() => {
     if (!ADMIN_ID) return;
 
@@ -84,24 +88,25 @@ export default function AdminMessaging() {
     s.on("disconnect", () => setConnected(false));
 
     s.on("receiveMessage", (msg: Message) => {
+      const isAuto = AUTO_MESSAGES.includes(msg.text);
+
+      // Add message to current chat window
       if (
         currentConversation &&
         msg.conversationId === currentConversation._id
       ) {
-        setMessages((prev) => {
-          const alreadyExists = prev.some(
-            (m) =>
-              m._id === msg._id ||
-              (m.text === msg.text && m.createdAt === msg.createdAt)
-          );
-          if (alreadyExists) return prev;
-          return [...prev, msg];
-        });
+        setMessages((prev) => [...prev, msg]);
       }
+
+      // Sidebar conversation updates
       setConversations((prev) =>
         prev.map((conv) =>
           conv._id === msg.conversationId
-            ? { ...conv, lastMessage: msg.text, updatedAt: msg.createdAt }
+            ? {
+                ...conv,
+                lastMessage: isAuto ? "" : msg.text,
+                updatedAt: msg.createdAt,
+              }
             : conv
         )
       );
@@ -137,10 +142,11 @@ export default function AdminMessaging() {
     fetchConversations();
   }, [fetchConversations]);
 
-  // Open a conversation
+  // Open conversation
   const openConversation = async (conv: Conversation) => {
     setCurrentConversation(conv);
     setMessages([]);
+
     if (socket && connected) socket.emit("joinRoom", conv._id);
 
     const res = await fetch(`${API_BASE}/message/${conv._id}`);
@@ -155,25 +161,23 @@ export default function AdminMessaging() {
     }
   };
 
-  // Send message
+  // ------------------ FIXED: SEND MESSAGE ------------------
   const sendMessage = () => {
-    if (
-      !input.trim() ||
-      !socket ||
-      !currentConversation ||
-      !connected ||
-      !ADMIN_ID
-    )
-      return;
+    if (!input.trim() || !socket || !currentConversation || !connected) return;
 
     const payload: Message = {
       conversationId: currentConversation._id,
-      sender: ADMIN_ID,
+      sender: ADMIN_ID!,
       text: input.trim(),
       createdAt: new Date().toISOString(),
     };
 
+    // ⭐ FIX: Immediately show message in UI without reload
+    setMessages((prev) => [...prev, payload]);
+
+    // Send to server
     socket.emit("sendMessage", payload);
+
     setInput("");
   };
 
@@ -226,7 +230,6 @@ export default function AdminMessaging() {
             const user = conv.participants.find((p) => p._id !== ADMIN_ID);
             const active = currentConversation?._id === conv._id;
 
-            // Get the first two letters of the first name and last name for fallback
             const userInitials =
               user?.firstName && user?.lastName
                 ? user.firstName[0]?.toUpperCase() +
@@ -243,21 +246,20 @@ export default function AdminMessaging() {
               >
                 <div className="col-span-1 overflow-hidden">
                   {user?.avatar ? (
-                    // If there's an avatar image, show it
                     <Image
-                      src={user.avatar} // Ensure user.avatar is a valid URL
+                      src={user.avatar}
                       alt="User Avatar"
                       width={40}
                       height={40}
                       className="object-cover w-full aspect-square rounded-full"
                     />
                   ) : (
-                    // If no avatar image, show the initials
                     <div className="flex justify-center items-center w-full h-full bg-gray-300 text-white font-bold text-lg rounded-full">
                       {userInitials}
                     </div>
                   )}
                 </div>
+
                 <div className="col-span-5 flex-1">
                   <p
                     className={`font-medium truncate ${
@@ -273,12 +275,13 @@ export default function AdminMessaging() {
                   >
                     {user?.email}
                   </p>
-                  {/* <p>{conv._id}</p> */}
+
                   <p className="text-xs text-gray-500 truncate">
                     {conv.lastMessage || "No messages"}
                   </p>
                 </div>
-                <div className="col-span-1 ">
+
+                <div className="col-span-1">
                   <Button
                     onClick={(e) => handleDelete(e, conv._id)}
                     disabled={isPending}
@@ -288,7 +291,8 @@ export default function AdminMessaging() {
                     <Trash2Icon />
                   </Button>
                 </div>
-                <span className="col-span-1 text-xs text-gray-400 ">
+
+                <span className="col-span-1 text-xs text-gray-400">
                   {formatTime(conv.updatedAt)}
                 </span>
               </div>
@@ -299,16 +303,14 @@ export default function AdminMessaging() {
 
       {/* Chat area */}
       <div className="flex-1 flex flex-col">
-        {/* Chat header */}
+        {/* Header */}
         <div className="flex items-center gap-3 p-3 border-b bg-white">
           {currentConversation ? (
             (() => {
-              // Find the user for the current conversation
               const user = currentConversation.participants.find(
                 (p) => p._id !== ADMIN_ID
               );
 
-              // Calculate user initials
               const userInitials =
                 user?.firstName && user?.lastName
                   ? user.firstName[0]?.toUpperCase() +
@@ -318,20 +320,20 @@ export default function AdminMessaging() {
               return (
                 <>
                   <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden">
-                    {/* Display initials instead of image */}
                     <div className="flex items-center justify-center w-full h-full bg-gray-300 text-white font-bold text-lg rounded-full">
                       {userInitials}
                     </div>
                   </div>
+
                   <div>
-                    <p className="font-semibold truncate max-w-[calc(100%-3rem)] gap-2">
+                    <p className="font-semibold truncate max-w-[calc(100%-3rem)]">
                       {currentConversation.participants
                         .filter((p) => p._id !== ADMIN_ID)
                         .map((p) => `${p.firstName} ${p.lastName}`)
                         .join(", ")}
                     </p>
 
-                    <p className="font-semibold text-sm max-w-[calc(100%-3rem)]">
+                    <p className="font-semibold text-sm">
                       {currentConversation.participants
                         .filter((p) => p._id !== ADMIN_ID)
                         .map((p) => p.email)
@@ -350,30 +352,28 @@ export default function AdminMessaging() {
         <div className="flex-1 p-4 overflow-y-auto bg-white">
           {messages.length === 0 ? (
             <div className="h-full flex items-center justify-center">
-              <div className="h-full flex items-center justify-center">
-                <div className="bg-white shadow-lg rounded-2xl p-10 flex flex-col items-center justify-center space-y-4 max-w-sm text-center">
-                  <div className="w-16 h-16 flex items-center justify-center rounded-full bg-cyan-100 animate-pulse">
-                    <MessageCircle className="w-8 h-8 text-cyan-600" />
-                  </div>
-                  <p className="text-xl font-semibold text-gray-700">
-                    No Conversation Selected
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Choose a conversation from the left or start a new chat to
-                    see messages here.
-                  </p>
+              <div className="bg-white shadow-lg rounded-2xl p-10 text-center">
+                <div className="w-16 h-16 mx-auto bg-cyan-100 rounded-full flex items-center justify-center animate-pulse">
+                  <MessageCircle className="w-8 h-8 text-cyan-600" />
                 </div>
+                <p className="text-xl font-semibold mt-4">
+                  No Conversation Selected
+                </p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Choose a conversation from the left.
+                </p>
               </div>
             </div>
           ) : (
             messages.map((m, i) => {
-              // Safely check if m.sender is an object and has _id
-              const senderId =
-                m.sender && typeof m.sender === "object" && m.sender._id
-                  ? m.sender._id // If m.sender is an object with _id
-                  : m.sender; // If m.sender is a string or number (id only)
+              const isAuto = AUTO_MESSAGES.includes(m.text);
 
-              const isAdmin = senderId === ADMIN_ID;
+              let senderId =
+                m.sender && typeof m.sender === "object" && m.sender._id
+                  ? m.sender._id
+                  : m.sender;
+
+              const isAdmin = isAuto ? true : senderId === ADMIN_ID;
 
               return (
                 <div
@@ -398,11 +398,12 @@ export default function AdminMessaging() {
               );
             })
           )}
+
           <div ref={messagesEndRef} />
         </div>
 
         {/* Input */}
-        {currentConversation && messages.length > 0 && (
+        {currentConversation && (
           <div className="flex items-center gap-2 p-3 border-t bg-white">
             <input
               type="text"
@@ -413,7 +414,7 @@ export default function AdminMessaging() {
               placeholder="Type your message"
             />
             <button
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-cyan-600 text-white hover:bg-cyan-700 cursor-pointer"
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-cyan-600 text-white cursor-pointer hover:bg-cyan-700"
               onClick={sendMessage}
             >
               <Send size={18} />
