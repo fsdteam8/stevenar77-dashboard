@@ -574,7 +574,7 @@ const BookingTable: React.FC = () => {
                                             Customer:
                                           </strong>{" "}
                                           <span className="text-gray-600">
-                                            {selectedBooking.customerName ||
+                                            {selectedBooking?.customerName?.replace(/([a-z])([A-Z])/g, "$1 $2")||
                                               "N/A"}
                                           </span>
                                         </p>
