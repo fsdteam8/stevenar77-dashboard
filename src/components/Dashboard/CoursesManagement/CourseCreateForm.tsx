@@ -259,7 +259,7 @@ const CourseCreateForm: React.FC<CourseFormProps> = ({
     { value: "Standards Form", label: "Standards Form" },
     { value: "Continuing Education", label: "Continuing Education" },
     { value: "Divers Activity", label: "Divers Activity" },
-    { value: "Quick Review", label: "Quick Review" },
+    // { value: "Quick Review", label: "Quick Review" },
     { value: "Divers Medical", label: "Divers Medical" },
     { value: "Enriched Training", label: "Enriched Training" },
     { value: "Equipment Rental", label: "Equipment Rental" },
