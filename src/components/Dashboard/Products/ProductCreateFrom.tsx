@@ -174,7 +174,7 @@ export default function ProductCreateForm() {
     formData.append("category", data.category);
     formData.append("price", data.price);
     formData.append("longDescription", data.longDescription);
-    formData.append("quantity", data.quantity);
+    formData.append("productQuantity", data.quantity);
 
     // Featured tags
     (data.featured || []).forEach((tag) => formData.append("featured[]", tag));
