@@ -44,6 +44,7 @@ interface ProductData {
   longDescription?: string;
   price?: number | string;
   category?: string;
+  productQuantity?: number | string;
   quantity?: number | string;
   inStock?: boolean;
   featured?: string[];
@@ -102,7 +103,10 @@ const ProductsEditForm: React.FC = () => {
       longDescription: product.longDescription ?? "",
       price: product.price?.toString() ?? "",
       category: product.category ?? "",
-      quantity: product.quantity?.toString() ?? "",
+      quantity:
+        product.productQuantity?.toString() ??
+        product.quantity?.toString() ??
+        "",
       inStock: product.inStock ?? true,
       featured: product.featured ?? [],
       variants,
@@ -211,7 +215,10 @@ const ProductsEditForm: React.FC = () => {
       longDescription: product.longDescription ?? "",
       price: product.price?.toString() ?? "",
       category: product.category ?? "",
-      quantity: product.quantity?.toString() ?? "",
+      quantity:
+        product.productQuantity?.toString() ??
+        product.quantity?.toString() ??
+        "",
       inStock: product.inStock ?? true,
       featured: product.featured ?? [],
       variants,
@@ -237,7 +244,7 @@ const ProductsEditForm: React.FC = () => {
       form.append("longDescription", formData.longDescription);
       form.append("price", formData.price);
       form.append("category", formData.category);
-      form.append("quantity", formData.quantity);
+      form.append("productQuantity", formData.quantity);
       form.append("inStock", String(formData.inStock));
 
       formData.featured.forEach((f) => form.append("featured[]", f));
@@ -270,6 +277,8 @@ const ProductsEditForm: React.FC = () => {
 
       // Send variants as JSON string (without file content)
       form.append("variants", JSON.stringify(variantsPayload));
+
+      console.log("productQuantity", formData.quantity);
 
       await updateSingleProduct(id as string, form);
       toast.success("✅ Product updated successfully!");
@@ -358,6 +367,25 @@ const ProductsEditForm: React.FC = () => {
                 <p className="text-red-500 text-sm mt-1">
                   {errors.shortDescription}
                 </p>
+              )}
+            </div>
+
+            {/* Quantity */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Quantity
+              </label>
+              <input
+                type="number"
+                name="quantity"
+                value={formData.quantity}
+                onChange={handleInputChange}
+                className={`w-full px-4 py-3 border rounded-lg ${
+                  errors.quantity ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.quantity && (
+                <p className="text-red-500 text-sm mt-1">{errors.quantity}</p>
               )}
             </div>
 
