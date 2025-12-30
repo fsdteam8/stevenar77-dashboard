@@ -130,9 +130,9 @@ const ProductsTable = () => {
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Price
               </th>
-              <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
+              {/* <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Quantity
-              </th>
+              </th> */}
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
                 Category
               </th>
@@ -179,9 +179,9 @@ const ProductsTable = () => {
                   <td className="px-6 py-4 text-sm text-[#68706A]">
                     ${product.price}
                   </td>
-                  <td className="px-6 py-4 text-sm text-[#68706A]">
+                  {/* <td className="px-6 py-4 text-sm text-[#68706A]">
                     {product.quantity}
-                  </td>
+                  </td> */}
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {product.category}
                   </td>
