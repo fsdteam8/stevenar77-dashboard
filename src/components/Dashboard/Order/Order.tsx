@@ -244,7 +244,7 @@ const OrdersTable = () => {
                       "N/A"
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                  {/* <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     $
                     {order.cartsIds.reduce(
                       (
@@ -255,6 +255,10 @@ const OrdersTable = () => {
                         (cart?.item?.price || 0) * (cart?.quantity || 0), // Default to 0 if price or quantity is undefined/null
                       0
                     )}
+                  </td> */}
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    $
+                    {order.totalPrice}
                   </td>
 
                   <td className="px-6 py-4 flex gap-2">
