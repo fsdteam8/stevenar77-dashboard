@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from "react";
 import { Trash2, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-// import { Checkbox } from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -10,16 +10,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useAllAdminTrips } from "@/hooks/useAlladminTrips";
+import { useAllAdminTrips, useDeleteAllAdminTrips } from "@/hooks/useAlladminTrips";
 import { Participant, TripBooking } from "@/types/BookingTableType";
+import { toast } from "sonner";
 
 const ITEMS_PER_PAGE = 8;
 
 const TripBookingTable = () => {
-  // const [selected, setSelected] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
   const [page, setPage] = useState(1);
 
   const { data, isLoading, isError } = useAllAdminTrips(page, ITEMS_PER_PAGE);
+  const { mutate: deleteTrips, isPending: isDeleting } = useDeleteAllAdminTrips();
 
   const items = useMemo(() => data?.data || [], [data]);
   const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
@@ -30,30 +32,38 @@ const TripBookingTable = () => {
     return items.slice(start, start + ITEMS_PER_PAGE);
   }, [page, items]);
 
-  // const isAllSelected =
-  //   paginatedItems.length > 0 &&
-  //   paginatedItems.every((item) => selected.includes(item._id));
+  const isAllSelected =
+    paginatedItems.length > 0 &&
+    paginatedItems.every((item) => selected.includes(item._id));
 
-  // const toggleSelect = (id: string) => {
-  //   setSelected((prev) =>
-  //     prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-  //   );
-  // };
+  const toggleSelect = (id: string) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
 
-  // const toggleSelectAll = () => {
-  //   if (isAllSelected) {
-  //     const visibleIds = paginatedItems.map((i) => i._id);
-  //     setSelected((prev) => prev.filter((id) => !visibleIds.includes(id)));
-  //   } else {
-  //     const visibleIds = paginatedItems.map((i) => i._id);
-  //     setSelected((prev) => [...new Set([...prev, ...visibleIds])]);
-  //   }
-  // };
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      const visibleIds = paginatedItems.map((i) => i._id);
+      setSelected((prev) => prev.filter((id) => !visibleIds.includes(id)));
+    } else {
+      const visibleIds = paginatedItems.map((i) => i._id);
+      setSelected((prev) => [...new Set([...prev, ...visibleIds])]);
+    }
+  };
 
-  // const handleDelete = () => {
-  //   // Optional: Implement delete API call
-  //   setSelected([]);
-  // };
+  const handleDelete = (ids: string[]) => {
+    deleteTrips(ids, {
+      onSuccess: () => {
+        toast.success("Trips deleted successfully");
+        setSelected((prev) => prev.filter((id) => !ids.includes(id)));
+      },
+      onError: () => {
+        toast.error("Failed to delete trips");
+      },
+    });
+  };
+
 
   if (isLoading) {
     return <p className="text-center py-10">Loading trips...</p>;
@@ -70,25 +80,26 @@ const TripBookingTable = () => {
       <h2 className="text-2xl font-bold mb-4">Trip Booking Table</h2>
 
       {/* Bulk Actions */}
-      {/* <div className="flex items-center justify-between py-3">
+      <div className="flex items-center justify-between py-3">
         <p className="text-sm text-gray-600">{selected.length} selected</p>
         {selected.length > 0 && (
           <Button
-            onClick={handleDelete}
+            onClick={() => handleDelete(selected)}
+            disabled={isDeleting}
             className="bg-red-600 hover:bg-red-700 text-white"
           >
             <Trash2 className="mr-2 h-4 w-4" />
             Delete Selected ({selected.length})
           </Button>
         )}
-      </div> */}
+      </div>
 
       {/* Table */}
       <div className="overflow-hidden rounded-lg border border-gray-200">
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              {/* <th className="px-4 py-3">
+              <th className="px-4 py-3">
                 <div
                   className="inline-flex items-center justify-center p-2 -ml-2 rounded-md hover:bg-gray-100 cursor-pointer"
                   onClick={(e) => {
@@ -101,7 +112,7 @@ const TripBookingTable = () => {
                     className="pointer-events-none"
                   />
                 </div>
-              </th> */}
+              </th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
                 ID No
               </th>
@@ -132,7 +143,7 @@ const TripBookingTable = () => {
                 const participant = item.participants[0]; // first participant
                 return (
                   <tr key={item._id} className="hover:bg-gray-50">
-                    {/* <td className="px-4 py-3">
+                    <td className="px-4 py-3">
                       <div
                         className="inline-flex items-center justify-center p-2 -ml-2 rounded-md hover:bg-gray-100 cursor-pointer"
                         onClick={(e) => {
@@ -145,13 +156,13 @@ const TripBookingTable = () => {
                           className="pointer-events-none"
                         />
                       </div>
-                    </td> */}
+                    </td>
                     <td className="px-4 py-3 text-sm">
                       <p>ID-#{item._id.slice(-4)}</p>
                     </td>
                     {/* <td className="px-4 py-3 text-sm"> */}
-                      {/* created_at date */}
-                      {/* <p>
+                    {/* created_at date */}
+                    {/* <p>
                         {item.createdAt
                           ? new Date(item.createdAt).toLocaleDateString()
                           : "N/A"}
@@ -179,7 +190,7 @@ const TripBookingTable = () => {
                     <td className="px-4 py-3 text-right text-sm font-medium">
                       ${item.totalPrice}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 flex gap-2">
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button variant="ghost" size="sm">
@@ -192,7 +203,7 @@ const TripBookingTable = () => {
                           </DialogHeader>
                           <div className="mt-4 space-y-4">
                             {item.participants &&
-                            item.participants.length > 0 ? (
+                              item.participants.length > 0 ? (
                               item.participants.map(
                                 (p: Participant, index: number) => (
                                   <div
@@ -235,13 +246,23 @@ const TripBookingTable = () => {
                           </div>
                         </DialogContent>
                       </Dialog>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete([item._id])}
+                        disabled={isDeleting}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </td>
                   </tr>
                 );
               })
             ) : (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                   No trips found.
                 </td>
               </tr>
