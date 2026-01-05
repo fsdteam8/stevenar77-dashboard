@@ -235,7 +235,7 @@ export const deleteProduct = async (
     console.error("Failed to delete product:", error);
     throw error;
   }
-};             
+};
 
 // Single create Product
 export const createProduct = async (productData: FormData) => {
@@ -1021,3 +1021,18 @@ export async function getAllPaidTrips({ page = 1, limit = 10 }) {
   });
   return res.data;
 }
+
+
+// paid trips delete
+export async function deletePaidTrips(orderIds: string[]) {
+  try {
+    const res = await api.delete(`/trip/delete/tripBookings`, {
+      data: { orderIds },
+    });
+    return res.data;
+  } catch (err) {
+    if (err instanceof Error) throw new Error("Failed to delete trip bookings");
+    throw err;
+  }
+}
+
