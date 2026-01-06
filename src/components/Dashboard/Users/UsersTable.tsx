@@ -493,7 +493,7 @@ export default function UsersTable() {
                       handleEdit(selectedUser._id);
                       setSelectedUser(null);
                     }}
-                    className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 rounded-lg shadow-sm transition-all"
+                    className="flex-1 bg-primary  text-white font-semibold py-2 rounded-lg shadow-sm transition-all"
                   >
                     <Edit className="w-4 h-4 mr-2" />
                     Edit Profile
