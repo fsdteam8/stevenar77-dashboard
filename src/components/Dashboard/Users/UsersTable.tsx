@@ -1,3 +1,4 @@
+// UsersTable.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -38,12 +39,13 @@ export default function UsersTable() {
     phone: "",
     dateOfBirth: "",
     location: "",
+    state: "",
     street: "",
     postalCode: "",
-    age: "",
-    weight: "",
-    hight: "",
-    shoeSize: "",
+    age: "" as string | number,
+    weight: "" as string | number,
+    hight: "" as string | number,
+    shoeSize: "" as string | number,
   });
 
   const filteredUsers = Array.isArray(users)
@@ -74,6 +76,7 @@ export default function UsersTable() {
           ? new Date(user.dateOfBirth).toISOString().split("T")[0]
           : "",
         location: user.location || "",
+        state: user.state || "",
         street: user.street || "",
         postalCode: user.postalCode || "",
         age: user.age || "",
@@ -273,6 +276,29 @@ export default function UsersTable() {
               />
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="location">City</Label>
+                <Input
+                  id="location"
+                  value={editForm.location}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, location: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="state">State</Label>
+                <Input
+                  id="state"
+                  value={editForm.state}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, state: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="street">Street</Label>
               <Input
@@ -377,7 +403,7 @@ export default function UsersTable() {
 
       {/* User Details Dialog */}
       <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
-        <DialogContent className="max-w-md p-6">
+        <DialogContent className="max-w-md p-6 max-h-[95vh] overflow-y-auto bg-white rounded-xl shadow-2xl border-none">
           {selectedUser && (
             <>
               <DialogHeader>
@@ -398,71 +424,87 @@ export default function UsersTable() {
                   />
                 ) : (
                   <div className="w-20 h-20 rounded-lg bg-gray-400 flex items-center justify-center text-2xl font-bold text-white">
-                    {`${selectedUser.firstName?.[0] ?? ""}${
-                      selectedUser.lastName?.[0] ?? ""
-                    }`.toUpperCase()}
+                    {`${selectedUser.firstName?.[0] ?? ""}${selectedUser.lastName?.[0] ?? ""
+                      }`.toUpperCase()}
                   </div>
                 )}
 
                 {/* ---- USER DETAILS ---- */}
-                <div className="mt-4 space-y-2 text-gray-700 text-sm w-full">
-                  <p>
-                    <span className="font-medium">Name:</span>{" "}
-                    {selectedUser.firstName} {selectedUser.lastName}
-                  </p>
+                <div className="mt-4 space-y-2 text-gray-700 text-sm w-full divide-y divide-gray-100">
+                  <div className="flex justify-between py-1.5">
+                    <span className="font-medium text-gray-500">Name:</span>
+                    <span className="text-gray-900 font-semibold">{selectedUser.firstName} {selectedUser.lastName}</span>
+                  </div>
 
-                  <p>
-                    <span className="font-medium">Email:</span>{" "}
-                    {selectedUser.email}
-                  </p>
+                  <div className="flex justify-between py-1.5">
+                    <span className="font-medium text-gray-500">Email:</span>
+                    <span className="text-gray-900">{selectedUser.email}</span>
+                  </div>
 
-                  <p>
-                    <span className="font-medium">Phone:</span>{" "}
-                    {selectedUser.phone || "N/A"}
-                  </p>
+                  <div className="flex justify-between py-1.5">
+                    <span className="font-medium text-gray-500">Cell:</span>
+                    <span className="text-gray-900">{selectedUser.phone || "N/A"}</span>
+                  </div>
 
-                  {/* <p>
-                    <span className="font-medium">Verified:</span>{" "}
-                    {selectedUser.isVerified ? "✅ Yes" : "❌ No"}
-                  </p> */}
+                  <div className="flex justify-between py-1.5">
+                    <span className="font-medium text-gray-500">Street Address:</span>
+                    <span className="text-gray-900 truncate ml-2 text-right">{selectedUser.street || "N/A"}</span>
+                  </div>
 
-                  <p>
-                    <span className="font-medium">Date of Birth:</span>{" "}
-                    {selectedUser.dateOfBirth
-                      ? new Date(selectedUser.dateOfBirth).toLocaleDateString()
-                      : "Not Provided"}
-                  </p>
+                  <div className="flex justify-between py-1.5">
+                    <span className="font-medium text-gray-500">City:</span>
+                    <span className="text-gray-900">{selectedUser.location || "N/A"}</span>
+                  </div>
 
-                  <p>
-                    <span className="font-medium">Location:</span>{" "}
-                    {selectedUser.location || "Not Provided Location"}
-                  </p>
+                  <div className="flex justify-between py-1.5">
+                    <span className="font-medium text-gray-500">State:</span>
+                    <span className="text-gray-900">{selectedUser.state || "N/A"}</span>
+                  </div>
 
-                  <p>
-                    <span className="font-medium">Street:</span>{" "}
-                    {selectedUser.street || "Not Provided Street"}
-                  </p>
+                  <div className="flex justify-between py-1.5">
+                    <span className="font-medium text-gray-500">Zip Code:</span>
+                    <span className="text-gray-900">{selectedUser.postalCode || "N/A"}</span>
+                  </div>
 
-                  <p>
-                    <span className="font-medium">Postal Code:</span>{" "}
-                    {selectedUser.postalCode || "Not Provided Postal Code"}
-                  </p>
-                  <p>
-                    <span className="font-medium">Age:</span>{" "}
-                    {selectedUser.age || "Not Provided Age"}
-                  </p>
-                  <p>
-                    <span className="font-medium">Weight:</span>{" "}
-                    {selectedUser.weight || "Not Provided Weight"}
-                  </p>
-                  <p>
-                    <span className="font-medium">Height:</span>{" "}
-                    {selectedUser.hight || "Not Provided Height"}
-                  </p>
-                  <p>
-                    <span className="font-medium">Shoe Size:</span>{" "}
-                    {selectedUser.shoeSize || "Not Provided Shoe Size"}
-                  </p>
+                  <div className="flex justify-between py-1.5">
+                    <span className="font-medium text-gray-500">Age:</span>
+                    <span className="text-gray-900">{selectedUser.age || "N/A"}</span>
+                  </div>
+
+                  <div className="flex justify-between py-1.5">
+                    <span className="font-medium text-gray-500">Height:</span>
+                    <span className="text-gray-900">{selectedUser.hight || "N/A"}</span>
+                  </div>
+
+                  <div className="flex justify-between py-1.5">
+                    <span className="font-medium text-gray-500">Weight:</span>
+                    <span className="text-gray-900">{selectedUser.weight || "N/A"}</span>
+                  </div>
+
+                  <div className="flex justify-between py-1.5">
+                    <span className="font-medium text-gray-500">Shoe Size:</span>
+                    <span className="text-gray-900">{selectedUser.shoeSize || "N/A"}</span>
+                  </div>
+                </div>
+
+                <div className="mt-6 w-full flex space-x-3">
+                  <Button
+                    onClick={() => {
+                      handleEdit(selectedUser._id);
+                      setSelectedUser(null);
+                    }}
+                    className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 rounded-lg shadow-sm transition-all"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                  <Button
+                    onClick={() => setSelectedUser(null)}
+                    variant="outline"
+                    className="flex-1 border-gray-200 text-gray-600 font-medium py-2 rounded-lg hover:bg-gray-50 transition-all"
+                  >
+                    Close
+                  </Button>
                 </div>
               </div>
             </>
@@ -565,11 +607,10 @@ export default function UsersTable() {
                   return (
                     <Button
                       key={pageNumber}
-                      className={`${
-                        pageNumber === page
-                          ? "bg-teal-600 text-white"
-                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                      }`}
+                      className={`${pageNumber === page
+                        ? "bg-teal-600 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                        }`}
                       onClick={() => setPage(pageNumber)}
                     >
                       {pageNumber}
