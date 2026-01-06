@@ -18,13 +18,15 @@ export interface User {
 
   dateOfBirth?: string;
   location?: string;
+  city?: string;
+  state?: string;
   postalCode?: string;
   street?: string;
 
-  age?: string;
-  weight?: string;
-  hight?: string;
-  shoeSize?: string;
+  age?: number | string;
+  weight?: number | string;
+  hight?: number | string;
+  shoeSize?: number | string;
 
   createdAt?: string;
   updatedAt?: string;
