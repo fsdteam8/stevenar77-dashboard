@@ -111,14 +111,14 @@ export default function UsersTable() {
     return (
       <div className="flex flex-col items-center justify-center py-6 space-y-2">
         <Loader className="animate-spin text-blue-500 h-8 w-8" />
-        <p className="text-gray-600 text-center">Loading users...</p>
+        <p className="text-gray-600 text-center">Loading Divers...</p>
       </div>
     );
 
   if (isError)
     return (
       <p className="text-center py-6 text-red-500">
-        Failed to load users. Please try again.
+        Failed to load Divers. Please try again.
       </p>
     );
 
@@ -131,7 +131,7 @@ export default function UsersTable() {
               SL No.
             </th>
             <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
-              User Name
+              Diver Name
             </th>
             <th className="px-6 py-3 text-left text-sm font-medium text-gray-700">
               Email
@@ -187,7 +187,7 @@ export default function UsersTable() {
           ) : (
             <tr>
               <td colSpan={5} className="py-4 text-center text-gray-500">
-                No users found.
+                No Divers found.
               </td>
             </tr>
           )}
@@ -199,7 +199,7 @@ export default function UsersTable() {
         <DialogContent className="max-w-lg p-6 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold text-center">
-              Edit User
+              Edit Diver
             </DialogTitle>
           </DialogHeader>
 
@@ -369,7 +369,7 @@ export default function UsersTable() {
               >
                 Cancel
               </Button>
-              <Button type="submit">Update User</Button>
+              <Button type="submit">Update Diver</Button>
             </div>
           </form>
         </DialogContent>
@@ -408,7 +408,7 @@ export default function UsersTable() {
             <>
               <DialogHeader>
                 <DialogTitle className="text-lg font-semibold text-center">
-                  User Details
+                  Diver Details
                 </DialogTitle>
               </DialogHeader>
 
