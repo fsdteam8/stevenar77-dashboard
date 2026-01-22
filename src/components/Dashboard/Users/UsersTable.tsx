@@ -408,7 +408,7 @@ export default function UsersTable() {
             <>
               <DialogHeader>
                 <DialogTitle className="text-lg font-semibold text-center">
-                  User Details
+                  Diver Details
                 </DialogTitle>
               </DialogHeader>
 
