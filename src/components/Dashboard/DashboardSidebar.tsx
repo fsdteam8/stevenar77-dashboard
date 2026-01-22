@@ -42,7 +42,7 @@ const navigation = [
   { name: "Courses", href: "/courses-management", icon: HardDrive },
   { name: "Trips", href: "/trips", icon: Ship },
   { name: "Products", href: "/products", icon: ShoppingBasket },
-  { name: "Bookings", href: "/bookings", icon: NotebookText },
+  { name: "Course Bookings", href: "/bookings", icon: NotebookText },
   { name: "Booked Trips", href: "/tripbooking", icon: TicketCheck },
   { name: "Orders", href: "/order", icon: ShoppingBag },
   { name: "Messaging", href: "/messaging", icon: MessageCircleMore },
