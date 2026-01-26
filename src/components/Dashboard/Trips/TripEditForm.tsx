@@ -51,7 +51,7 @@ const TripEditForm = () => {
         maximumCapacity: trip.maximumCapacity?.toString() || "",
         startDate: trip.startDate?.split("T")[0] || "",
         endDate: trip.endDate?.split("T")[0] || "",
-        index: trip.index ?? 0, 
+        index: trip.index ?? 0,
       });
 
       if (trip.images && trip.images.length > 0) {
@@ -112,7 +112,7 @@ const TripEditForm = () => {
         maximumCapacity: trip.maximumCapacity?.toString() || "",
         startDate: trip.startDate?.split("T")[0] || "",
         endDate: trip.endDate?.split("T")[0] || "",
-        index: trip.index ?? 0,  
+        index: trip.index ?? 0,
       });
       setImagePreview(trip.images?.[0]?.url || null);
       setImageFile(null);
@@ -188,9 +188,8 @@ const TripEditForm = () => {
                   placeholder="Write Here"
                   value={formData.title}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${
-                    errors.title ? "border-red-500" : "border-gray-300"
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${errors.title ? "border-red-500" : "border-gray-300"
+                    }`}
                 />
                 {errors.title && (
                   <p className="text-red-500 text-sm mt-1">{errors.title}</p>
@@ -238,9 +237,8 @@ const TripEditForm = () => {
                     placeholder="Write Here"
                     value={formData.price}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${
-                      errors.price ? "border-red-500" : "border-gray-300"
-                    }`}
+                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${errors.price ? "border-red-500" : "border-gray-300"
+                      }`}
                   />
                   {errors.price && (
                     <p className="text-red-500 text-sm mt-1">{errors.price}</p>
@@ -257,9 +255,8 @@ const TripEditForm = () => {
                     placeholder="Write Here"
                     value={formData.location}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${
-                      errors.location ? "border-red-500" : "border-gray-300"
-                    }`}
+                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${errors.location ? "border-red-500" : "border-gray-300"
+                      }`}
                   />
                   {errors.location && (
                     <p className="text-red-500 text-sm mt-1">
@@ -281,16 +278,47 @@ const TripEditForm = () => {
                     placeholder="Write Here Number"
                     value={formData.maximumCapacity}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${
-                      errors.maximumCapacity
-                        ? "border-red-500"
-                        : "border-gray-300"
-                    }`}
+                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${errors.maximumCapacity
+                      ? "border-red-500"
+                      : "border-gray-300"
+                      }`}
                   />
                   {errors.maximumCapacity && (
                     <p className="text-red-500 text-sm mt-1">
                       {errors.maximumCapacity}
                     </p>
+                  )}
+                  {/* Real-time Availability Preview */}
+                  {trip && (
+                    <div className="mt-2 text-xs flex gap-3">
+                      {(() => {
+                        // 1. Get Date Part
+                        const getDatePart = (dateStr?: string) => dateStr?.split("T")[0];
+                        const targetDate = getDatePart(formData.startDate);
+
+                        // 2. Count Booked
+                        const match = trip.purchasedByDate?.find(
+                          (p: { tripDate: string; totalParticipants: number }) =>
+                            getDatePart(p.tripDate) === targetDate
+                        );
+                        const booked = match?.totalParticipants || 0;
+
+                        // 3. Calc Available
+                        const inputCap = Number(formData.maximumCapacity) || 0;
+                        const available = inputCap - booked; // Allow negative for logic check
+
+                        return (
+                          <>
+                            <span className="text-gray-500">
+                              Booked <span className="text-[10px]">(this date)</span>: <span className="font-semibold text-blue-600">{booked}</span>
+                            </span>
+                            <span className={available < 0 ? "text-red-600 font-bold" : "text-green-600 font-semibold"}>
+                              Available: {available}
+                            </span>
+                          </>
+                        )
+                      })()}
+                    </div>
                   )}
                 </div>
 
@@ -304,9 +332,8 @@ const TripEditForm = () => {
                     placeholder="Trips Index here"
                     value={formData.index}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${
-                      errors.price ? "border-red-500" : "border-gray-300"
-                    }`}
+                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${errors.price ? "border-red-500" : "border-gray-300"
+                      }`}
                   />
                   {errors.price && (
                     <p className="text-red-500 text-sm mt-1">{errors.price}</p>
@@ -325,9 +352,8 @@ const TripEditForm = () => {
                     name="startDate"
                     value={formData.startDate}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${
-                      errors.startDate ? "border-red-500" : "border-gray-300"
-                    }`}
+                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${errors.startDate ? "border-red-500" : "border-gray-300"
+                      }`}
                   />
                   {errors.startDate && (
                     <p className="text-red-500 text-sm mt-1">
@@ -344,9 +370,8 @@ const TripEditForm = () => {
                     name="endDate"
                     value={formData.endDate}
                     onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${
-                      errors.endDate ? "border-red-500" : "border-gray-300"
-                    }`}
+                    className={`w-full px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-[#0694A2] ${errors.endDate ? "border-red-500" : "border-gray-300"
+                      }`}
                   />
                   {errors.endDate && (
                     <p className="text-red-500 text-sm mt-1">
@@ -358,7 +383,119 @@ const TripEditForm = () => {
             </div>
 
             {/* Right Column - Upload */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 space-y-6">
+              {/* <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">
+                  Trip Availability
+                </h3>
+
+                {trip && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">Max Capacity:</span>
+                        <span className="font-semibold text-gray-900">
+                          {trip.maximumCapacity || 0}
+                        </span>
+                      </div>
+
+                      {(() => {
+                        // Helper to get YYYY-MM-DD
+                        const getDatePart = (dateStr?: string) => dateStr?.split("T")[0];
+                        const targetDate = getDatePart(formData.startDate);
+
+                        // Count bookings for THIS date
+                        const match = trip.purchasedByDate?.find(
+                          (p: { tripDate: string; totalParticipants: number }) =>
+                            getDatePart(p.tripDate) === targetDate
+                        );
+                        const bookedForDate = match?.totalParticipants || 0;
+
+                        // Available
+                        const maxCap = Number(formData.maximumCapacity) || 0;
+                        const available = Math.max(0, maxCap - bookedForDate);
+
+                        // Status Color
+                        const isSoldOut = available === 0;
+                        const isLow = available > 0 && available <= 3;
+
+                        return (
+                          <>
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-600">Booked (This Date):</span>
+                              <span className="font-semibold text-blue-600">
+                                {bookedForDate}
+                              </span>
+                            </div>
+
+                            <div className="flex justify-between items-center text-sm pt-2 border-t mt-2">
+                              <span className="font-bold text-gray-700">Available Spots:</span>
+                              <span className={`font-bold text-lg ${isSoldOut ? "text-red-500" : isLow ? "text-orange-500" : "text-green-600"
+                                }`}>
+                                {available}
+                              </span>
+                            </div>
+
+                            {isSoldOut && (
+                              <div className="bg-red-50 text-red-700 px-3 py-2 rounded-md text-xs mt-2 border border-red-100">
+                                ⚠️ This trip is fully booked for the selected date.
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <h4 className="text-sm font-semibold text-gray-800 mb-2">
+                        Booking Records
+                      </h4>
+                      <div className="max-h-40 overflow-y-auto space-y-2 pr-1">
+                        {trip.purchasedByDate?.length > 0 ? (
+                          trip.purchasedByDate.map(
+                            (
+                              record: {
+                                tripDate: string;
+                                totalParticipants: number;
+                              },
+                              idx: number
+                            ) => {
+                              const getDatePart = (dateStr?: string) => dateStr?.split("T")[0];
+                              const isMatch = getDatePart(record.tripDate) === getDatePart(formData.startDate);
+
+                              return (
+                                <div
+                                  key={idx}
+                                  className={`flex justify-between items-center p-2 rounded text-xs border ${isMatch
+                                    ? "bg-green-50 border-green-200"
+                                    : "bg-amber-50 border-amber-200"
+                                    }`}
+                                >
+                                  <div>
+                                    <span className="block font-medium text-gray-700">
+                                      {record.tripDate ? getDatePart(record.tripDate) : "Unknown Date"}
+                                    </span>
+                                    {!isMatch && (
+                                      <span className="text-[10px] text-amber-700">
+                                        (Mismatch)
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="font-bold">
+                                    {record.totalParticipants} Pax
+                                  </span>
+                                </div>
+                              )
+                            })
+                        ) : (
+                          <p className="text-xs text-gray-500 italic">No bookings recorded yet.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div> */}
+
               <div className="bg-white p-6 rounded-lg border border-gray-200">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">
                   Upload Photo
