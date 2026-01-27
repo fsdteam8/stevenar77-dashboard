@@ -197,6 +197,17 @@ export const updateSingleTrip = async (id: string, updatedData: FormData) => {
   }
 };
 
+// Update Trip Status active/inactive
+export const updateTripStatus = async (id: string, isActive: boolean) => {
+  try {
+    const res = await api.patch(`/trip/is/active/${id}`, { isActive });
+    return res.data;
+  } catch (error) {
+    console.error("Failed to update trip status:", error);
+    throw error;
+  }
+};
+
 // types.ts (optional - better typing)
 export interface GetProductsParams {
   page?: number;
