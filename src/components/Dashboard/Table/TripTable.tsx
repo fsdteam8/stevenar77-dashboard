@@ -11,10 +11,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { deleteTrip } from "@/lib/api";
+import { deleteTrip, updateTripStatus } from "@/lib/api";
 import { toast } from "sonner";
 import TripsSkeleton from "../Trips/TripsSkeleton";
 import Link from "next/link";
+import { Switch } from "@/components/ui/switch";
 
 export type Trip = {
   _id: string;
@@ -27,6 +28,7 @@ export type Trip = {
   endDate: string;
   images?: { url: string }[];
   index: number;
+  isActive?: boolean;
 };
 
 const TripTable = () => {
@@ -58,6 +60,17 @@ const TripTable = () => {
     } catch (error) {
       console.error("Delete failed:", error);
       toast.error("Failed to delete trip. Please try again.");
+    }
+  };
+
+  const handleToggleStatus = async (trip: Trip) => {
+    try {
+      await updateTripStatus(trip._id, !trip.isActive);
+      toast.success(`Status updated: ${trip.title}`);
+      refetch?.();
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      toast.error("Failed to update status");
     }
   };
 
@@ -130,6 +143,11 @@ const TripTable = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
+                      <Switch
+                        checked={trip.isActive}
+                        onCheckedChange={() => handleToggleStatus(trip)}
+                        className="cursor-pointer mr-2"
+                      />
                       <Button
                         onClick={() => handleView(trip)}
                         className="p-1 text-teal-600 hover:text-teal-700 hover:bg-gray-200 bg-transparent rounded"
@@ -202,11 +220,10 @@ const TripTable = () => {
             <button
               key={num}
               onClick={() => setCurrentPage(num)}
-              className={`px-3 py-1 rounded ${
-                currentPage === num
-                  ? "bg-[#0694A2] hover:bg-[#0694A2] text-white"
-                  : "bg-gray-100 text-gray-700 border border-[#0694A2]"
-              }`}
+              className={`px-3 py-1 rounded ${currentPage === num
+                ? "bg-[#0694A2] hover:bg-[#0694A2] text-white"
+                : "bg-gray-100 text-gray-700 border border-[#0694A2]"
+                }`}
             >
               {num}
             </button>
