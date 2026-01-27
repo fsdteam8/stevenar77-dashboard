@@ -61,7 +61,7 @@ const CourseManageTable: React.FC<CourseManageTableProps> = ({}) => {
     try {
       await axios.put(
         `${process.env.NEXT_PUBLIC_API_URL}/class/update-status/${course._id}`,
-        { isActive: !course.isActive }, // 👉 request body
+        { isActive: !course.isActive }, 
         {
           headers: {
             Authorization: `Bearer ${session?.data?.accessToken || ""}`,
